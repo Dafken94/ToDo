@@ -1,0 +1,2096 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0c1e35">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" sizes="192x192" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Dossiers">
+<title>Mijn Dossiers</title>
+<style>
+:root{--bg:#f0f2f5;--bg2:#fff;--bg3:#f8fafc;--bg4:#f1f5f9;--border:#e2e8f0;--border2:#cbd5e1;--text:#0f172a;--text2:#475569;--text3:#94a3b8;--sb-bg:#0c1e35;--sb-text:#a8c8e0;--sb-act:#93c5fd;--sb-hover:rgba(255,255,255,.07);--sb-on:rgba(59,130,246,.18);--sb-sec:#2d5a7a;--sb-div:rgba(255,255,255,.08);--sb-badge-bg:rgba(255,255,255,.08);--sb-badge-on:rgba(59,130,246,.3);--topbar:#fff;--topbar-border:#e2e8f0;--stat-val:#0c1e35;--prog-bg:#e2e8f0;--tchk-border:#cbd5e1;--tchk-bg:#fff;--modal-bg:#fff;--overlay:rgba(10,20,40,.6);--vbtn-bg:#fff;--vbtn-on:#0c1e35;--vbtn-on-text:#fff;--input-bg:#fff;--input-border:#cbd5e1;--done-bg:#f0fdf4;--over-bg:#fff5f5;--ext-ok-bg:#f0fdf4;--ext-wait-bg:#fffbeb;--shadow:rgba(0,0,0,.08);--accent:#3b82f6;--btn-edit-bg:#fff;--btn-edit-border:#cbd5e1;--btn-edit-text:#374151;--btn-del-bg:#fee2e2;--btn-del-border:#fca5a5;--btn-del-text:#7f1d1d;--badge-ok-bg:#dcfce7;--badge-ok-text:#14532d;--badge-ok-border:#86efac;--badge-err-bg:#fee2e2;--badge-err-text:#7f1d1d;--badge-err-border:#fca5a5;--badge-warn-bg:#fff7ed;--badge-warn-text:#7c2d12;--badge-warn-border:#fed7aa}
+[data-theme="dark"]{--bg:#131c27;--bg2:#1c2839;--bg3:#1e2d3d;--bg4:#243347;--border:#2a3a4f;--border2:#2e4058;--text:#f1f5f9;--text2:#b8c8d8;--text3:#8aaac4;--sb-bg:#0a1520;--sb-text:#7aaac8;--sb-act:#60a5fa;--sb-hover:rgba(255,255,255,.05);--sb-on:rgba(59,130,246,.15);--sb-sec:#1e4060;--sb-div:rgba(255,255,255,.06);--sb-badge-bg:rgba(255,255,255,.06);--sb-badge-on:rgba(59,130,246,.25);--topbar:#1c2839;--topbar-border:#2a3a4f;--stat-val:#93c5fd;--prog-bg:#2a3a4f;--tchk-border:#2e4058;--tchk-bg:#1e2d3d;--modal-bg:#1c2839;--overlay:rgba(0,5,15,.75);--vbtn-bg:#1e2d3d;--vbtn-on:#93c5fd;--vbtn-on-text:#0a1520;--input-bg:#1e2d3d;--input-border:#2e4058;--done-bg:#0d2418;--over-bg:#2a1515;--ext-ok-bg:#0d2418;--ext-wait-bg:#1c1a00;--shadow:rgba(0,0,0,.4);--accent:#60a5fa;--btn-edit-bg:#1e2d3d;--btn-edit-border:#2e4058;--btn-edit-text:#cbd5e1;--btn-del-bg:#2a1515;--btn-del-border:#7f1d1d;--btn-del-text:#fca5a5;--badge-ok-bg:#0d2e1a;--badge-ok-text:#86efac;--badge-ok-border:#166534;--badge-err-bg:#2d0f0f;--badge-err-text:#fca5a5;--badge-err-border:#7f1d1d;--badge-warn-bg:#2a1500;--badge-warn-text:#fdba74;--badge-warn-border:#92400e}
+*{box-sizing:border-box;margin:0;padding:0}
+html{overflow-x:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);transition:background .25s,color .25s;overflow-x:hidden;max-width:100vw}
+.wrap{display:flex;min-height:100vh;max-width:100vw;overflow-x:hidden}
+.main{flex:1;display:flex;flex-direction:column;min-width:0;max-width:100%;overflow-x:hidden;margin-left:220px;transition:margin-left .3s}
+.sidebar{width:220px;flex-shrink:0;background:var(--sb-bg);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;overflow-y:auto;overflow-x:hidden;transition:background .25s,transform .3s,width .3s;z-index:60;padding-top:env(safe-area-inset-top)}
+.sidebar.collapsed{width:0;overflow:hidden}
+.main.sb-collapsed{margin-left:0}
+.sb-logo{padding:14px 14px 10px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.sb-logo-title{font-size:14px;font-weight:800;color:#e8f0fe}
+.sb-logo-sub{font-size:10px;color:var(--sb-text);font-weight:600;margin-top:1px}
+.sb-newbtn{margin:10px 10px 4px;padding:8px;background:#2563eb;color:#fff;border:none;border-radius:8px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:700;text-align:center;transition:background .15s;width:calc(100% - 20px)}
+.sb-newbtn:hover{background:#1d4ed8}
+.sb-section{padding:8px 14px 3px;font-size:9px;font-weight:700;color:var(--sb-text);text-transform:uppercase;letter-spacing:.08em;flex-shrink:0}
+.sb-item{display:flex;align-items:center;gap:7px;padding:7px 14px;border:none;background:none;cursor:pointer;color:var(--sb-text);font-family:inherit;font-weight:600;font-size:12px;text-align:left;transition:background .15s,color .15s;width:100%;border-left:3px solid transparent;flex-shrink:0;min-width:0}
+.sb-item:hover{background:var(--sb-hover);color:#c8dff0}
+.sb-item.on{background:var(--sb-on);color:var(--sb-act);border-left:3px solid #3b82f6;padding-left:11px}
+.sb-badge{flex-shrink:0;background:var(--sb-badge-bg);color:var(--sb-sec);font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;margin-left:auto}
+.sb-item.on .sb-badge{background:var(--sb-badge-on);color:var(--sb-act)}
+.sb-div{height:1px;background:var(--sb-div);margin:6px 14px;flex-shrink:0}
+.sb-cats{overflow-y:auto;overflow-x:hidden;flex:1}
+.sb-ic{flex:0 0 20px;display:flex;align-items:center;justify-content:center;font-size:12px;overflow:hidden}
+.sb-bottom{flex-shrink:0;padding:12px 14px;border-top:1px solid var(--sb-div);display:flex;align-items:center;justify-content:space-between;gap:8px}
+.sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:55}
+.theme-toggle{background:var(--sb-hover);border:1px solid var(--sb-div);border-radius:6px;cursor:pointer;padding:4px 10px;font-size:11px;font-weight:700;color:var(--sb-text);font-family:inherit;transition:all .15s;white-space:nowrap}
+.theme-toggle:hover{background:rgba(255,255,255,.12);color:#c8dff0}
+.topbar{background:var(--topbar);border-bottom:1px solid var(--topbar-border);padding:9px 14px;padding-top:calc(9px + env(safe-area-inset-top));padding-left:calc(14px + env(safe-area-inset-left));padding-right:calc(14px + env(safe-area-inset-right));display:flex;align-items:center;gap:8px;position:sticky;top:0;z-index:40;transition:background .25s;min-width:0;width:100%}
+.topbar-title{font-size:14px;font-weight:700;color:var(--text);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hamburger{display:block;background:none;border:none;cursor:pointer;font-size:20px;color:var(--text);padding:2px 6px;flex-shrink:0}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:#1e293b;color:#f1f5f9;padding:9px 20px;border-radius:20px;font-size:13px;font-weight:700;z-index:9999;transition:transform .3s,opacity .3s;opacity:0;pointer-events:none;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.3)}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.banner-dringend{margin-bottom:10px;padding:9px 14px;background:var(--badge-err-bg);border:1px solid var(--badge-err-border);border-radius:8px;font-size:12px;font-weight:700;color:var(--badge-err-text);display:flex;align-items:center;gap:6px}
+.content{padding:12px 14px;flex:1;min-width:0;width:100%}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.stat{background:var(--bg2);border-radius:8px;border:1px solid var(--border);padding:9px 12px;transition:background .25s;min-width:0}
+.stat-lbl{font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px;font-weight:700}
+.stat-val{font-size:20px;font-weight:800;color:var(--text);line-height:1}
+.stat-sub{font-size:10px;color:var(--text3);margin-top:2px}
+.toolbar{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center;min-width:0}
+.search-wrap{position:relative;flex:1;min-width:140px}
+.search-wrap .si{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--text2);pointer-events:none;font-size:14px}
+.search-wrap input{padding-left:28px;width:100%;height:33px;border:1.5px solid var(--input-border);border-radius:7px;background:var(--input-bg);color:var(--text);font-size:13px;font-weight:500;font-family:inherit;transition:background .25s,color .25s}
+.search-wrap input:focus{outline:none;border-color:#3b82f6}
+.view-toggle{display:flex;border:1.5px solid var(--border2);border-radius:7px;overflow:hidden;flex-shrink:0}
+.vbtn{padding:4px 9px;border:none;background:var(--vbtn-bg);cursor:pointer;color:var(--text2);font-size:13px;font-family:inherit;transition:all .15s}
+.vbtn.on{background:var(--vbtn-on);color:var(--vbtn-on-text)}
+.dgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
+.dcard-naam{font-size:13px;font-weight:800;margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:50px;color:var(--text)}
+.dcard{background:var(--bg2);border-radius:9px;border:1px solid var(--border);display:flex;overflow:hidden;cursor:pointer;position:relative;transition:box-shadow .15s,border-color .15s,background .25s;min-width:0;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.dcard:hover{box-shadow:0 4px 16px var(--shadow);border-color:#3b82f6}
+.dcard.closed{opacity:.45;filter:saturate(.2)}
+.daccent{width:4px;flex-shrink:0}
+.dbody{padding:9px 11px;flex:1;min-width:0}
+.dacts{position:absolute;top:7px;right:7px;display:flex;gap:3px;opacity:0;transition:opacity .15s}
+.dcard:hover .dacts{opacity:1}
+.prog{background:var(--prog-bg);border-radius:3px;height:4px;overflow:hidden;margin-top:5px}
+.prog-fill{height:4px;border-radius:3px}
+.dlist{display:flex;flex-direction:column;gap:6px;width:100%}
+.dlist-row{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border:1px solid var(--border);border-radius:9px;background:var(--bg2);cursor:pointer;transition:background .12s;overflow:hidden;gap:12px;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.dlist-row:hover{background:var(--bg3)}
+.dlist-row.closed{opacity:.45;filter:saturate(.2)}
+.dtop{background:var(--bg2);border-radius:9px;border:1px solid var(--border);margin-bottom:12px;overflow:hidden;transition:background .25s}
+.dinfo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px}
+.dinfo{background:var(--bg3);border-radius:6px;padding:7px 10px;border:1px solid var(--border)}
+.dinfo-lbl{font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;font-weight:700;margin-bottom:2px}
+.dinfo-val{font-size:12px;font-weight:700;color:var(--text)}
+.mini-stats{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.mini-stat{background:var(--bg3);border-radius:6px;padding:6px 12px;border:1px solid var(--border);text-align:center;flex:1;min-width:60px}
+.tsectie{background:var(--bg2);border-radius:9px;border:1px solid var(--border);overflow:hidden;transition:background .25s}
+.thdr{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg3);gap:8px}
+.twrap{border:1px solid var(--border);border-radius:8px;margin-bottom:6px;transition:background .25s}
+.twrap:last-child{margin-bottom:0}
+.twrap.drag-over{outline:2px dashed var(--accent);outline-offset:-2px;background:var(--bg3)!important}
+.twrap.dragging{opacity:.4}
+.drag-hdl{cursor:grab;color:var(--text3);font-size:15px;padding:0 8px 0 2px;user-select:none;flex-shrink:0;display:flex;align-items:center;touch-action:none}
+.twrap.tdone{background:rgba(22,163,74,0.18)}
+.twrap.topen{background:rgba(245,158,11,0.18)}
+.twrap.tover{background:var(--over-bg)}
+.tmain{display:flex;min-width:0}
+.tpbar{width:4px;flex-shrink:0}
+.tcont{padding:8px 10px;flex:1;min-width:0}
+.trow1{display:flex;align-items:flex-start;gap:7px;min-width:0}
+.trow-actions{display:flex;gap:3px;flex-shrink:0;align-items:center;margin-top:1px}
+.tchk{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--tchk-border);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;background:var(--tchk-bg);font-size:10px;transition:all .15s;margin-top:1px}
+.tchk.on{background:#16a34a;border-color:#16a34a;color:#fff}
+.tmeta{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px}
+.exttog{display:flex;align-items:center;gap:6px;padding:7px 10px;font-size:11px;font-weight:700;color:var(--text2);cursor:pointer;background:none;border:none;border-top:1px dashed var(--border);font-family:inherit;width:100%;transition:background .15s}
+.exttog:hover{background:var(--bg3)}
+.extblk{padding:6px 10px 8px 10px}
+.ext-item{display:flex;border-radius:8px;overflow:hidden;border:1px solid var(--border);margin-bottom:6px;background:var(--bg2)}
+.ext-item.ok{border-color:var(--badge-ok-border);background:var(--ext-ok-bg)}
+.ext-item.wait{border-color:var(--badge-warn-border);background:var(--ext-wait-bg)}
+.ext-bar{width:4px;flex-shrink:0}
+.ext-bar.ok{background:#16a34a}
+.ext-bar.wait{background:#f59e0b}
+.ext-body{padding:7px 9px;flex:1;min-width:0}
+.ext-naam{font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ext-meta{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.ext-actions{display:flex;flex-direction:column;gap:3px;padding:6px 7px;justify-content:center;flex-shrink:0}
+.ext-add{padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:7px;margin-top:4px}
+.ext-add-toggle{display:inline-flex;align-items:center;gap:5px;background:#2563eb;border:none;border-radius:6px;font-family:inherit;font-size:11px;font-weight:700;color:#fff;cursor:pointer;padding:5px 11px;transition:opacity .15s}
+.ext-add-toggle:hover{opacity:.85}
+.ext-add-form{margin-top:8px;display:flex;flex-direction:column;gap:6px}
+.ext-add-row{display:flex;gap:6px;flex-wrap:wrap;align-items:flex-end}
+.ext-add-row select,.ext-add-row input{font-size:12px;border:1.5px solid var(--input-border);border-radius:5px;padding:5px 7px;background:var(--input-bg);font-family:inherit;color:var(--text);font-weight:500;min-width:0}
+.ext-add-row select{flex:1;min-width:100px}
+.ext-add-row input[type=text]{flex:1;min-width:80px}
+.ext-add-row input[type=date]{width:130px;flex-shrink:0}
+.ov{display:none;position:fixed;inset:0;background:var(--overlay);z-index:100;align-items:center;justify-content:center;padding:16px}
+.ov.show{display:flex}
+.ob{background:var(--modal-bg);border-radius:12px;padding:18px;width:100%;max-width:460px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px var(--shadow);transition:background .25s}
+.ob-title{font-size:15px;font-weight:800;color:var(--text);margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.fr{margin-bottom:9px}
+.fr label{font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:3px}
+.fr input,.fr select,.fr textarea{font-family:inherit;font-size:13px;font-weight:500;border:1.5px solid var(--input-border);border-radius:6px;padding:7px 10px;background:var(--input-bg);color:var(--text);width:100%;transition:background .25s,color .25s}
+.fr input:focus,.fr select:focus,.fr textarea:focus{outline:none;border-color:#3b82f6;box-shadow:0 0 0 2px rgba(59,130,246,.15)}
+.f-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px;padding-top:10px;border-top:1px solid var(--border)}
+.conf-ov{display:none;position:fixed;inset:0;background:var(--overlay);z-index:200;align-items:center;justify-content:center;padding:16px}
+.conf-ov.show{display:flex}
+.conf-box{background:var(--modal-bg);border-radius:10px;padding:20px;max-width:300px;width:100%;box-shadow:0 12px 40px var(--shadow)}
+.empty{text-align:center;padding:3rem 1rem;color:var(--text3)}
+.empty p{font-size:13px;font-weight:600;margin-top:8px}
+.sw{width:8px;height:8px;border-radius:2px;display:inline-block;flex-shrink:0}
+.btn{cursor:pointer;font-family:inherit;font-size:12px;font-weight:700;border-radius:6px;padding:5px 11px;display:inline-flex;align-items:center;gap:4px;line-height:1;transition:opacity .15s;white-space:nowrap;border:none}
+.btn:hover{opacity:.85}
+.btn-blue{background:#2563eb;color:#fff}
+.btn-white{background:var(--btn-edit-bg);color:var(--btn-edit-text);border:1.5px solid var(--btn-edit-border)}
+.btn-red{background:var(--btn-del-bg);color:var(--btn-del-text);border:1.5px solid var(--btn-del-border)}
+.btn-green{background:var(--badge-ok-bg);color:var(--badge-ok-text);border:1.5px solid var(--badge-ok-border)}
+.btn-sm{font-size:11px;padding:3px 8px}
+.fr textarea{resize:none}
+#mo-e.ov{z-index:150}
+#bg-deco{display:none}
+@media(max-width:768px){.sidebar{transform:translateX(-100%);position:fixed;height:100vh}.sidebar.open{transform:translateX(0)}.sb-overlay.open{display:block}.main{margin-left:0;max-width:100vw}.dgrid{grid-template-columns:1fr}.dinfo-grid{grid-template-columns:repeat(3,1fr)}.stats{grid-template-columns:repeat(3,1fr)}.content{padding:10px 12px}.fr input,.fr select{font-size:16px!important;height:48px;box-sizing:border-box}.fr textarea{font-size:16px!important}.fr input[type=date]{-webkit-appearance:none;appearance:none;text-align:left;padding:0 10px;line-height:48px}.dtop-hdr{flex-direction:column;align-items:flex-start;gap:8px}.dtop-hdr>div:last-child{display:grid!important;grid-template-columns:1fr 1fr;gap:6px;width:100%}.dtop-hdr>div:last-child button{flex:none;min-width:0;width:100%;justify-content:center;min-height:40px}.dtop-hdr>div:last-child button:only-child{grid-column:1/-1}.ob{padding:14px;border-radius:10px}.ov{padding:10px}.trow-actions{flex-wrap:wrap}.topbar{flex-wrap:wrap;gap:6px}.ext-add-row{flex-wrap:wrap}.ext-add-row input[type=date]{width:100%;flex:1}.dlist-row{flex-wrap:wrap}.mini-stats{gap:4px}.mini-stat{min-width:0;padding:5px 8px}.ext-naam{white-space:normal;word-break:break-word}.dcard-naam{white-space:normal;word-break:break-word}.tmeta{gap:3px}.dash-action-grid{grid-template-columns:1fr!important}.dash-kpi-grid{grid-template-columns:repeat(2,1fr)!important}.dcard:hover{box-shadow:none;border-color:var(--border)}.dacts{opacity:1}.dcard:hover .dacts{opacity:1}}
+@media(max-width:360px){.stat-val{font-size:17px}.dinfo-grid{grid-template-columns:1fr 1fr}}
+/* ===== MOBIEL: touch-targets, leesbaarheid, iOS-zoom ===== */
+@media(max-width:768px){
+  .trow-actions{gap:6px}
+  .trow-actions button{min-width:42px;min-height:42px;font-size:15px;display:inline-flex;align-items:center;justify-content:center}
+  .tchk{width:24px;height:24px;font-size:14px}
+  .drag-hdl{padding:0 12px 0 4px;font-size:18px}
+  button[title="Taak afvinken"]{min-width:42px;min-height:42px;font-size:16px}
+  .hamburger{min-width:44px;min-height:44px;padding:0;display:inline-flex;align-items:center;justify-content:center}
+  .search-wrap input{height:44px;font-size:16px}
+  #login-ov input,#pw-ov input,.ext-add-row input,.ext-add-row select{font-size:16px!important}
+  .dcard-naam{font-size:14px}
+  .dlist-row [style*="font-family:monospace"]{font-size:12px}
+  .stat-lbl,.dinfo-lbl{font-size:10px}
+  .dinfo-grid{grid-template-columns:1fr 1fr}
+  .dtop-hdr>div:last-child button{min-height:40px}
+  .vbtn{min-height:40px;padding:8px 14px}
+}
+</style>
+</head>
+<body>
+<div id="toast"></div>
+<div class="ov" id="mo-d">
+  <div class="ob">
+    <div class="ob-title" id="mo-d-t">Dossier</div>
+    <div class="fr"><label>Naam *</label><input id="f-naam" placeholder="bijv. Zaak Van den Berg" style="text-transform:uppercase"></div>
+    <div class="fr"><label>Aanmaakdatum</label><input id="f-datum" type="date"></div>
+    <div class="fr"><label>Notitie</label><textarea id="f-not" rows="2" placeholder="Extra informatie..."></textarea></div>
+    <div id="f-eerste-feit-blok">
+      <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;margin:10px 0 8px;padding-top:10px;border-top:1px solid var(--border)">Eerste feit</div>
+      <div class="fr"><label>PV-nummer *</label><input id="f-pv" placeholder="__.__.__.______/____" oninput="pvInput()" style="text-transform:uppercase"><span id="pv-hint" style="font-size:11px;color:var(--text3);margin-top:3px;display:block"></span></div>
+      <div class="fr"><label>Categorie *</label><select id="f-cat"></select></div>
+      <div class="fr"><label>Datum feit (van) *</label><input id="f-fdat-van" type="date"></div>
+      <div class="fr"><label>Datum feit (tot, optioneel)</label><input id="f-fdat-tot" type="date"></div>
+    </div>
+    <div class="f-actions"><button class="btn btn-white" onclick="CM('mo-d')">Annuleren</button><button class="btn btn-blue" onclick="saveDos()">Opslaan</button></div>
+  </div>
+</div>
+<div class="ov" id="mo-t">
+  <div class="ob">
+    <div class="ob-title" id="mo-t-t">Taak</div>
+    <div class="fr"><label>Titel *</label><input id="t-ti" placeholder="Omschrijving van de taak"></div>
+    <div class="fr"><label>Prioriteit</label><select id="t-pr"><option value="hoog">Hoog</option><option value="midden">Midden</option><option value="laag" selected>Laag</option></select></div>
+    <div class="fr"><label>Datum taak</label><input id="t-da" type="date"></div>
+    <div class="fr"><label>Deadline (optioneel)</label><input id="t-dl" type="date"></div>
+    <div class="fr"><label>NPV (optioneel)</label><input id="t-npv" placeholder="002244/2026" oninput="npvInput()" maxlength="11" style="font-family:monospace;letter-spacing:.05em"><span id="npv-hint" style="font-size:11px;color:var(--text3);margin-top:3px;display:block"></span></div>
+    <div class="fr" id="t-gd-row" style="display:none"><label>Voltooid op</label><input id="t-gd" type="date"></div>
+    <div class="fr"><label>Notitie</label><textarea id="t-no" rows="2" placeholder="Extra details..."></textarea></div>
+    <div class="fr" id="t-assign-row" style="display:none"><label>Toegewezen aan</label><div id="t-assign-chips" style="display:flex;flex-wrap:wrap;gap:6px;padding:2px 0"></div></div>
+    <div class="f-actions"><button class="btn btn-white" onclick="CM('mo-t')">Annuleren</button><button class="btn btn-blue" onclick="saveTaak()">Opslaan</button></div>
+  </div>
+</div>
+<div class="ov" id="mo-e">
+  <div class="ob">
+    <div class="ob-title">Externe factor bewerken</div>
+    <div class="fr"><label>Categorie *</label>
+      <select id="e-cat" onchange="extSubUpdate()">
+        <option value="">-- Kies --</option>
+        <option value="bank">🏦 Bank</option><option value="telecom">📡 Telecom</option>
+        <option value="parket">⚖️ Parket</option><option value="or">🔍 Onderzoeksrechter</option><option value="andere">📝 Andere</option>
+        <option value="pz">🚔 Politiezone</option>
+      </select>
+    </div>
+    <div class="fr" id="e-sub-w" style="display:none"><label id="e-sub-l">Keuze</label>
+      <select id="e-sub" onchange="extVrijCheck()"></select>
+      <input id="e-sub-vrij" type="text" placeholder="Vrije tekst..." style="display:none;margin-top:6px;border:1.5px solid #f59e0b;border-radius:6px;padding:7px 10px;background:var(--input-bg);color:var(--text);width:100%;font-family:inherit;font-size:13px">
+    </div>
+    <div class="fr" id="e-vrij-w" style="display:none"><label id="e-vrij-l">Naam</label><input id="e-vrij" placeholder=""></div>
+    <div class="fr"><label>Aanvraagdatum</label><input id="e-aa" type="date"></div>
+    <div class="fr"><label>Ontvangstdatum <span style="color:var(--text3);font-weight:400;text-transform:none">(leeg = nog niet)</span></label><input id="e-on" type="date"></div>
+    <div class="f-actions"><button class="btn btn-white" onclick="CM('mo-e')">Annuleren</button><button class="btn btn-blue" onclick="saveExt()">Opslaan</button></div>
+  </div>
+</div>
+<div class="ov" id="mo-ext">
+  <div class="ob" id="mo-ext-body"></div>
+</div>
+<div class="ov" id="mo-f">
+  <div class="ob">
+    <div class="ob-title" id="mo-f-t">Feit toevoegen</div>
+    <div class="fr"><label>PV-nummer *</label><input id="ff-pv" placeholder="__.__.__.______/____" oninput="feitPvInput()" style="text-transform:uppercase"><span id="ff-pv-hint" style="font-size:11px;color:var(--text3);margin-top:3px;display:block"></span></div>
+    <div class="fr"><label>Categorie *</label><select id="ff-cat"></select></div>
+    <div class="fr"><label>Datum feit (van) *</label><input id="ff-dat-van" type="date"></div>
+    <div class="fr"><label>Datum feit (tot, optioneel)</label><input id="ff-dat-tot" type="date"></div>
+    <div class="fr"><label>Notitie</label><textarea id="ff-not" rows="2" placeholder="Toelichting bij dit feit..."></textarea></div>
+    <div class="f-actions"><button class="btn btn-white" onclick="CM('mo-f')">Annuleren</button><button class="btn btn-blue" onclick="saveF()">Opslaan</button></div>
+  </div>
+</div>
+<div class="ov" id="mo-link">
+  <div class="ob" style="max-width:520px">
+    <div class="ob-title">Dossier koppelen</div>
+    <div id="mo-link-body"></div>
+  </div>
+</div>
+<div class="ov" id="mo-share">
+  <div class="ob" style="max-width:480px">
+    <div class="ob-title" id="mo-share-t">👥 Dossier delen</div>
+    <div id="mo-share-body"></div>
+  </div>
+</div>
+<div class="ov" id="mo-username" style="display:none">
+  <div class="ob" style="max-width:400px">
+    <div class="ob-title" id="mo-username-t">Gebruikersnaam instellen</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:14px">Kies een naam die zichtbaar is voor collega's bij het delen van dossiers.</div>
+    <div class="fr"><label>Gebruikersnaam *</label><input id="inp-username" placeholder="bijv. Jan Peeters" maxlength="40" onkeydown="if(event.key==='Enter')saveUsername()"></div>
+    <div id="username-hint" style="font-size:11px;margin-top:-8px;margin-bottom:8px;min-height:16px"></div>
+    <div class="f-actions"><button class="btn btn-blue" onclick="saveUsername()">Opslaan</button></div>
+  </div>
+</div>
+<div class="conf-ov" id="conf">
+  <div class="conf-box">
+    <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px" id="conf-m">Zeker?</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:16px" id="conf-s"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-white" onclick="confNo()">Annuleren</button>
+      <button class="btn btn-red" onclick="confYes()">Verwijderen</button>
+    </div>
+  </div>
+</div>
+<div id="login-ov" style="display:flex;position:fixed;inset:0;background:var(--bg);z-index:9999;align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:32px 26px;width:100%;max-width:320px;box-shadow:0 20px 60px var(--shadow)">
+    <div style="text-align:center;margin-bottom:26px">
+      <div style="font-size:20px;font-weight:800;color:var(--text);margin-bottom:4px">Mijn Dossiers</div>
+      <div style="font-size:12px;color:var(--text2)">Meld aan om verder te gaan</div>
+    </div>
+    <div style="margin-bottom:10px">
+      <label style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:3px">E-mailadres</label>
+      <input id="l-em" type="email" placeholder="naam@police.belgium.eu" autocomplete="email" style="width:100%;padding:9px 12px;border:1.5px solid var(--input-border);border-radius:7px;background:var(--input-bg);color:var(--text);font-family:inherit;font-size:14px;box-sizing:border-box" onkeydown="if(event.key==='Enter')document.getElementById('l-pw').focus()">
+    </div>
+    <div style="margin-bottom:8px">
+      <label style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:3px">Wachtwoord</label>
+      <input id="l-pw" type="password" placeholder="••••••••" autocomplete="current-password" style="width:100%;padding:9px 12px;border:1.5px solid var(--input-border);border-radius:7px;background:var(--input-bg);color:var(--text);font-family:inherit;font-size:14px;box-sizing:border-box" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div id="l-err" style="font-size:12px;color:#dc2626;min-height:18px;margin-bottom:6px"></div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+      <input type="checkbox" id="l-rem" checked style="width:15px;height:15px;cursor:pointer;accent-color:#2563eb;flex-shrink:0">
+      <label for="l-rem" style="font-size:12px;color:var(--text2);cursor:pointer;user-select:none">Aangemeld blijven op dit apparaat</label>
+    </div>
+    <button id="l-btn" onclick="doLogin()" style="width:100%;padding:11px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;transition:opacity .15s">Aanmelden</button>
+  </div>
+</div>
+<div id="pw-ov" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9998;align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:28px 24px;width:100%;max-width:320px;box-shadow:0 20px 60px var(--shadow)">
+    <div style="font-size:16px;font-weight:800;color:var(--text);margin-bottom:20px">🔑 Wachtwoord wijzigen</div>
+    <div style="margin-bottom:10px">
+      <label style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:3px">Huidig wachtwoord</label>
+      <input id="pw-cur" type="password" placeholder="••••••••" autocomplete="current-password" style="width:100%;padding:9px 12px;border:1.5px solid var(--input-border);border-radius:7px;background:var(--input-bg);color:var(--text);font-family:inherit;font-size:14px;box-sizing:border-box">
+    </div>
+    <div style="margin-bottom:10px">
+      <label style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:3px">Nieuw wachtwoord</label>
+      <input id="pw-new" type="password" placeholder="••••••••" autocomplete="new-password" style="width:100%;padding:9px 12px;border:1.5px solid var(--input-border);border-radius:7px;background:var(--input-bg);color:var(--text);font-family:inherit;font-size:14px;box-sizing:border-box">
+    </div>
+    <div style="margin-bottom:8px">
+      <label style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:3px">Herhaal nieuw wachtwoord</label>
+      <input id="pw-new2" type="password" placeholder="••••••••" autocomplete="new-password" style="width:100%;padding:9px 12px;border:1.5px solid var(--input-border);border-radius:7px;background:var(--input-bg);color:var(--text);font-family:inherit;font-size:14px;box-sizing:border-box" onkeydown="if(event.key==='Enter')doPwChange()">
+    </div>
+    <div id="pw-err" style="font-size:12px;color:#dc2626;min-height:18px;margin-bottom:12px"></div>
+    <div style="display:flex;gap:8px">
+      <button onclick="document.getElementById('pw-ov').style.display='none'" style="flex:1;padding:10px;background:var(--bg3);color:var(--text2);border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer">Annuleren</button>
+      <button id="pw-btn" onclick="doPwChange()" style="flex:1;padding:10px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">Wijzigen</button>
+    </div>
+  </div>
+</div>
+<div id="root"></div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" onerror="window._fbLoadErr=true"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js" onerror="window._fbLoadErr=true"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js" onerror="window._fbLoadErr=true"></script>
+<script>
+(function(){try{if(localStorage.getItem('auth_state')==='logged_in'){var lo=document.getElementById('login-ov');if(lo)lo.style.opacity='0';}}catch(e){}})();
+var CATS=[
+  {id:'12',label:'12 - Winkeldiefstal',color:'#b45309'},
+  {id:'14',label:'14 - Huisdiefstal',color:'#c2410c'},
+  {id:'18A',label:'18A - Gewone diefstal',color:'#92400e'},
+  {id:'18B',label:'18B - Zakkenrollerij',color:'#d97706'},
+  {id:'18C',label:'18C - Velddiefstal met verzwarende omstandigheden',color:'#a16207'},
+  {id:'18D',label:'18D - Ongeoorloofde aansluiting (tv, gas, elektriciteit)',color:'#854d0e'},
+  {id:'18E',label:'18E - Gewone fiets- of motodiefstal',color:'#713f12'},
+  {id:'18F',label:'18F - Poging tot gewone diefstal',color:'#78350f'},
+  {id:'18G',label:'18G - Gewone diefstal van auto',color:'#7c2d12'},
+  {id:'11A',label:'11A - Diefstal door middel van geweld of bedreiging',color:'#dc2626'},
+  {id:'11B',label:'11B - Diefstal waarbij wapens werden getoond of gebruikt',color:'#b91c1c'},
+  {id:'11C',label:'11C - Afpersing',color:'#991b1b'},
+  {id:'11F',label:'11F - Carjacking',color:'#7f1d1d'},
+  {id:'11G',label:'11G - Homejacking',color:'#450a0a'},
+  {id:'17A',label:'17A - Diefstal door middel van braak, inklimming of valse sleutels',color:'#ea580c'},
+  {id:'17B',label:'17B - Diefstal met inbraak in woningen',color:'#c2410c'},
+  {id:'17C',label:'17C - Poging tot diefstal door middel van braak',color:'#9a3412'},
+  {id:'17D',label:'17D - Autodiefstal door middel van braak',color:'#7c2d12'},
+  {id:'17G',label:'17G - Ramkraak',color:'#431407'},
+  {id:'17H',label:'17H - Diefstal in wagen',color:'#6b1414'},
+  {id:'47',label:'47 - Opzettelijke brandstichting',color:'#f97316'},
+  {id:'50A',label:'50A - Vernieling van afsluiting',color:'#fb923c'},
+  {id:'50B',label:'50B - Beschadigingen - vernielingen in het algemeen',color:'#fdba74'},
+  {id:'50F',label:'50F - Graffiti en beschadiging van onroerende eigendommen',color:'#fed7aa'},
+  {id:'27B',label:'27B - Witwassen',color:'#155e75'},
+  {id:'20I',label:'20I - Computermisdrijven',color:'#0e7490'},
+  {id:'20J',label:'20J - Informaticabedrog (gestolen kredietkaarten)',color:'#0891b2'},
+  {id:'20K',label:'20K - Ongeoorloofde toegang tot informaticasystemen',color:'#06b6d4'},
+  {id:'20L',label:'20L - Data- of informaticasabotage',color:'#67e8f9'},
+  {id:'19',label:'19 - Uitgifte van cheque zonder dekking',color:'#164e63'},
+  {id:'20A',label:'20A - Verduistering',color:'#1e3a5f'},
+  {id:'20B',label:'20B - Misbruik van vertrouwen',color:'#1d4ed8'},
+  {id:'20D',label:'20D - Oplichting',color:'#1e40af'},
+  {id:'20E',label:'20E - Sneeuwbaleffect',color:'#1d4ed8'},
+  {id:'26',label:'26 - Afzetterij',color:'#1a56db'},
+  {id:'72',label:'72 - Bedrieglijk onvermogen',color:'#1e3a5f'},
+  {id:'30A',label:'30A - Moord',color:'#7f1d1d'},
+  {id:'30B',label:'30B - Doodslag',color:'#991b1b'},
+  {id:'30D',label:'30D - Poging moord of poging doodslag',color:'#b91c1c'},
+  {id:'44',label:'44 - Onopzettelijke doding (uitgezonderd verkeer)',color:'#dc2626'},
+  {id:'43A',label:'43A - Opzettelijke slagen en verwondingen',color:'#dc2626'},
+  {id:'43C',label:'43C - Aanranding',color:'#e11d48'},
+  {id:'43D',label:'43D - Kindermishandeling',color:'#be123c'},
+  {id:'43F',label:'43F - Foltering',color:'#9f1239'},
+  {id:'43B',label:'43B - Schuldig verzuim hulp te verlenen',color:'#881337'},
+  {id:'46A',label:'46A - Onopzettelijke slagen en verwondingen',color:'#fda4af'},
+  {id:'40A',label:'40A - Wederrechtelijke opsluiting',color:'#6d28d9'},
+  {id:'40B',label:'40B - Ontvoering van meerder- en minderjarigen',color:'#7c3aed'},
+  {id:'40C',label:'40C - Verdwijning',color:'#8b5cf6'},
+  {id:'52A',label:'52A - Beledigingen',color:'#a78bfa'},
+  {id:'52B',label:'52B - Laster',color:'#c4b5fd'},
+  {id:'52D',label:'52D - Schending van het beroepsgeheim',color:'#7c3aed'},
+  {id:'52H',label:'52H - Onwettig afluisteren van prive- en telecommunicatie',color:'#6d28d9'},
+  {id:'53A',label:'53A - Woonstschennis',color:'#5b21b6'},
+  {id:'53B',label:'53B - Aanslag op de persoonlijke levenssfeer',color:'#4c1d95'},
+  {id:'53D',label:'53D - Belaging',color:'#3b0764'},
+  {id:'53H',label:'53H - Kraken van een bewoond pand',color:'#2e1065'},
+  {id:'37A',label:'37A - Verkrachting',color:'#9d174d'},
+  {id:'37B',label:'37B - Aanranding van de eerbaarheid',color:'#be185d'},
+  {id:'37D',label:'37D - Voyeurisme',color:'#db2777'},
+  {id:'37F',label:'37F - Ontucht van minderjarigen',color:'#ec4899'},
+  {id:'37K',label:'37K - Pedofilie',color:'#f472b6'},
+  {id:'37L',label:'37L - Mensenhandel: seksuele uitbuiting (meerderjarigen)',color:'#f9a8d4'},
+  {id:'37N',label:'37N - Kinderpornografie',color:'#fce7f3'},
+  {id:'37S',label:'37S - Grooming',color:'#be185d'},
+  {id:'42D',label:'42D - Familieverlating',color:'#065f46'},
+  {id:'42E',label:'42E - Verwaarlozing van kinderen',color:'#047857'},
+  {id:'42F',label:'42F - Niet naleven omgangsrecht',color:'#059669'},
+  {id:'10A',label:'10A - Vereniging van misdadigers',color:'#374151'},
+  {id:'10B',label:'10B - Gijzeling',color:'#1f2937'},
+  {id:'10C',label:'10C - Criminele organisatie',color:'#111827'},
+  {id:'35C',label:'35C - Terrorisme',color:'#0f172a'},
+  {id:'35G',label:'35G - Bomaanslag',color:'#1e293b'},
+  {id:'36A',label:'36A - Wapens (wederrechtelijk dragen, onwettig bezitten)',color:'#374151'},
+  {id:'36B',label:'36B - Springstoffen',color:'#4b5563'},
+  {id:'41A',label:'41A - Smaad aan overheidspersonen',color:'#6b7280'},
+  {id:'41C',label:'41C - Weerspannigheid tegenover de overheid',color:'#9ca3af'},
+  {id:'45C',label:'45C - Bedreigingen',color:'#6b7280'},
+  {id:'54D',label:'54D - Voetbalwet: hooliganisme',color:'#374151'},
+  {id:'55A',label:'55A - Hulp bij illegale immigratie',color:'#1e3a5f'},
+  {id:'55B',label:'55B - Onwettig verblijf',color:'#1e40af'},
+  {id:'55C',label:'55C - Huisjesmelkerij',color:'#1d4ed8'},
+  {id:'55D',label:'55D - Mensenhandel: uitbuiting door arbeid',color:'#2563eb'},
+  {id:'55G',label:'55G - Mensensmokkel',color:'#3b82f6'},
+  {id:'15',label:'15 - Valsmunterij',color:'#0f766e'},
+  {id:'21A',label:'21A - Valsheid in burgerlijke en handelsgeschriften',color:'#0d9488'},
+  {id:'21D',label:'21D - Valsheid in openbare geschriften',color:'#14b8a6'},
+  {id:'23A',label:'23A - Valse getuigenis',color:'#2dd4bf'},
+  {id:'23B',label:'23B - Meineed',color:'#5eead4'},
+  {id:'59A',label:'59A - Geneeskunde (onwettige uitoefening)',color:'#15803d'},
+  {id:'62A',label:'62A - Voedingswaren',color:'#16a34a'},
+  {id:'62Q',label:'62Q - Corona/COVID-19',color:'#4ade80'},
+  {id:'60A',label:'60A - Invoer/uitvoer verdovende middelen',color:'#166534'},
+  {id:'60B',label:'60B - Verkopen of afleveren van verdovende middelen',color:'#15803d'},
+  {id:'60C',label:'60C - Aanzetten tot gebruik van verdovende middelen',color:'#16a34a'},
+  {id:'60D',label:'60D - Bezit van verdovende middelen',color:'#22c55e'},
+  {id:'60H',label:'60H - Teelt van verdovende middelen',color:'#4ade80'},
+  {id:'60M',label:'60M - Doping',color:'#86efac'},
+  {id:'60N2',label:'60N2 - Lachgas: verkoop/afleveren',color:'#bbf7d0'},
+  {id:'60N3',label:'60N3 - Lachgas: bezit of aanschaf',color:'#dcfce7'},
+  {id:'61A',label:'61A - Economische aangelegenheden',color:'#0c4a6e'},
+  {id:'61D',label:'61D - Marktpraktijken en consumentbescherming',color:'#0369a1'},
+  {id:'68A',label:'68A - Namaking',color:'#0284c7'},
+  {id:'68B',label:'68B - Auteursrechten',color:'#0ea5e9'},
+  {id:'68E',label:'68E - Oneerlijke mededinging',color:'#38bdf8'},
+  {id:'64A',label:'64A - Lucht- en waterverontreiniging',color:'#14532d'},
+  {id:'64E',label:'64E - Sluikstorten',color:'#166534'},
+  {id:'64F',label:'64F - Beheer van afvalstoffen',color:'#15803d'},
+  {id:'64H',label:'64H - Exploitatie van een inrichting zonder vergunning',color:'#16a34a'},
+  {id:'66B',label:'66B - Ruimtelijke ordening en stedenbouw',color:'#365314'},
+  {id:'63A',label:'63A - Jacht',color:'#3f6212'},
+  {id:'63B',label:'63B - Visvangst',color:'#4d7c0f'},
+  {id:'63C',label:'63C - Dierenbescherming',color:'#65a30d'},
+  {id:'69B1',label:'69B1 - Sluikwerk',color:'#1e3a5f'},
+  {id:'69D1',label:'69D1 - Oplichting in sociaal recht',color:'#1d4ed8'},
+  {id:'69D2',label:'69D2 - Valsheid en gebruik van valse stukken in sociaal recht',color:'#2563eb'},
+  {id:'69P1',label:'69P1 - Pesterijen op het werk',color:'#3b82f6'},
+  {id:'69P2',label:'69P2 - Ongewenst seksueel gedrag op het werk',color:'#60a5fa'},
+  {id:'69P6',label:'69P6 - Veiligheid werknemers',color:'#93c5fd'},
+  {id:'69R1',label:'69R1 - R.V.A. uitkeringsfraude',color:'#bfdbfe'},
+  {id:'69R2',label:'69R2 - Z.I.V. uitkeringsfraude',color:'#dbeafe'},
+  {id:'25B',label:'25B - Omkoping',color:'#7c3aed'},
+  {id:'25E',label:'25E - Belangenneming door een ambtenaar',color:'#8b5cf6'},
+  {id:'70A',label:'70A - Misdrijven door leidinggevenden van vennootschappen',color:'#a78bfa'},
+  {id:'70C',label:'70C - Misbruik van vennootschapsgoederen',color:'#c4b5fd'},
+  {id:'75B',label:'75B - Inbreuken i.v.m. staat van faillissement',color:'#6d28d9'},
+  {id:'78A',label:'78A - Fiscale fraude',color:'#5b21b6'},
+  {id:'79A',label:'79A - Douane en accijnzen',color:'#4c1d95'},
+  {id:'81',label:'81 - Verkeersongeval met gewonden (onopzettelijke slagen)',color:'#0f766e'},
+  {id:'85',label:'85 - Verkeersongeval met gewonden en dronkenschap/vlucht',color:'#0d9488'},
+  {id:'86',label:'86 - Niet-verzekerd voertuig',color:'#14b8a6'},
+  {id:'87',label:'87 - Verkeersongeval met dodelijke afloop',color:'#dc2626'},
+  {id:'90',label:'90 - Rijden onder invloed - intrekking rijbewijs',color:'#f97316'},
+  {id:'91',label:'91 - Aanrijding: enkel stoffelijke schade',color:'#fb923c'},
+  {id:'93',label:'93 - Verkeersinbreuk (overig)',color:'#fdba74'},
+  {id:'94',label:'94 - Wegcode (KB 1 december 1975)',color:'#fef3c7'},
+  {id:'98',label:'98 - Onmiddellijke inningen',color:'#fde68a'}
+];
+var PRIOS=[{id:'hoog',label:'Hoog'},{id:'midden',label:'Midden'},{id:'laag',label:'Laag'}];
+var EXT={
+  bank:['Argenta','Belfius','BNP Paribas Fortis','Crelan','Europe Wise','ING','KBC','Revolut','Western Union'],
+  telecom:['Base','BICS','Lycamobile','Mobile Vikings','Orange','Proximus','Telenet'],
+  parket:['Antwerpen','Brussel','Eupen','Halle-Vilvoorde','Henegouwen','Leuven','Limburg','Luik','Luxemburg','Namen','Oost-Vlaanderen','Waals-Brabant','West-Vlaanderen'],
+  pz:['PZ Aalst','PZ Aarschot','PZ Andenne','PZ Antwerpen','PZ Ardenne-Famenne','PZ Ardenne-Lesse','PZ Arlon-Attert-Habay-Martelange','PZ Arro Ieper','PZ Assenede-Evergem','PZ Awans-Grace-Hollogne','PZ BRT','PZ Basse-Meuse','PZ Basse-Sambre','PZ Bastogne','PZ Beringen-Ham-Tessenderlo','PZ Bierbeek-Boutersem-Hoegaarden-Tienen','PZ Bilzen-Hoeselt-Riemst','PZ Binche-Anderlues-Lobbes','PZ Blankenberge-Zuienkerke','PZ Bocholt-Bree-Kinrooi','PZ Boom','PZ Boraine','PZ Borgloon','PZ Braine-l-Alleud','PZ Braine-le-Chateau-Ittre-Tubize','PZ Brasschaat','PZ Brecht','PZ Bredene-De Haan','PZ Brugge','PZ Brussel-Hoofdstad-Elsene','PZ Centre','PZ Charleroi','PZ Condroz-Famenne','PZ De Panne-Koksijde-Nieuwpoort','PZ De Voorkempen','PZ Deinze-Zulte','PZ Dendermonde','PZ Destelbergen-Melle','PZ Dilbeek','PZ Dinant','PZ Druivenstreek','PZ Erpe-Mere-Lede','PZ Etterbeek','PZ Evere-Sint-Joost-Sint-Lambrechts-Woluwe','PZ Florenville-Herbeumont-Saint-Leger-Tintigny','PZ Galmaarden-Gooik-Lennik-Pepingen','PZ Ganshoren-Jette-Koekelberg','PZ Geel-Laakdal-Meerhout','PZ Genk','PZ Gent','PZ Geraardsbergen-Lierde','PZ Getevallei','PZ Gingelom-Nieuwerkerken-Sint-Truiden','PZ Glabbeek-Tienen','PZ Grensleie','PZ Grimbergen','PZ Haacht','PZ Halen-Herk-de-Stad-Lummen','PZ Hamme-Waasmunster','PZ Hannut','PZ Hasselt','PZ Haute-Meuse','PZ Heers-Kortessem-Wellen','PZ Heist-op-den-Berg','PZ HerKo','PZ Herentals-Herenthout','PZ Herselt-Westerlo','PZ Herve','PZ Herzele-Lierde-Sint-Lievens-Houtem','PZ Houthalen-Helchteren','PZ Huy-Waremme','PZ Kalmthout','PZ Kapellen','PZ Kempenland','PZ Klein-Brabant','PZ Kortrijk','PZ Kouter','PZ Kruibeke-Temse','PZ La Hulpe-Lasne-Rixensart','PZ Lanaken-Maasmechelen','PZ Langemark-Poelkapelle','PZ Leie en Schelde','PZ Leuven','PZ Liege','PZ Lier','PZ Lievegem','PZ Limburg Regio Hoofdstad','PZ Lint-Kontich','PZ Lokeren','PZ Lommel','PZ Lubbeek','PZ Maasland','PZ Maasmeeschelen','PZ Maldegem','PZ Marche-Hotton','PZ Mechelen','PZ Meetjesland','PZ Midow','PZ Minos','PZ Mira','PZ Mol','PZ Mons','PZ Mont-Saint-Guibert-Nivelles','PZ Mortsel','PZ Mouscron','PZ Namur','PZ Nete en Schelde','PZ Neteland','PZ Neufchateau-Paliseul','PZ Ninove','PZ Noorderkempen','PZ Oostende','PZ Orneau-Mehaigne','PZ Ottignies-Louvain-la-Neuve','PZ Oudenaarde','PZ Pays de Ath','PZ Pays de Genappe','PZ Peer','PZ Polder','PZ Ranst','PZ Ravels','PZ Regio Tielt','PZ Rhode en Schelde','PZ Riho','PZ Rive Gauche','PZ Roeselare','PZ Ronse','PZ Rotselaar','PZ Sambre et Meuse','PZ Sambreville','PZ Sankt-Vith','PZ Schaarbeek-Sint-Joost-ten-Node','PZ Schoten','PZ Seraing-Neupre','PZ Sint-Niklaas','PZ Spa-Francorchamps','PZ Sylle et Dendre','PZ Thudinie','PZ Tielt-Winge','PZ Tongeren','PZ Tournaisis','PZ Tremelo-Booischot','PZ Turnhout','PZ Ukkel-Watermaal-Bosvoorde-Oudergem','PZ Verviers','PZ Vielsalm','PZ Vilvoorde-Machelen','PZ Vlaamse Ardennen','PZ Vlas','PZ Voeren','PZ Waterloo','PZ Wavre','PZ Westkust','PZ Wokra','PZ Wetteren-Laarne-Wichelen','PZ Zandhoven','PZ Zaventem','PZ Zoersel','PZ Zonhoven-Lummen']
+};
+function esc(s){return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+var BW='cursor:pointer;font-family:inherit;font-size:12px;font-weight:700;border-radius:6px;padding:5px 11px;border:1.5px solid var(--btn-edit-border);background:var(--btn-edit-bg);color:var(--btn-edit-text);display:inline-flex;align-items:center;gap:4px;line-height:1;white-space:nowrap';
+var BB='cursor:pointer;font-family:inherit;font-size:12px;font-weight:700;border-radius:6px;padding:5px 11px;border:none;background:#2563eb;color:#fff;display:inline-flex;align-items:center;gap:4px;line-height:1;white-space:nowrap';
+var BR='cursor:pointer;font-family:inherit;font-size:12px;font-weight:700;border-radius:6px;padding:5px 11px;border:1.5px solid var(--btn-del-border);background:var(--btn-del-bg);color:var(--btn-del-text);display:inline-flex;align-items:center;gap:4px;line-height:1;white-space:nowrap';
+var BGN='cursor:pointer;font-family:inherit;font-size:12px;font-weight:700;border-radius:6px;padding:5px 11px;border:1.5px solid var(--badge-ok-border);background:var(--badge-ok-bg);color:var(--badge-ok-text);display:inline-flex;align-items:center;gap:4px;line-height:1;white-space:nowrap';
+var IW='cursor:pointer;font-family:inherit;font-size:11px;font-weight:700;border-radius:5px;padding:3px 7px;border:1.5px solid var(--btn-edit-border);background:var(--btn-edit-bg);color:var(--btn-edit-text);display:inline-flex;align-items:center;line-height:1';
+var IR='cursor:pointer;font-family:inherit;font-size:11px;font-weight:700;border-radius:5px;padding:3px 7px;border:1.5px solid var(--btn-del-border);background:var(--btn-del-bg);color:var(--btn-del-text);display:inline-flex;align-items:center;line-height:1';
+var IGN='cursor:pointer;font-family:inherit;font-size:11px;font-weight:700;border-radius:5px;padding:3px 7px;border:1.5px solid var(--badge-ok-border);background:var(--badge-ok-bg);color:var(--badge-ok-text);display:inline-flex;align-items:center;gap:3px;line-height:1';
+var SBN='cursor:pointer;font-family:inherit;font-size:11px;font-weight:700;border-radius:5px;padding:4px 9px;border:none;background:#2563eb;color:#fff;display:inline-flex;align-items:center;gap:4px;line-height:1;white-space:nowrap';
+(function(){
+  var fc=document.getElementById('f-cat');
+  var ffc=document.getElementById('ff-cat');
+  CATS.forEach(function(c){
+    if(fc){var o=document.createElement('option');o.value=c.id;o.textContent=c.label;fc.appendChild(o);}
+    if(ffc){var o2=document.createElement('option');o2.value=c.id;o2.textContent=c.label;ffc.appendChild(o2);}
+  });
+})();
+
+function gId(){if(typeof crypto!=='undefined'&&crypto.randomUUID)return crypto.randomUUID();return Date.now().toString(36)+Math.random().toString(36).slice(2,9);}
+function td(){return new Date().toISOString().slice(0,10);}
+function fd(d){if(!d)return'--';var p=d.split('-');if(p.length!==3)return d;return p[2]+'/'+p[1]+'/'+p[0];}
+function fdPeriod(f){var van=f.datum_van||f.datum||'';var tot=f.datum_tot||'';if(!van)return '—';return tot?fd(van)+' – '+fd(tot):fd(van);}
+function ds(d){if(!d)return 0;var t=new Date();t.setHours(0,0,0,0);return Math.floor((t-new Date(d+'T00:00:00'))/86400000);}
+function gc(id){return CATS.find(function(c){return c.id===id;})||{id:'',label:'Onbekend',color:'#888'};}
+function gcFirst(d){if(d&&d.pv_feiten&&d.pv_feiten.length>0)return gc(d.pv_feiten[0].categorie);return {id:'',label:'Onbekend',color:'#888'};}
+function gp(id){return PRIOS.find(function(p){return p.id===id;})||PRIOS[2];}
+function rg(hex,a){var r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return 'rgba('+r+','+g+','+b+','+a+')';}
+function extNm(e){if(!e||!e.cat)return esc(e.naam||'?');var lb={bank:'\ud83c\udfe6 Bank',telecom:'\ud83d\udce1 Telecom',parket:'\u2696\ufe0f Parket',or:'\ud83d\udd0d Onderzoeksrechter',pz:'\ud83d\ude94 Politiezone',andere:'\ud83d\udcdd Andere'};return (lb[e.cat]||esc(e.cat))+(e.sub?' \u2014 '+esc(e.sub):'');}
+function OM(id){document.getElementById(id).classList.add('show');}
+function CM(id){document.getElementById(id).classList.remove('show');}
+document.querySelectorAll('.ov').forEach(function(o){var _md=null;o.addEventListener('mousedown',function(e){_md=e.target;});o.addEventListener('click',function(e){if(e.target===o&&_md===o)o.classList.remove('show');_md=null;});});
+function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2200);}
+
+var DOS=[], VW='dash', VIEW='grid', AID=null, FS='open', FC=null, SO='desc', EE={}, EAF={}, TF='alles';
+var ALG_FP='', ALG_SORT_DATE='';
+var D_NPV_GRP=false;
+var MDI=null, MTD=null, MTI=null, MED=null, MET=null, MEI=null, CCB=null;
+var MFD=null, MFI=null;
+var SB_OPEN=false, SB_COLLAPSED=false, GROUP_CAT=false, EXT_MODAL={did:null,ti:null};
+var _db=null, _ref=null, _fbReady=false, _sync='connecting', _uid=null, _isAdmin=false;
+var _userEmail='';
+var _userName='';
+var _priveDOS=[];
+var _gedeeldDOS=[];
+var _sharedRef=null;
+function mergeDOS(){
+  DOS=_priveDOS.concat(_gedeeldDOS);
+  migrateCats();migratePvFeiten();ensureSystemDossiers();
+  render();
+}
+function initFB(){
+  if(_ref){_ref.off();_ref=null;}
+  if(_sharedRef){_sharedRef.off();_sharedRef=null;}
+  _fbReady=false;
+  var lsKey=_uid?'dos_data_'+_uid:'dos_data';
+  try{
+    var raw=localStorage.getItem(lsKey);
+    if(raw){_priveDOS=JSON.parse(raw);migrateCats();migratePvFeiten();}
+  }catch(e){}
+  ensureSystemDossiers();
+  render();
+
+  if(typeof firebase==='undefined'){
+    _sync='offline';updateSync();return;
+  }
+  try{
+    if(!firebase.apps||!firebase.apps.length){
+      firebase.initializeApp({
+        apiKey:'AIzaSyC3pWjrW7I9jP1MIS0HAU9bVhGo4E8vs8Y',
+        authDomain:'todo-4314e.firebaseapp.com',
+        databaseURL:'https://todo-4314e-default-rtdb.europe-west1.firebasedatabase.app',
+        projectId:'todo-4314e',storageBucket:'todo-4314e.firebasestorage.app',
+        messagingSenderId:'848360095244',appId:'1:848360095244:web:1e349fcb650e37b3623829'
+      });
+    }
+    _db=firebase.database();
+    if(_uid){
+      _userEmail=firebase.auth().currentUser&&firebase.auth().currentUser.email||'';
+      _db.ref('gebruikers/'+_uid+'/profiel/email').set(_userEmail).catch(function(e){});
+      _db.ref('gebruikers/'+_uid+'/profiel/lastSeen').set(new Date().toISOString()).catch(function(e){});
+      var _emailKey=_userEmail.toLowerCase().replace(/\./g,',');
+      if(_emailKey)_db.ref('email_index/'+_emailKey).set(_uid).catch(function(e){console.warn('email_index schrijven mislukt:',e);});
+      _db.ref('gebruikers/'+_uid+'/profiel/gebruikersnaam').once('value').then(function(snap){
+        _userName=snap.val()||'';
+        if(!_userName){
+          document.getElementById('mo-username-t').textContent='Gebruikersnaam instellen';
+          document.getElementById('inp-username').value='';
+          document.getElementById('username-hint').textContent='';
+          document.getElementById('mo-username').style.display='flex';
+          setTimeout(function(){var el=document.getElementById('inp-username');if(el)el.focus();},80);
+        }
+      }).catch(function(e){});
+      _db.ref('admins/'+_uid).once('value').then(function(snap){
+        _isAdmin=!!snap.val();
+        if(_isAdmin){toast('🛡️ Beheerder actief');render();}
+      }).catch(function(){_isAdmin=false;});
+    }
+    _ref=_db.ref(_uid?'gebruikers/'+_uid+'/dossiers':'dossiers');
+    _db.ref('.info/connected').on('value',function(s){
+      _sync=s.val()?'online':'offline';updateSync();
+    });
+    _ref.once('value').then(function(snap){
+      var data=snap.val();
+      if(data){
+        _priveDOS=Object.values(data);
+        try{var lsKey2=_uid?'dos_data_'+_uid:'dos_data';localStorage.setItem(lsKey2,JSON.stringify(_priveDOS));}catch(e){}
+        _fbReady=true;mergeDOS();
+      }else{
+        _priveDOS=[];try{localStorage.removeItem(lsKey);}catch(e){}
+        _fbReady=true;mergeDOS();
+      }
+    }).catch(function(e){
+      console.warn('Firebase read fout:',e);_sync='offline';updateSync();
+    });
+    _ref.on('value',function(snap){
+      if(!_fbReady)return;
+      var data=snap.val();
+      _priveDOS=data?Object.values(data):[];
+      try{var lsKey2=_uid?'dos_data_'+_uid:'dos_data';localStorage.setItem(lsKey2,JSON.stringify(_priveDOS));}catch(e){}
+      mergeDOS();
+    });
+    // Gedeelde dossiers listener
+    _sharedRef=_db.ref('gedeeld');
+    _sharedRef.on('value',function(snap){
+      var data=snap.val()||{};
+      _gedeeldDOS=Object.values(data).filter(function(d){
+        return d.toegang&&d.toegang[_uid]===true;
+      });
+      mergeDOS();
+    },function(e){console.warn('gedeeld listener fout:',e);});
+  }catch(e){
+    console.warn('Firebase fout:',e);_sync='offline';updateSync();
+  }
+}
+function sv(){
+  if(!_fbReady&&_ref)return;
+  var priveObj={};
+  var gedeeldItems=[];
+  DOS.forEach(function(d){
+    if(d.gedeeld){gedeeldItems.push(d);}
+    else{priveObj[d.id]=d;}
+  });
+  if(_ref)_ref.set(priveObj).catch(function(e){console.warn('sv prive',e);});
+  gedeeldItems.forEach(function(d){
+    if(_db)_db.ref('gedeeld/'+d.id).set(d).catch(function(e){console.warn('sv gedeeld',e);});
+  });
+  try{
+    var cacheKey=_uid?'dos_data_'+_uid:'dos_data';
+    var cacheData=DOS.filter(function(d){return !d.gedeeld;});
+    localStorage.setItem(cacheKey,JSON.stringify(cacheData));
+  }catch(e){}
+}
+function initAuth(){
+  if(typeof firebase==='undefined'||window._fbLoadErr){initFB();return;}
+  if(!firebase.apps||!firebase.apps.length){
+    firebase.initializeApp({
+      apiKey:'AIzaSyC3pWjrW7I9jP1MIS0HAU9bVhGo4E8vs8Y',
+      authDomain:'todo-4314e.firebaseapp.com',
+      databaseURL:'https://todo-4314e-default-rtdb.europe-west1.firebasedatabase.app',
+      projectId:'todo-4314e',storageBucket:'todo-4314e.firebasestorage.app',
+      messagingSenderId:'848360095244',appId:'1:848360095244:web:1e349fcb650e37b3623829'
+    });
+  }
+  firebase.auth().onAuthStateChanged(function(user){
+    if(user){
+      _uid=user.uid;
+      document.getElementById('login-ov').style.display='none';
+      initFB();
+    }else{
+      _uid=null;_isAdmin=false;DOS=[];
+      try{localStorage.removeItem('auth_state');}catch(e){}
+      document.getElementById('login-ov').style.display='flex';
+      try{var em=localStorage.getItem('last_login_email');if(em){var el=document.getElementById('l-em');if(el&&!el.value)el.value=em;}document.getElementById('l-pw').focus();}catch(e){}
+    }
+  });
+}
+function doLogin(){
+  var em=(document.getElementById('l-em').value||'').trim();
+  var pw=document.getElementById('l-pw').value||'';
+  var rem=document.getElementById('l-rem').checked;
+  var err=document.getElementById('l-err');
+  var btn=document.getElementById('l-btn');
+  if(!em||!pw){err.textContent='Vul e-mail en wachtwoord in.';return;}
+  err.textContent='';btn.textContent='Bezig...';btn.disabled=true;
+  var pers=rem?firebase.auth.Auth.Persistence.LOCAL:firebase.auth.Auth.Persistence.SESSION;
+  firebase.auth().setPersistence(pers).then(function(){
+    return firebase.auth().signInWithEmailAndPassword(em,pw);
+  }).then(function(){
+    try{localStorage.setItem('last_login_email',em);localStorage.setItem('auth_state','logged_in');}catch(e){}
+  }).catch(function(e){
+    var m=e.code==='auth/invalid-credential'||e.code==='auth/user-not-found'||e.code==='auth/wrong-password'?'Ongeldig e-mailadres of wachtwoord.':e.code==='auth/too-many-requests'?'Te veel pogingen. Probeer later opnieuw.':e.code==='auth/invalid-email'?'Ongeldig e-mailadres.':'Aanmelden mislukt.';
+    err.textContent=m;btn.textContent='Aanmelden';btn.disabled=false;
+  });
+}
+function doLogout(){
+  if(_ref){_ref.off();_ref=null;}
+  if(_sharedRef){_sharedRef.off();_sharedRef=null;}
+  _gedeeldDOS=[];_priveDOS=[];
+  _db=null;_fbReady=false;_uid=null;_isAdmin=false;_sync='connecting';DOS=[];_userEmail='';_userName='';
+  try{localStorage.removeItem('auth_state');}catch(e){}
+  firebase.auth().signOut();
+}
+function openPwChange(){
+  ['pw-cur','pw-new','pw-new2'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('pw-err').textContent='';
+  var btn=document.getElementById('pw-btn');btn.textContent='Wijzigen';btn.disabled=false;
+  document.getElementById('pw-ov').style.display='flex';
+  document.getElementById('pw-cur').focus();
+}
+function doPwChange(){
+  var cur=document.getElementById('pw-cur').value;
+  var nw=document.getElementById('pw-new').value;
+  var nw2=document.getElementById('pw-new2').value;
+  var err=document.getElementById('pw-err');
+  var btn=document.getElementById('pw-btn');
+  if(!cur||!nw||!nw2){err.textContent='Vul alle velden in.';return;}
+  if(nw.length<6){err.textContent='Nieuw wachtwoord moet minstens 6 tekens bevatten.';return;}
+  if(nw!==nw2){err.textContent='Nieuwe wachtwoorden komen niet overeen.';return;}
+  err.textContent='';btn.textContent='Bezig...';btn.disabled=true;
+  var user=firebase.auth().currentUser;
+  if(!user){err.textContent='Sessie verlopen. Meld opnieuw aan.';btn.textContent='Wijzigen';btn.disabled=false;return;}
+  var cred=firebase.auth.EmailAuthProvider.credential(user.email,cur);
+  user.reauthenticateWithCredential(cred).then(function(){return user.updatePassword(nw);}).then(function(){
+    document.getElementById('pw-ov').style.display='none';
+    toast('✓ Wachtwoord gewijzigd');
+  }).catch(function(e){
+    var m=e.code==='auth/wrong-password'||e.code==='auth/invalid-credential'?'Huidig wachtwoord is onjuist.':
+           e.code==='auth/weak-password'?'Nieuw wachtwoord is te zwak (min. 6 tekens).':'Wijzigen mislukt.';
+    err.textContent=m;btn.textContent='Wijzigen';btn.disabled=false;
+  });
+}
+function metaStamp(){return {gewijzigd_door:_userName||_userEmail,gewijzigd_op:new Date().toISOString()};}
+function openEditUsername(){
+  document.getElementById('mo-username-t').textContent='Gebruikersnaam wijzigen';
+  document.getElementById('inp-username').value=_userName;
+  document.getElementById('username-hint').textContent='';
+  document.getElementById('mo-username').style.display='flex';
+  setTimeout(function(){var el=document.getElementById('inp-username');if(el)el.focus();},80);
+}
+function saveUsername(){
+  var nm=(document.getElementById('inp-username').value||'').trim();
+  var hint=document.getElementById('username-hint');
+  if(!nm){hint.textContent='Vul een naam in.';hint.style.color='#dc2626';return;}
+  var key=nm.toLowerCase().replace(/\s+/g,'_');
+  hint.textContent='Controleren...';hint.style.color='var(--text3)';
+  _db.ref('gebruikernamen/'+key).once('value').then(function(snap){
+    var existing=snap.val();
+    var existingUid=existing&&typeof existing==='object'?existing.uid:existing;
+    if(existingUid&&existingUid!==_uid){hint.textContent='⚠️ Deze naam is al in gebruik.';hint.style.color='#dc2626';return;}
+    if(_userName&&_userName!==nm){_db.ref('gebruikernamen/'+_userName.toLowerCase().replace(/\s+/g,'_')).remove().catch(function(e){});}
+    _db.ref('gebruikernamen/'+key).set({uid:_uid,naam:nm}).catch(function(e){});
+    _db.ref('gebruikers/'+_uid+'/profiel/gebruikersnaam').set(nm).catch(function(e){});
+    _userName=nm;
+    document.getElementById('mo-username').style.display='none';
+    render();toast('✓ Gebruikersnaam opgeslagen');
+  }).catch(function(e){hint.textContent='❌ Fout. Probeer opnieuw.';hint.style.color='#dc2626';});
+}
+function updateSync(){
+  var el=document.getElementById('sync-dot');if(!el)return;
+  var map={
+    online:'\u25cf <span style="color:#4ade80">Online</span>',
+    offline:'\u25cf <span style="color:#fde68a">Lokaal</span>',
+    connecting:'\u25cf <span style="color:#94a3b8">Verbinden...</span>'
+  };
+  el.innerHTML=map[_sync]||map.connecting;
+}
+
+
+function ask(title,sub,cb){document.getElementById('conf-m').textContent=title;document.getElementById('conf-s').textContent=sub;CCB=cb;document.getElementById('conf').classList.add('show');}
+function confYes(){CM('conf');if(CCB)CCB();CCB=null;}
+function confNo(){CM('conf');CCB=null;}
+function pvAutoFill(){
+  var val=(document.getElementById('f-pv').value||'').trim();
+  var hint=document.getElementById('pv-hint');
+  var catSel=document.getElementById('f-cat');
+  if(!val){if(hint)hint.textContent='';return;}
+  var valid=/^[A-Za-z]{2}\.[0-9]{2}\.[A-Za-z0-9]{2}\.[0-9]{6}\/[0-9]{4}$/.test(val);
+  if(!valid){if(hint){hint.textContent='! Verwacht: HV.20.L8.002244/2026';hint.style.color='#dc2626';}return;}
+  if(hint){hint.textContent='\u2713 OK';hint.style.color='#16a34a';}
+  var m=val.toUpperCase().match(/^[A-Z]{2}\.([0-9]{2})/);
+  if(m&&catSel){var base=m[1];var opts=catSel.options;for(var i=0;i<opts.length;i++){if(opts[i].value===base||opts[i].value.indexOf(base)===0){catSel.value=opts[i].value;break;}}}
+}
+function pvInput(){
+  var inp=document.getElementById('f-pv');
+  var sel=inp.selectionStart;
+  var rawBefore=inp.value.slice(0,sel).replace(/[^A-Za-z0-9]/g,'').length;
+  var raw=inp.value.replace(/[^A-Za-z0-9]/g,'').toUpperCase().slice(0,16);
+  var fmt='',i;
+  for(i=0;i<raw.length;i++){
+    if(i===2||i===4||i===6)fmt+='.';
+    if(i===12)fmt+='/';
+    fmt+=raw[i];
+  }
+  inp.value=fmt;
+  var newPos=0,cnt=0;
+  for(i=0;i<fmt.length;i++){
+    if(fmt[i]!=='.'&&fmt[i]!=='/')cnt++;
+    if(cnt===rawBefore){newPos=i+1;break;}
+  }
+  if(rawBefore===0)newPos=0;
+  try{inp.setSelectionRange(newPos,newPos);}catch(e){}
+  pvAutoFill();
+}
+function npvInput(){
+  var inp=document.getElementById('t-npv');
+  var hint=document.getElementById('npv-hint');
+  var pos=inp.selectionStart;
+  var rawBefore=inp.value.slice(0,pos).replace(/[^0-9]/g,'').length;
+  var raw=inp.value.replace(/[^0-9]/g,'').slice(0,10);
+  var fmt=raw.slice(0,6)+(raw.length>6?'/'+raw.slice(6):'');
+  inp.value=fmt;
+  var newPos=0,cnt=0,i;
+  for(i=0;i<fmt.length;i++){if(fmt[i]!=='/')cnt++;if(cnt===rawBefore){newPos=i+1;break;}}
+  if(rawBefore===0)newPos=0;
+  try{inp.setSelectionRange(newPos,newPos);}catch(e){}
+  if(hint){if(!fmt){hint.textContent='';return;}var valid=/^[0-9]{6}\/[0-9]{4}$/.test(fmt);if(valid){hint.textContent='✓ OK';hint.style.color='#16a34a';}else{hint.textContent='Verwacht: 002244/2026';hint.style.color='var(--text3)';}}
+}
+var CAT_MIGRATE={'aanmatiging':'21A','arbeidsongeval':'44','belaging':'53D','beschadigingen':'50B','diefstalwoning':'17B','diefstalgeweld':'11A','diefstalvoertuig':'17H','diefstalvan':'17D','drugs':'60D','eob':'43A','faillissement':'75B','gauwdiefstal':'18B','gewonediefstal':'18A','klachtbp':'43A','moord':'30A','verdwijning':'40C','oplichting':'20D','oplichtingsociaal':'69D1','brandstichting':'47','redsop':'43A','slagen':'43A','vereniging':'10A','winkeldiefstal':'12','witwassen':'27B','zeden':'37A'};
+function migrateCats(){
+  var changed=false;
+  DOS.forEach(function(d){
+    if(d.categorie&&CAT_MIGRATE[d.categorie]){d.categorie=CAT_MIGRATE[d.categorie];changed=true;}
+    if(Array.isArray(d.pv_feiten)){d.pv_feiten.forEach(function(f){if(f.categorie&&CAT_MIGRATE[f.categorie]){f.categorie=CAT_MIGRATE[f.categorie];changed=true;}});}
+  });
+  if(changed)sv();
+}
+function migratePvFeiten(){
+  var changed=false;
+  DOS.forEach(function(d){
+    if(d.id==='__werk__'||d.id==='__prive__')return;
+    if(Array.isArray(d.pv_feiten))return;
+    if(!('pv' in d))return;
+    if(!d.naam||!d.naam.trim())d.naam=d.pv||'Onbekend';
+    d.pv_feiten=[{id:gId(),pv:d.pv||'',categorie:d.categorie||'',datum:d.datum||td(),notitie:''}];
+    if(!Array.isArray(d.links))d.links=[];
+    delete d.pv;delete d.categorie;
+    changed=true;
+  });
+  DOS.forEach(function(d){
+    if(d.id==='__werk__'||d.id==='__prive__')return;
+    if(!Array.isArray(d.links))d.links=[];
+    if(!Array.isArray(d.pv_feiten))d.pv_feiten=[];
+  });
+  if(changed)sv();
+}
+function ensureSystemDossiers(){
+  var alg=DOS.find(function(x){return x.id==='__algemeen__';});
+  if(alg){
+    if(!DOS.find(function(x){return x.id==='__werk__';}))DOS.push({id:'__werk__',pv:'—',naam:'Werk',categorie:'',datum:td(),notitie:'',taken:alg.taken||[],gesloten:false});
+    DOS=DOS.filter(function(x){return x.id!=='__algemeen__';});sv();
+  }
+  if(!_priveDOS.find(function(x){return x.id==='__werk__';})){DOS.push({id:'__werk__',pv:'—',naam:'Werk',categorie:'',datum:td(),notitie:'',taken:[],gesloten:false});if(_fbReady)sv();}
+  if(!_priveDOS.find(function(x){return x.id==='__prive__';})){DOS.push({id:'__prive__',pv:'—',naam:'Privé',categorie:'',datum:td(),notitie:'',taken:[],gesloten:false});if(_fbReady)sv();}
+}
+function extSubUpdate(){
+  var cat=document.getElementById('e-cat').value;
+  var sw=document.getElementById('e-sub-w'),vw=document.getElementById('e-vrij-w');
+  var ss=document.getElementById('e-sub'),vi=document.getElementById('e-vrij');
+  var sl=document.getElementById('e-sub-l'),vl=document.getElementById('e-vrij-l');
+  var sv2=document.getElementById('e-sub-vrij');
+  sw.style.display='none';vw.style.display='none';ss.innerHTML='';
+  if(sv2)sv2.style.display='none';vi.value='';
+  if(!cat)return;
+  if(EXT[cat]){
+    EXT[cat].forEach(function(v){var o=document.createElement('option');o.value=v;o.textContent=v;ss.appendChild(o);});
+    var oA=document.createElement('option');oA.value='__vrij__';oA.textContent='Andere (vrije tekst)...';ss.appendChild(oA);
+    sl.textContent=cat==='bank'?'Bank':cat==='telecom'?'Operator':cat==='parket'?'Parket':'Politiezone';
+    sw.style.display='block';
+  }else if(cat==='or'){vl.textContent='Naam / referentie';vi.placeholder='bijv. OR Antwerpen';vw.style.display='block';}
+  else if(cat==='andere'){vl.textContent='Omschrijving';vi.placeholder='bijv. Gemeente, Notaris, Verzekeraar...';vw.style.display='block';}
+}
+function extVrijCheck(){
+  var ss=document.getElementById('e-sub'),sv2=document.getElementById('e-sub-vrij');
+  if(!ss||!sv2)return;
+  if(ss.value==='__vrij__'){sv2.style.display='block';sv2.focus();}else{sv2.style.display='none';sv2.value='';}
+}
+function inlineExtUpdate(did,ti){
+  var cat=document.getElementById('xcat-'+did+'-'+ti);if(!cat)return;
+  var wrap=document.getElementById('xwrap-'+did+'-'+ti);if(!wrap)return;
+  var catVal=cat.value;if(!catVal){wrap.innerHTML='';return;}
+  var inpSt='width:100%;font-size:12px;border:1.5px solid var(--input-border);border-radius:5px;padding:5px 7px;background:var(--input-bg);font-family:inherit;color:var(--text);font-weight:500;';
+  var label=catVal==='bank'?'Bank':catVal==='telecom'?'Operator':catVal==='parket'?'Parket':catVal==='pz'?'Politiezone':catVal==='andere'?'Omschrijving':'Naam';
+  if(EXT[catVal]){
+    var opts=EXT[catVal].map(function(v){return '<option value="'+v+'">'+v+'</option>';}).join('');
+    opts+='<option value="__vrij__">Andere (vrije tekst)...</option>';
+    wrap.innerHTML='<div style="display:flex;flex-direction:column;gap:4px;width:100%">'
+      +'<select id="xsub-'+did+'-'+ti+'" onchange="inlineVrijCheck(\''+did+'\','+ti+')" style="'+inpSt+'">'+opts+'</select>'
+      +'<input id="xvrij-'+did+'-'+ti+'" type="text" placeholder="Vrije tekst..." style="display:none;'+inpSt+'border-color:#f59e0b">'
+      +'</div>';
+  }else{wrap.innerHTML='<input id="xsub-'+did+'-'+ti+'" placeholder="'+label+'..." style="'+inpSt+(catVal==='andere'?'border-color:#f59e0b':'')+'">'; }
+}
+function inlineVrijCheck(did,ti){
+  var sel=document.getElementById('xsub-'+did+'-'+ti);
+  var vrij=document.getElementById('xvrij-'+did+'-'+ti);
+  if(!sel||!vrij)return;
+  if(sel.value==='__vrij__'){vrij.style.display='block';vrij.focus();}else{vrij.style.display='none';vrij.value='';}
+}
+function exportJSON(){
+  function doDownload(ag,rst){
+    var data=JSON.stringify({datum:new Date().toISOString(),versie:2,dossiers:DOS,agenda:ag,rooster:rst},null,2);
+    var blob=new Blob([data],{type:'application/json'});var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');a.href=url;a.download='mijn-dossiers-backup.json';a.click();URL.revokeObjectURL(url);
+  }
+  if(_db){
+    var agPath=_uid?'gebruikers/'+_uid+'/agenda':'agenda';
+    var rstPath=_uid?'gebruikers/'+_uid+'/rooster':'rooster';
+    Promise.all([_db.ref(agPath).once('value'),_db.ref(rstPath).once('value')]).then(function(snaps){
+      var ag=snaps[0].val()?Object.values(snaps[0].val()):[];
+      var rst=snaps[1].val()?Object.values(snaps[1].val()):[];
+      doDownload(ag,rst);
+    }).catch(function(){doDownload([],[]);});
+  }else{doDownload([],[]);}
+}
+function importJSON(){
+  var inp=document.createElement('input');inp.type='file';inp.accept='.json';
+  inp.onchange=function(e){
+    var file=e.target.files[0];if(!file)return;
+    var reader=new FileReader();
+    reader.onload=function(ev){
+      try{
+        var data=JSON.parse(ev.target.result);
+        var arr=data.dossiers||data;
+        if(!Array.isArray(arr))throw new Error('Ongeldig formaat');
+        var agArr=Array.isArray(data.agenda)?data.agenda:[];
+        var rstArr=Array.isArray(data.rooster)?data.rooster:[];
+        var msg=arr.length+' dossier(s)';
+        if(agArr.length)msg+=', '+agArr.length+' agenda-afspraak/afspraken';
+        if(rstArr.length)msg+=', '+rstArr.length+' rooster-item(s)';
+        var hadGedeeld=false;
+        arr.forEach(function(d){
+          if(d.gedeeld){hadGedeeld=true;delete d.gedeeld;delete d.eigenaar_uid;delete d.toegang;}
+        });
+        if(hadGedeeld)msg+=' (gedeelde dossiers worden als privé geïmporteerd)';
+        ask('Backup importeren?',msg+' worden ingeladen. Bestaande data wordt overschreven.',function(){
+          if(hadGedeeld)toast('⚠️ Gedeelde dossiers zijn geïmporteerd als privé');
+          _priveDOS=arr.filter(function(d){return !d.gedeeld;});
+          DOS=_priveDOS.concat(_gedeeldDOS);sv();render();
+          if(_db){
+            var agPath=_uid?'gebruikers/'+_uid+'/agenda':'agenda';
+            var rstPath=_uid?'gebruikers/'+_uid+'/rooster':'rooster';
+            if(agArr.length){var agObj={};agArr.forEach(function(ev){if(ev.id)agObj[ev.id]=ev;});_db.ref(agPath).set(agObj);}
+            if(rstArr.length){var rstObj={};rstArr.forEach(function(r){if(r.id)rstObj[r.id]=r;});_db.ref(rstPath).set(rstObj);}
+          }
+          toast('Backup ingeladen');
+        });
+      }catch(err){toast('Fout bij laden: '+err.message);}
+    };
+    reader.readAsText(file);
+  };
+  inp.click();
+}
+function fil(q){
+  var l=DOS.filter(function(d){return d.id!=='__werk__'&&d.id!=='__prive__';});
+  if(FS==='open')l=l.filter(function(d){return !d.gesloten;});
+  if(FS==='gesloten')l=l.filter(function(d){return d.gesloten;});
+  if(FC)l=l.filter(function(d){return (d.pv_feiten||[]).some(function(f){return f.categorie===FC;});});
+  var query=(q!==undefined?String(q):(document.getElementById('srch')?document.getElementById('srch').value:'')).toLowerCase().trim();
+  if(query)l=l.filter(function(d){
+    if((d.naam||'').toLowerCase().indexOf(query)!==-1)return true;
+    return (d.pv_feiten||[]).some(function(f){return f.pv.toLowerCase().indexOf(query)!==-1;});
+  });
+  l.sort(function(a,b){var da=new Date(a.datum||'2000-01-01'),db=new Date(b.datum||'2000-01-01');return SO==='asc'?da-db:db-da;});
+  return l;
+}
+function toggleSB(){
+  if(window.innerWidth<=768){
+    SB_OPEN=!SB_OPEN;
+    document.getElementById('sidebar').classList.toggle('open',SB_OPEN);
+    document.getElementById('sb-ov').classList.toggle('open',SB_OPEN);
+  } else {
+    SB_COLLAPSED=!SB_COLLAPSED;
+    document.getElementById('sidebar').classList.toggle('collapsed',SB_COLLAPSED);
+    document.querySelector('.main').classList.toggle('sb-collapsed',SB_COLLAPSED);
+  }
+}
+function closeSB(){SB_OPEN=false;document.getElementById('sidebar').classList.remove('open');document.getElementById('sb-ov').classList.remove('open');}
+
+function render(){
+  var srchVal=document.getElementById('srch')?document.getElementById('srch').value:'';
+  var regDOS=DOS.filter(function(d){return d.id!=='__werk__'&&d.id!=='__prive__';});
+  var werkDos=DOS.find(function(d){return d.id==='__werk__';});
+  var priveDos=DOS.find(function(d){return d.id==='__prive__';});
+  var werkOpenTk=werkDos?(werkDos.taken||[]).filter(function(t){return !t.gedaan;}).length:0;
+  var priveOpenTk=priveDos?(priveDos.taken||[]).filter(function(t){return !t.gedaan;}).length:0;
+  var open=regDOS.filter(function(d){return !d.gesloten;}).length;
+  var closed=regDOS.filter(function(d){return d.gesloten;}).length;
+  var openTk=regDOS.filter(function(d){return !d.gesloten;}).reduce(function(a,d){return a+(d.taken||[]).filter(function(t){return !t.gedaan;}).length;},0);
+
+  var sb='<div class="sidebar" id="sidebar">'
+    +'<div class="sb-logo"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIiB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCI+CiAgPCEtLSBWZXJncm9vdGdsYXMgbGVucyAtLT4KICA8ZGVmcz4KICAgIDxyYWRpYWxHcmFkaWVudCBpZD0ibGVucyIgY3g9IjQwJSIgY3k9IjM1JSIgcj0iNjAlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2YwZjRmOCIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjYwJSIgc3RvcC1jb2xvcj0iI2QwZGFlNCIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNiMGJlYzgiLz4KICAgIDwvcmFkaWFsR3JhZGllbnQ+CiAgICA8Y2xpcFBhdGggaWQ9ImxlbnNDbGlwIj4KICAgICAgPGNpcmNsZSBjeD0iODIiIGN5PSI3OCIgcj0iNjIiLz4KICAgIDwvY2xpcFBhdGg+CiAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImhhbmRsZSIgY3g9IjMwJSIgY3k9IjIwJSIgcj0iODAlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzU1NSIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjUwJSIgc3RvcC1jb2xvcj0iIzIyMiIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMxMTEiLz4KICAgIDwvcmFkaWFsR3JhZGllbnQ+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9InJpbmciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjY2NjIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iNDAlIiBzdG9wLWNvbG9yPSIjODg4Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iNjAlIiBzdG9wLWNvbG9yPSIjZWVlIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzk5OSIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CgogIDwhLS0gU3RlZWwgLS0+CiAgPGxpbmUgeDE9IjEzMiIgeTE9IjEyOCIgeDI9IjE3OCIgeTI9IjE4MiIgc3Ryb2tlPSJ1cmwoI2hhbmRsZSkiIHN0cm9rZS13aWR0aD0iMTgiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDwhLS0gU3RlZWwgZ2xhbnMgLS0+CiAgPGxpbmUgeDE9IjEzMCIgeTE9IjEzMCIgeDI9IjE3MiIgeTI9IjE3OCIgc3Ryb2tlPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMTUpIiBzdHJva2Utd2lkdGg9IjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDwhLS0gU3RlZWwgZ3JlZXAgcmliYmVuIC0tPgogIDxsaW5lIHgxPSIxNDgiIHkxPSIxNTAiIHgyPSIxNTgiIHkyPSIxNjIiIHN0cm9rZT0iIzQ0NCIgc3Ryb2tlLXdpZHRoPSIzIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICA8bGluZSB4MT0iMTQzIiB5MT0iMTU1IiB4Mj0iMTUzIiB5Mj0iMTY3IiBzdHJva2U9IiM0NDQiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CgogIDwhLS0gQnVpdGVuc3RlIHJpbmcgLS0+CiAgPGNpcmNsZSBjeD0iODIiIGN5PSI3OCIgcj0iNjgiIGZpbGw9InVybCgjcmluZykiLz4KICA8IS0tIExlbnMgdnVsbGluZyAtLT4KICA8Y2lyY2xlIGN4PSI4MiIgY3k9Ijc4IiByPSI2MiIgZmlsbD0idXJsKCNsZW5zKSIvPgoKICA8IS0tIFNpbGhvdWV0IFNoZXJsb2NrIEhvbG1lcyAoZGVlcnN0YWxrZXIgaG9lZCArIHBpanApIC0tPgogIDxnIGNsaXAtcGF0aD0idXJsKCNsZW5zQ2xpcCkiIGZpbGw9IiMxYTFhMWEiPgogICAgPCEtLSBSb21wIC8gc2Nob3VkZXIgLS0+CiAgICA8ZWxsaXBzZSBjeD0iOTAiIGN5PSIxNDUiIHJ4PSIzOCIgcnk9IjI4Ii8+CiAgICA8IS0tIE5layAtLT4KICAgIDxyZWN0IHg9Ijc0IiB5PSIxMTAiIHdpZHRoPSIyMiIgaGVpZ2h0PSIyMiIgcng9IjQiLz4KICAgIDwhLS0gSG9vZmQgLS0+CiAgICA8ZWxsaXBzZSBjeD0iODUiIGN5PSI5NSIgcng9IjI2IiByeT0iMjgiLz4KICAgIDwhLS0gRGVlcnN0YWxrZXIgaG9lZCAtIHZvb3IgZmxhcCAtLT4KICAgIDxwYXRoIGQ9Ik01OSA4MCBRNjIgNTggODUgNTYgUTEwOCA1OCAxMTEgODAgWiIvPgogICAgPCEtLSBEZWVyc3RhbGtlciBob2VkIC0gYWNodGVyIGZsYXAgLS0+CiAgICA8cGF0aCBkPSJNMTA4IDcyIFExMjAgNjAgMTI4IDY1IFExMjIgNzggMTExIDgwIFoiLz4KICAgIDwhLS0gRGVlcnN0YWxrZXIgaG9lZCAtIHZvb3Igdml6aWVyIC0tPgogICAgPHBhdGggZD0iTTU5IDgwIFE1MCA2OCA1NSA2MiBRNjIgNTggNjggNzIgWiIvPgogICAgPCEtLSBIb2VkIHRvcCBrbm9vcCAtLT4KICAgIDxjaXJjbGUgY3g9Ijg1IiBjeT0iNTYiIHI9IjQiLz4KICAgIDwhLS0gUGlqcCAtLT4KICAgIDxwYXRoIGQ9Ik02MCAxMDggUTU1IDExMiA1MiAxMTAgUTQ4IDEwNiA1MiAxMDIgUTU2IDEwMCA2MCAxMDQgUTYyIDExMiA2OCAxMTYgUTc2IDEyMCA4MCAxMTUiIAogICAgICAgICAgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMWExYTFhIiBzdHJva2Utd2lkdGg9IjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogICAgPGVsbGlwc2UgY3g9IjUxIiBjeT0iMTA2IiByeD0iNiIgcnk9IjgiIGZpbGw9IiMxYTFhMWEiLz4KICAgIDwhLS0gTmV1cyBwcm9maWVsIC0tPgogICAgPHBhdGggZD0iTTYwIDkwIFE1MiA5OCA1NSAxMDUgUTU4IDEwOCA2MiAxMDYiIGZpbGw9IiMxYTFhMWEiLz4KICAgIDwhLS0gS2luIC0tPgogICAgPHBhdGggZD0iTTYwIDExMiBRNjUgMTIyIDc1IDExOCIgZmlsbD0iIzFhMWExYSIvPgogIDwvZz4KCiAgPCEtLSBMZW5zIGdsYW5zIG92ZXJsYXkgLS0+CiAgPGVsbGlwc2UgY3g9IjYyIiBjeT0iNTUiIHJ4PSIyMCIgcnk9IjE0IiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMzUpIiB0cmFuc2Zvcm09InJvdGF0ZSgtMjAgNjIgNTUpIi8+CiAgPCEtLSBSaW5nIGhpZ2hsaWdodCAtLT4KICA8Y2lyY2xlIGN4PSI4MiIgY3k9Ijc4IiByPSI2OCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMykiIHN0cm9rZS13aWR0aD0iMyIvPgogIDxjaXJjbGUgY3g9IjgyIiBjeT0iNzgiIHI9IjYyIiBmaWxsPSJub25lIiBzdHJva2U9InJnYmEoMCwwLDAsMC4yKSIgc3Ryb2tlLXdpZHRoPSIyIi8+Cjwvc3ZnPgo=" width="36" height="36" style="border-radius:8px;flex-shrink:0" alt="logo"><div><div class="sb-logo-title">Mijn Dossiers</div><div class="sb-logo-sub">Recherche</div></div></div>'
+    +'<button class="sb-newbtn" onclick="openND()">+ Nieuw dossier</button>'
+    +'<div class="sb-section">Overzicht</div>'
+    +'<button class="sb-item'+(VW==='dash'?' on':'')+'" onclick="goDash()"><span class="sb-ic">\uD83C\uDFE0</span> Dashboard</button>'
+    +'<div class="sb-div"></div>'
+    +'<div class="sb-section">Dossiers</div>'
+    +'<button class="sb-item'+(VW==='list'?' on':'')+'" onclick="goL()"><span class="sb-ic">\uD83D\uDCC2</span> Dossiers<span class="sb-badge">'+regDOS.length+'</span></button>'
+    +'<button class="sb-item'+(VW==='taken'?' on':'')+'" onclick="goTaken()"><span class="sb-ic">\u270f\ufe0f</span> Taken<span class="sb-badge">'+openTk+'</span></button>'
+    +'<div class="sb-div"></div>'
+    +'<div class="sb-section">Algemeen</div>'
+    +'<button class="sb-item'+((VW==='detail'&&(AID==='__werk__'||AID==='__prive__'))?' on':'')+'" onclick="goSys()"><span class="sb-ic">\u270F\uFE0F</span> Taken algemeen<span class="sb-badge">'+(werkOpenTk+priveOpenTk)+'</span></button>';
+
+  sb+='<div class="sb-div"></div>'
+    +'<div class="sb-section">Planning</div>'
+    +'<button class="sb-item" onclick="window.open(\'agenda.html\',\'_blank\')"><span class="sb-ic">&#128197;</span> Agenda</button>'
+    +'<div class="sb-div"></div>'
+    +'<div class="sb-section">Backup</div>'
+    +'<button class="sb-item" onclick="exportJSON()">\u2193 Exporteer</button>'
+    +'<button class="sb-item" onclick="importJSON()">\u2191 Importeer</button>'
+    +'<div class="sb-div"></div>'
+    +(_isAdmin?'<button class="sb-item" onclick="window.open(\'admin.html\',\'_blank\')"><span class="sb-ic">\ud83d\udee1\ufe0f</span> Beheerder</button>':'')
+    +'<button class="sb-item" onclick="openPwChange()"><span class="sb-ic">\ud83d\udd11</span> Wachtwoord wijzigen</button>'
+    +'<button class="sb-item" onclick="doLogout()"><span class="sb-ic">\u23fb</span> Afmelden</button>'
+    +'<div class="sb-bottom"><span id="sync-dot" style="font-size:11px;font-weight:600">\u25cf Verbinden...</span>'
+    +'<button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()">'+(THEME==='dark'?'\u2600 Licht':'\u263e Donker')+'</button></div>'
+    +'</div>';
+
+  var tb='<div class="topbar">'
+    +'<button class="hamburger" onclick="toggleSB()">\u2630</button>'
+    +'<span class="topbar-title">'+(VW==='detail'?(AID==='__werk__'?'Werk':AID==='__prive__'?'Privé':'Dossier'):VW==='dash'?'Dashboard':VW==='taken'?'Openstaande taken':'Mijn Dossiers')+'</span>'
+    +(_userName?'<button onclick="openEditUsername()" style="flex-shrink:0;background:none;border:none;cursor:pointer;font-size:12px;font-weight:700;color:var(--text2);padding:3px 8px;border-radius:6px;white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis" title="Gebruikersnaam wijzigen">'+esc(_userName)+' ✎</button>':''  );
+  if(VW==='detail'){
+    tb+='<button onclick="goL()" style="'+BW+';font-size:12px;padding:5px 12px">\u2190 Overzicht</button>';
+  }else if(VW==='list'){
+    tb+='<div style="margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap">'
+      +'<div class="view-toggle"><button class="vbtn'+(VIEW==='grid'?' on':'')+'" onclick="setView(\'grid\')">\u2637</button><button class="vbtn'+(VIEW==='list'?' on':'')+'" onclick="setView(\'list\')">\u2263</button></div>'
+      +'<button onclick="GROUP_CAT=!GROUP_CAT;render()" style="'+BW+';font-size:12px;padding:5px 12px'+(GROUP_CAT?';background:#1d4ed8':'')+'">\u2630 Per type</button>'
+      +'<button onclick="toggleSort()" style="'+BW+';font-size:12px;padding:5px 12px">\u21c5 '+(SO==='asc'?'Oudste':'Nieuwste')+'</button>'
+      +'</div>';
+  }
+  tb+='</div>';
+
+  var cnt='<div class="content">'+(VW==='dash'?buildDash():VW==='taken'?buildTaken():VW==='list'?buildList(srchVal):buildDetail())+'</div>';
+
+  document.getElementById('root').innerHTML=
+    '<div class="sb-overlay" id="sb-ov" onclick="closeSB()"></div>'
+    +'<div class="wrap">'+sb+'<div class="main">'+tb+cnt+'</div></div>';
+
+  var s2=document.getElementById('sidebar'),ov=document.getElementById('sb-ov');
+  if(SB_OPEN&&s2)s2.classList.add('open');
+  if(SB_OPEN&&ov)ov.classList.add('open');
+  if(SB_COLLAPSED&&s2){s2.classList.add('collapsed');var m2=document.querySelector('.main');if(m2)m2.classList.add('sb-collapsed');}
+  updateSync();
+  if(VW==='detail'&&AID)initDrag(AID);
+}
+
+function initDrag(did){
+  var items=document.querySelectorAll('.twrap[draggable]');
+  var dragSrc=null;
+  items.forEach(function(el){
+    el.addEventListener('dragstart',function(e){
+      dragSrc=el;
+      e.dataTransfer.effectAllowed='move';
+      setTimeout(function(){el.classList.add('dragging');},0);
+    });
+    el.addEventListener('dragend',function(){
+      el.classList.remove('dragging');
+      document.querySelectorAll('.twrap').forEach(function(x){x.classList.remove('drag-over');});
+    });
+    el.addEventListener('dragover',function(e){
+      e.preventDefault();
+      document.querySelectorAll('.twrap').forEach(function(x){x.classList.remove('drag-over');});
+      if(el!==dragSrc)el.classList.add('drag-over');
+    });
+    el.addEventListener('drop',function(e){
+      e.preventDefault();
+      if(!dragSrc||dragSrc===el)return;
+      var si=parseInt(dragSrc.getAttribute('data-ti'));
+      var di=parseInt(el.getAttribute('data-ti'));
+      var d=DOS.find(function(x){return x.id===did;});
+      if(!d)return;
+      var moved=d.taken.splice(si,1)[0];
+      d.taken.splice(di,0,moved);
+      sv();opD(did);
+    });
+  });
+  var touchSrc=null,touchSrcIdx=null,longTimer=null,dragActive=false;
+  function cancelTouch(){
+    if(longTimer){clearTimeout(longTimer);longTimer=null;}
+    if(touchSrc)touchSrc.classList.remove('dragging');
+    document.querySelectorAll('.twrap').forEach(function(x){x.classList.remove('drag-over');});
+    touchSrc=null;touchSrcIdx=null;dragActive=false;
+  }
+  items.forEach(function(el){
+    el.addEventListener('touchstart',function(e){
+      touchSrc=el;touchSrcIdx=parseInt(el.getAttribute('data-ti'));dragActive=false;
+      longTimer=setTimeout(function(){
+        dragActive=true;
+        el.classList.add('dragging');
+        if(navigator.vibrate)navigator.vibrate(40);
+      },400);
+    },{passive:true});
+    el.addEventListener('touchmove',function(e){
+      if(!dragActive){clearTimeout(longTimer);longTimer=null;return;}
+      e.preventDefault();
+      var t=e.touches[0],over=document.elementFromPoint(t.clientX,t.clientY);
+      var tw=over&&over.closest('.twrap[draggable]');
+      document.querySelectorAll('.twrap').forEach(function(x){x.classList.remove('drag-over');});
+      if(tw&&tw!==touchSrc)tw.classList.add('drag-over');
+    },{passive:false});
+    el.addEventListener('touchend',function(e){
+      if(dragActive){
+        document.querySelectorAll('.twrap').forEach(function(x){x.classList.remove('drag-over');});
+        var t=e.changedTouches[0],over=document.elementFromPoint(t.clientX,t.clientY);
+        var tw=over&&over.closest('.twrap[draggable]');
+        if(tw&&tw!==touchSrc){
+          var di=parseInt(tw.getAttribute('data-ti'));
+          var d=DOS.find(function(x){return x.id===did;});
+          if(d){var moved=d.taken.splice(touchSrcIdx,1)[0];d.taken.splice(di,0,moved);sv();opD(did);return;}
+        }
+      }
+      cancelTouch();
+    });
+    el.addEventListener('touchcancel',cancelTouch);
+  });
+}
+
+function buildList(srchVal){
+  var list=fil(srchVal);
+  var regDOS=DOS.filter(function(d){return d.id!=='__werk__'&&d.id!=='__prive__';});
+  var allT=regDOS.reduce(function(a,d){return a.concat(d.taken||[]);},[]  );
+  var dT=allT.filter(function(t){return t.gedaan;}).length;
+  var open=regDOS.filter(function(d){return !d.gesloten;}).length;
+  var closed=regDOS.filter(function(d){return d.gesloten;}).length;
+  var dringend=allT.filter(function(t){return t.deadline&&!t.gedaan&&t.deadline<td();});
+
+  var html='<div class="stats">'
+    +'<div class="stat"><div class="stat-lbl">\u25cf Lopend</div><div class="stat-val">'+open+'</div><div class="stat-sub">'+closed+' gesloten</div></div>'
+    +'<div class="stat"><div class="stat-lbl">\u2713 Taken</div><div class="stat-val">'+dT+'</div><div class="stat-sub">van '+allT.length+'</div></div>'
+    +'<div class="stat"><div class="stat-lbl">\u231b Wachten</div><div class="stat-val">'+regDOS.reduce(function(a,d){return a+(d.taken||[]).reduce(function(b,t){return b+(t.extern||[]).filter(function(e){return !e.ontvangen;}).length;},0);},0)+'</div><div class="stat-sub">extern</div></div>'
+    +'</div>';
+
+  if(dringend.length>0){html+='<div class="banner-dringend">\u26a0 '+dringend.length+(dringend.length!==1?' vervallen taken':' vervallen taak')+'</div>';}
+
+  var fsbtn=function(val,icon,lbl,cnt){var on=(val===null?FS===null:FS===val);return '<button onclick="setFS('+(val===null?'null':'\''+val+'\'')+');setFC(null)" style="font-family:inherit;font-size:11px;font-weight:700;padding:5px 10px;border-radius:7px;cursor:pointer;border:1.5px solid '+(on?'var(--accent)':'var(--border)')+';background:'+(on?'var(--accent)':'var(--bg2)')+';color:'+(on?'#fff':'var(--text2)')+';transition:all .15s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px">'+icon+' '+lbl+'<span style="opacity:.7;margin-left:2px">'+cnt+'</span></button>';};
+  html+='<div style="display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:10px">'
+    +fsbtn(null,'\uD83D\uDCC1','Alle',regDOS.length)
+    +fsbtn('open','\uD83D\uDD13','Lopend',open)
+    +fsbtn('gesloten','\uD83D\uDD12','Archief',closed)
+    +'</div>';
+  html+='<div class="toolbar"><div class="search-wrap"><span class="si">\uD83D\uDD0D</span><input id="srch" type="text" placeholder="Zoek op PV of naam..." value="'+srchVal+'" oninput="onSrch()" autocomplete="off"></div></div>'
+    +'<div style="font-size:11px;color:var(--text3);font-weight:600;margin-bottom:10px">'+list.length+' dossier'+(list.length!==1?'s':'')+' gevonden</div>';
+
+
+  var mkRow=function(d){
+    var cat=gcFirst(d),tk=d.taken||[],dn=tk.filter(function(t){return t.gedaan;}).length,pct=tk.length?Math.round(dn/tk.length*100):0;
+    var feiten=(d.pv_feiten||[]).slice().sort(function(a,b){return (a.datum_van||a.datum||'').localeCompare(b.datum_van||b.datum||'');});
+    var srch=(document.getElementById('srch')?document.getElementById('srch').value:'').toLowerCase().trim();
+    var pvMatch=null;
+    if(srch&&(d.naam||'').toLowerCase().indexOf(srch)===-1){var mf=feiten.find(function(f){return f.pv.toLowerCase().indexOf(srch)!==-1;});if(mf)pvMatch=mf.pv;}
+    var fLabel=feiten.length===1?cat.label:feiten.length+' feiten';
+    return '<div class="dlist-row'+(d.gesloten?' closed':'')+'" style="border-left:3px solid '+cat.color+'" onclick="opD(\''+d.id+'\')">'
+      +'<div style="min-width:0;flex:1;overflow:hidden">'
+      +'<div style="font-size:13px;font-weight:800;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(d.naam||'—')+'</div>'
+      +(pvMatch?'<div style="font-size:10px;color:var(--accent);font-weight:600;margin-top:1px;font-family:monospace">Match op '+esc(pvMatch)+'</div>':'')
+      +'<span style="font-size:10px;padding:2px 7px;border-radius:6px;font-weight:700;background:var(--bg4);color:var(--text2);border:1px solid var(--border);display:inline-flex;align-items:center;gap:5px;vertical-align:middle;margin-top:3px;max-width:200px;overflow:hidden"><span class="sw" style="background:'+cat.color+'"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(fLabel)+'</span></span>'
+      +'</div>'
+      +'<div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:12px">'
+      +'<span style="font-size:11px;color:var(--text2);font-weight:600;white-space:nowrap">'+fd(d.datum)+'</span>'
+      +'<span style="font-size:11px;font-weight:700;white-space:nowrap;color:'+(d.gesloten?'var(--text3)':'#16a34a')+'">'+(d.gesloten?'Gesloten':'Lopend')+'</span>'
+      +(d.gedeeld?'<span style="font-size:10px;font-weight:700;color:var(--accent);white-space:nowrap">👥</span>':'')
+      +'<div style="display:flex;align-items:center;gap:4px"><div style="width:60px;background:var(--prog-bg);border-radius:3px;height:4px;overflow:hidden"><div style="height:4px;border-radius:3px;background:'+(pct===100?'#16a34a':'#2563eb')+';width:'+pct+'%"></div></div><span style="font-size:10px;color:var(--text2);font-weight:700">'+pct+'%</span></div>'
+      +'</div></div>';
+  };
+  var arcSep='<div style="margin:16px 0 10px;display:flex;align-items:center;gap:8px"><div style="flex:1;height:1px;background:var(--border)"></div><span style="font-size:11px;font-weight:700;color:var(--text3);white-space:nowrap">\uD83D\uDCC1 Archief</span><div style="flex:1;height:1px;background:var(--border)"></div></div>';
+  var catSep=function(c){return '<div style="margin:16px 0 6px;display:flex;align-items:center;gap:8px"><div style="width:4px;height:14px;border-radius:2px;background:'+c.color+';flex-shrink:0"></div><span style="font-size:11px;font-weight:700;color:var(--text2);white-space:nowrap">'+c.label+'</span><div style="flex:1;height:1px;background:var(--border)"></div></div>';};
+  var renderGroup=function(lst,renderer,wrap){
+    if(!GROUP_CAT){return wrap(lst.map(renderer).join(''));}
+    var order=[],seen={};
+    lst.forEach(function(d){var cid=gcFirst(d).id||'';if(!seen[cid]){seen[cid]=true;order.push(cid);}});
+    order.sort(function(a,b){return gc(a).label.localeCompare(gc(b).label,'nl');});
+    return order.map(function(cid){
+      var c=gc(cid),grp=lst.filter(function(d){return gcFirst(d).id===cid;});
+      return catSep(c)+wrap(grp.map(renderer).join(''));
+    }).join('');
+  };
+  if(list.length===0){
+    html+='<div class="empty"><div style="font-size:40px">\uD83D\uDCC1</div><p>'+(regDOS.length===0?'Nog geen dossiers. Klik op "+ Nieuw dossier" in de zijbalk.':'Geen dossiers met de huidige filters.')+'</p></div>';
+  }else if(VIEW==='grid'){
+    if(FS===null){var lopG=list.filter(function(d){return !d.gesloten;}),arcG=list.filter(function(d){return d.gesloten;});html+=renderGroup(lopG,cardHTML,function(h){return '<div class="dgrid">'+h+'</div>';});if(arcG.length>0)html+=arcSep+renderGroup(arcG,cardHTML,function(h){return '<div class="dgrid">'+h+'</div>';});}
+    else{html+=renderGroup(list,cardHTML,function(h){return '<div class="dgrid">'+h+'</div>';});}
+  }else{
+    if(FS===null){var lopL=list.filter(function(d){return !d.gesloten;}),arcL=list.filter(function(d){return d.gesloten;});html+=renderGroup(lopL,mkRow,function(h){return '<div class="dlist">'+h+'</div>';});if(arcL.length>0)html+=arcSep+renderGroup(arcL,mkRow,function(h){return '<div class="dlist">'+h+'</div>';});}
+    else{html+=renderGroup(list,mkRow,function(h){return '<div class="dlist">'+h+'</div>';});}
+  }
+  return html;
+}
+
+function buildDash(){
+  var openD=DOS.filter(function(d){return !d.gesloten&&d.id!=='__werk__'&&d.id!=='__prive__';});
+  var verv=[],wacht=[];
+  openD.forEach(function(d){
+    var cat=gcFirst(d),nm=d.naam||'—';
+    (d.taken||[]).forEach(function(t,ti){
+      if(t.deadline&&!t.gedaan&&t.deadline<td())verv.push({did:d.id,ti:ti,titel:t.titel,dossier:nm,dagen:ds(t.deadline),color:cat.color});
+      (t.extern||[]).forEach(function(e,ei){
+        if(!e.ontvangen)wacht.push({did:d.id,ti:ti,ei:ei,bron:extNm(e),dossier:nm,dagen:ds(e.aanvraag),color:cat.color});
+      });
+    });
+  });
+  verv.sort(function(a,b){return b.dagen-a.dagen;});
+  wacht.sort(function(a,b){return b.dagen-a.dagen;});
+  var takenOpen=openD.reduce(function(a,d){return a+(d.taken||[]).filter(function(t){return !t.gedaan;}).length;},0);
+  var closed=DOS.filter(function(d){return d.gesloten&&d.id!=='__werk__'&&d.id!=='__prive__';}).length;
+  var now=new Date(),hr=now.getHours();
+  var greet=hr<6?'Goedenacht':hr<12?'Goedemorgen':hr<18?'Goedemiddag':'Goedenavond';
+  var dlong=now.toLocaleDateString('nl-BE',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  dlong=dlong.charAt(0).toUpperCase()+dlong.slice(1);
+  var AC='#2563eb';
+  var vRow=function(v){
+    return '<div onclick="opD(\''+v.did+'\')" style="display:flex;align-items:center;gap:12px;padding:11px 16px;border-top:1px solid var(--border);cursor:pointer">'
+      +'<div style="width:3px;align-self:stretch;border-radius:3px;background:'+v.color+';flex-shrink:0"></div>'
+      +'<div style="min-width:0;flex:1">'
+      +'<div style="font-size:13px;font-weight:700;color:var(--text);line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(v.titel)+'</div>'
+      +'<div style="font-size:11px;font-weight:600;color:var(--text3);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(v.dossier)+'</div>'
+      +'</div>'
+      +'<span style="font-size:11px;font-weight:700;color:var(--badge-err-text);background:var(--badge-err-bg);border:1px solid var(--badge-err-border);padding:3px 8px;border-radius:8px;white-space:nowrap;flex-shrink:0">'+v.dagen+(v.dagen===1?' dag':' dagen')+' over</span>'
+      +'<button onclick="event.stopPropagation();chkT(\''+v.did+'\','+v.ti+')" title="Taak afvinken" style="flex-shrink:0;width:30px;height:30px;border-radius:8px;border:1.5px solid var(--badge-ok-border);background:var(--badge-ok-bg);color:var(--badge-ok-text);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">\u2713</button>'
+      +'</div>';
+  };
+  var wGroups={},wOrder=[];
+  wacht.forEach(function(w){if(!wGroups[w.did]){wGroups[w.did]={dossier:w.dossier,color:w.color,did:w.did,items:[]};wOrder.push(w.did);}wGroups[w.did].items.push(w);});
+  var wGroupHtml=wOrder.map(function(did){
+    var g=wGroups[did];
+    var rows=g.items.map(function(w){
+      var u=w.dagen>=14;
+      var bg=u?'var(--badge-err-bg)':'var(--badge-warn-bg)',tx=u?'var(--badge-err-text)':'var(--badge-warn-text)',bd=u?'var(--badge-err-border)':'var(--badge-warn-border)';
+      return '<div onclick="event.stopPropagation();gotoExt(\''+w.did+'\','+w.ti+')" style="display:flex;align-items:center;gap:8px;padding:4px 14px 4px 28px;cursor:pointer" onmouseover="this.style.background=\'var(--bg3)\'" onmouseout="this.style.background=\'\'">'
+        +'<span style="font-size:11px;font-weight:600;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">'+esc(w.bron)+'</span>'
+        +'<span style="font-size:11px;font-weight:700;color:'+tx+';background:'+bg+';border:1px solid '+bd+';padding:2px 7px;border-radius:7px;white-space:nowrap;flex-shrink:0">'+w.dagen+'d</span>'
+        +'<button onclick="event.stopPropagation();dashOntvangen(\''+w.did+'\','+w.ti+','+w.ei+')" title="Ontvangen" style="flex-shrink:0;width:26px;height:26px;border-radius:6px;border:1.5px solid var(--badge-ok-border);background:var(--badge-ok-bg);color:var(--badge-ok-text);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">\u2713</button>'
+        +'</div>';
+    }).join('');
+    return '<div onclick="opD(\''+did+'\')" style="border-top:1px solid var(--border);cursor:pointer;padding-bottom:7px">'
+      +'<div style="display:flex;align-items:center;gap:8px;padding:9px 14px 5px">'
+      +'<div style="width:3px;height:14px;border-radius:2px;background:'+g.color+';flex-shrink:0"></div>'
+      +'<span style="font-size:13px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">'+esc(g.dossier)+'</span>'
+      +'</div>'+rows+'</div>';
+  }).join('');
+  var dashRow=function(d){
+    var cat=gcFirst(d),tk=d.taken||[],dn=tk.filter(function(t){return t.gedaan;}).length,pct=tk.length?Math.round(dn/tk.length*100):0;
+    var pf=(d.pv_feiten||[]).slice().sort(function(a,b){return (a.datum_van||a.datum||'').localeCompare(b.datum_van||b.datum||'');});var fLabel=pf.length===1?cat.label:pf.length+' feiten';
+    return '<div onclick="opD(\''+d.id+'\')" style="display:flex;align-items:center;gap:14px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:13px 16px 13px 0;overflow:hidden;cursor:pointer">'
+      +'<div style="width:4px;align-self:stretch;background:'+cat.color+';flex-shrink:0"></div>'
+      +'<div style="min-width:0;flex:1">'
+      +'<div style="font-size:14px;font-weight:800;color:var(--text);line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(d.naam||'—')+'</div>'
+      +'<div style="display:inline-flex;align-items:center;gap:6px;margin-top:6px;font-size:10px;font-weight:700;color:var(--text2);background:var(--bg4);border:1px solid var(--border);padding:3px 9px 3px 7px;border-radius:8px;max-width:100%;overflow:hidden"><span style="width:7px;height:7px;border-radius:2px;background:'+cat.color+';flex-shrink:0"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(fLabel)+'</span></div>'
+      +'</div>'
+      +'<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">'
+      +'<span style="font-size:11px;font-weight:600;color:var(--text3);white-space:nowrap">'+fd(d.datum)+'</span>'
+      +'<div style="display:flex;align-items:center;gap:8px"><div style="width:84px;height:5px;border-radius:3px;background:var(--prog-bg);overflow:hidden"><div style="height:5px;border-radius:3px;background:'+AC+';width:'+pct+'%"></div></div><span style="font-size:11px;font-weight:700;color:var(--text2);white-space:nowrap;min-width:30px;text-align:right">'+dn+'/'+tk.length+'</span></div>'
+      +'</div>'
+      +'</div>';
+  };
+  var kpiCard=function(lbl,val,sub,col){
+    return '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:13px;padding:15px 17px"><div style="font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text3)">'+lbl+'</div><div style="font-size:27px;font-weight:800;color:'+col+';line-height:1.1;margin-top:5px">'+val+'</div><div style="font-size:11px;font-weight:600;color:var(--text3);margin-top:1px">'+sub+'</div></div>';
+  };
+  var H='<div style="display:flex;flex-direction:column;gap:22px;max-width:1180px">';
+  H+='<div><div style="font-size:13px;font-weight:600;color:var(--text2)">'+dlong+'</div></div>';
+  H+='<div class="dash-kpi-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">'
+    +kpiCard('Lopende dossiers',openD.length,closed+' in archief','var(--text)')
+    +kpiCard('Open taken',takenOpen,'over '+openD.length+' dossiers','var(--text)')
+    +kpiCard('Wacht extern',wacht.length,'bank · telecom · parket','var(--badge-warn-text)')
+    +kpiCard('Vervallen',verv.length,'deadline voorbij','var(--badge-err-text)')
+    +'</div>';
+  H+='<div><div style="display:flex;align-items:center;gap:9px;margin-bottom:13px"><span style="font-size:13px;font-weight:800;color:var(--text)">Vereiste actie</span></div>';
+  H+='<div class="dash-action-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px">';
+  H+='<div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden">'
+    +'<div style="display:flex;align-items:center;gap:9px;padding:14px 16px 12px"><span style="width:9px;height:9px;border-radius:50%;background:#e0483b;box-shadow:0 0 0 4px rgba(224,72,59,.12);flex-shrink:0"></span><span style="font-size:13px;font-weight:800;color:var(--text)">Vervallen deadlines</span><span style="margin-left:auto;font-size:12px;font-weight:800;color:var(--badge-err-text);background:var(--badge-err-bg);border:1px solid var(--badge-err-border);padding:2px 9px;border-radius:9px">'+verv.length+'</span></div>'
+    +(verv.length?'<div style="max-height:300px;overflow-y:auto">'+verv.map(vRow).join('')+'</div>':'<div style="padding:22px 16px 26px;text-align:center;color:var(--text3);font-size:12px;font-weight:600">\u2713 Geen openstaande deadlines</div>')
+    +'</div>';
+  H+='<div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden">'
+    +'<div style="display:flex;align-items:center;gap:9px;padding:14px 16px 12px"><span style="width:9px;height:9px;border-radius:50%;background:#e0a23b;box-shadow:0 0 0 4px rgba(224,162,59,.14);flex-shrink:0"></span><span style="font-size:13px;font-weight:800;color:var(--text)">Wacht op antwoord</span><span style="margin-left:auto;font-size:12px;font-weight:800;color:var(--badge-warn-text);background:var(--badge-warn-bg);border:1px solid var(--badge-warn-border);padding:2px 9px;border-radius:9px">'+wacht.length+'</span></div>'
+    +(wacht.length?'<div style="max-height:300px;overflow-y:auto">'+wGroupHtml+'</div>':'<div style="padding:22px 16px 26px;text-align:center;color:var(--text3);font-size:12px;font-weight:600">\u2713 Alles ontvangen</div>')
+    +'</div>';
+  H+='</div></div>';
+  var sorted=openD.slice().sort(function(a,b){return new Date(b.datum||'2000-01-01')-new Date(a.datum||'2000-01-01');});
+  H+='<div><div style="display:flex;align-items:center;gap:9px;margin-bottom:13px"><span style="font-size:13px;font-weight:800;color:var(--text)">Mijn dossiers</span><span style="font-size:11px;font-weight:600;color:var(--text3)">'+openD.length+' lopend</span><span style="margin-left:auto;font-size:11px;font-weight:700;color:var(--text2);cursor:pointer" onclick="setFS(\'open\');setFC(null);goL()">Alles tonen \u2192</span></div>';
+  H+='<div style="display:flex;flex-direction:column;gap:9px">'+(sorted.length?sorted.map(dashRow).join(''):'<div class="empty"><div style="font-size:40px">\ud83d\udcc1</div><p>Nog geen open dossiers.</p></div>')+'</div></div>';
+  H+='</div>';
+  return H;
+}
+function buildTaken(){
+  var openD=DOS.filter(function(d){return !d.gesloten&&d.id!=='__werk__'&&d.id!=='__prive__';});
+  var prioOrd={hoog:0,midden:1,laag:2};
+  var all=[];
+  openD.forEach(function(d){
+    var cc=gcFirst(d).color,nm=d.naam||'—',nn=d.naam||'';
+    var firstPv=(d.pv_feiten&&d.pv_feiten.length>0)?d.pv_feiten[0].pv:'';
+    (d.taken||[]).forEach(function(t,i){if(!t.gedaan)all.push({did:d.id,dos:nm,pv:firstPv,naam:nn,color:cc,t:t,i:i,verlopen:!!(t.deadline&&t.deadline<td())});});
+  });
+  all.sort(function(a,b){var pa=prioOrd[a.t.prioriteit||'laag'],pb=prioOrd[b.t.prioriteit||'laag'];if(pa!==pb)return pa-pb;var da=a.t.deadline||'9999-99',db=b.t.deadline||'9999-99';return da<db?-1:da>db?1:0;});
+  var cntAll=all.length,cntVerv=all.filter(function(x){return x.verlopen;}).length,cntHoog=all.filter(function(x){return x.t.prioriteit==='hoog';}).length,cntMid=all.filter(function(x){return x.t.prioriteit==='midden';}).length,cntLaag=all.filter(function(x){return (x.t.prioriteit||'laag')==='laag';}).length,cntNpv=all.filter(function(x){return !!x.t.npv;}).length;
+  var lijst=all.filter(function(x){return TF==='alles'||(TF==='verlopen'&&x.verlopen)||(TF==='hoog'&&x.t.prioriteit==='hoog')||(TF==='midden'&&x.t.prioriteit==='midden')||(TF==='laag'&&(x.t.prioriteit||'laag')==='laag')||(TF==='npv'&&!!x.t.npv);});
+  var mpS={hoog:'background:var(--badge-err-bg);color:var(--badge-err-text);border:1px solid var(--badge-err-border)',midden:'background:var(--badge-warn-bg);color:var(--badge-warn-text);border:1px solid var(--badge-warn-border)'};
+  var BTC='flex-shrink:0;width:30px;height:30px;border-radius:8px;border:1.5px solid var(--badge-ok-border);background:var(--badge-ok-bg);color:var(--badge-ok-text);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit';
+  var fbtn=function(id,lbl,cnt){var on=TF===id;return '<button onclick="setTF(\''+id+'\')" style="font-family:inherit;font-size:11px;font-weight:700;padding:5px 10px;border-radius:7px;cursor:pointer;border:1.5px solid '+(on?'#2563eb':'var(--border)')+';background:'+(on?'#2563eb':'var(--bg2)')+';color:'+(on?'#fff':'var(--text2)')+';transition:all .15s;white-space:nowrap">'+lbl+' <span style="opacity:.7;margin-left:2px">'+cnt+'</span></button>';};
+  var pbtnT=function(val,lbl,col,cnt){var on=TF===val;return '<button onclick="setTF(\''+val+'\')" style="font-family:inherit;font-size:11px;font-weight:700;padding:5px 10px;border-radius:7px;cursor:pointer;border:1.5px solid '+(on?col:'var(--border)')+';background:'+(on?col:'var(--bg2)')+';color:'+(on?'#fff':'var(--text2)')+';transition:all .15s;white-space:nowrap">'+lbl+' <span style="opacity:.7;margin-left:2px">'+cnt+'</span></button>';};
+  var rij=function(x){
+    var pr=x.t.prioriteit||'laag';
+    var badge=(pr!=='laag')?'<span style="font-size:11px;padding:3px 8px;border-radius:8px;font-weight:700;flex-shrink:0;'+mpS[pr]+'">'+({hoog:'Hoog',midden:'Midden'}[pr])+'</span>':'';
+    var dl=x.t.deadline?'<span style="font-size:11px;padding:3px 8px;border-radius:8px;font-weight:700;flex-shrink:0;'+(x.verlopen?'background:var(--badge-err-bg);color:var(--badge-err-text);border:1px solid var(--badge-err-border)':'background:var(--bg4);color:var(--text2);border:1px solid var(--border)')+'">\u231b '+fd(x.t.deadline)+(x.verlopen?' \u26a0':'')+'</span>':'';
+    var npvBadge=x.t.npv?'<span style="font-size:11px;padding:3px 8px;border-radius:8px;font-weight:700;flex-shrink:0;background:var(--bg4);color:var(--text2);border:1px solid var(--border);font-family:monospace">NPV '+esc(x.t.npv)+'</span>':'';
+    var ext=x.t.extern||[];
+    var extHtml='';
+    if(ext.length>0){extHtml='<div style="display:flex;flex-direction:column;gap:3px;padding:0 16px 10px 16px">';ext.forEach(function(e){var isOk=!!e.ontvangen;extHtml+='<div onclick="event.stopPropagation();gotoExt(\''+x.did+'\','+x.i+')" style="display:flex;align-items:center;gap:5px;cursor:pointer;border-radius:4px;padding:1px 3px;margin:0 -3px" onmouseover="this.style.background=\'var(--bg3)\'" onmouseout="this.style.background=\'\'"><span style="font-size:10px;font-weight:600;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">'+extNm(e)+'</span>'+(isOk?'<span style="font-size:10px;padding:1px 5px;border-radius:5px;background:var(--badge-ok-bg);color:var(--badge-ok-text);border:1px solid var(--badge-ok-border);font-weight:700;flex-shrink:0">\u2713 '+fd(e.ontvangen)+'</span>':'<span style="font-size:10px;padding:1px 5px;border-radius:5px;background:var(--badge-warn-bg);color:var(--badge-warn-text);border:1px solid var(--badge-warn-border);font-weight:700;flex-shrink:0">\u231b '+ds(e.aanvraag)+'d</span>')+'</div>';});extHtml+='</div>';}
+    return '<div onclick="opD(\''+x.did+'\')" style="display:flex;flex-direction:column;background:var(--bg2);border:1px solid var(--border);border-radius:11px;overflow:hidden;cursor:pointer">'
+      +'<div style="display:flex;align-items:center;gap:12px;padding:12px 16px 12px 0">'
+      +'<div style="width:4px;align-self:stretch;background:'+x.color+';flex-shrink:0"></div>'
+      +'<div style="min-width:0;flex:1">'
+      +'<div style="font-size:13px;font-weight:700;color:var(--text);line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(x.t.titel)+'</div>'
+      +'<div style="font-size:11px;font-weight:600;color:var(--text3);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(x.dos)+'</div>'
+      +'</div>'+dl+npvBadge+badge
+      +'<button onclick="event.stopPropagation();chkT(\''+x.did+'\','+x.i+')" title="Taak afvinken" style="'+BTC+'">\u2713</button>'
+      +'</div>'
+      +extHtml
+      +'</div>';
+  };
+  var H='<div style="display:flex;flex-direction:column;gap:14px;max-width:1180px">';
+  H+='<div style="display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;align-items:center">'+fbtn('alles','Alles',cntAll)+fbtn('verlopen','⚠️ Verlopen',cntVerv)+'<div style="width:1px;height:18px;background:var(--border);flex-shrink:0;margin:0 2px"></div>'+pbtnT('laag','🟢 Laag','#16a34a',cntLaag)+pbtnT('midden','🟠 Midden','#ea580c',cntMid)+pbtnT('hoog','🔴 Hoog','#dc2626',cntHoog)+'<div style="width:1px;height:18px;background:var(--border);flex-shrink:0;margin:0 2px"></div>'+fbtn('npv','📋 Per NPV',cntNpv)+'</div>';
+  H+='<div style="font-size:11px;color:var(--text3);font-weight:600">'+lijst.length+(lijst.length!==1?' taken':' taak')+'</div>';
+  var grpHdr=function(x,cnt){return '<div style="display:flex;align-items:center;gap:10px;padding:2px 2px 0">'
+    +'<div style="width:4px;height:16px;border-radius:2px;background:'+x.color+';flex-shrink:0"></div>'
+    +'<span style="font-size:13px;font-weight:800;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(x.naam||x.pv)+'</span>'
+    +(x.naam?'<span style="font-size:11px;font-weight:600;color:var(--text3);font-family:monospace;white-space:nowrap">'+esc(x.pv)+'</span>':'')
+    +'<span style="margin-left:auto;font-size:11px;font-weight:700;color:var(--text2);background:var(--bg4);border:1px solid var(--border);padding:1px 8px;border-radius:9px;flex-shrink:0">'+cnt+'</span>'
+    +'</div>';};
+  var body;
+  if(TF==='npv'){
+    var dosOrd2=[],dosSeen2={},dosGrps2={};
+    lijst.forEach(function(x){if(!dosSeen2[x.did]){dosSeen2[x.did]=true;dosOrd2.push(x.did);dosGrps2[x.did]=[];}dosGrps2[x.did].push(x);});
+    body=dosOrd2.length?dosOrd2.map(function(did){
+      var g=dosGrps2[did];
+      var npvSub={},npvSubOrd=[];
+      g.forEach(function(x){var n=x.t.npv;if(!npvSub[n]){npvSub[n]=[];npvSubOrd.push(n);}npvSub[n].push(x);});
+      npvSubOrd.sort();
+      var subHtml=npvSubOrd.map(function(npv){var sg=npvSub[npv];return '<div style="display:flex;flex-direction:column;gap:6px;padding-left:10px;border-left:2px solid var(--accent);margin-left:2px"><div style="display:flex;align-items:center;gap:6px;padding:3px 0"><span style="font-size:11px;font-weight:800;color:var(--accent);font-family:monospace">NPV '+esc(npv)+'</span><span style="font-size:10px;font-weight:600;color:var(--text3)">'+sg.length+(sg.length!==1?' taken':' taak')+'</span></div>'+sg.map(rij).join('')+'</div>';}).join('');
+      return '<div style="display:flex;flex-direction:column;gap:8px">'+grpHdr(g[0],g.length)+subHtml+'</div>';
+    }).join(''):'<div class="empty"><div style="font-size:40px">\ud83d\udccb</div><p>Geen taken met een NPV.</p></div>';
+  }else{
+    var orderDids=[],seen={},groups={};
+    lijst.forEach(function(x){if(!seen[x.did]){seen[x.did]=true;orderDids.push(x.did);groups[x.did]=[];}groups[x.did].push(x);});
+    body=lijst.length?orderDids.map(function(did){var g=groups[did];return '<div style="display:flex;flex-direction:column;gap:8px">'+grpHdr(g[0],g.length)+g.map(rij).join('')+'</div>';}).join(''):'<div class="empty"><div style="font-size:40px">\u2713</div><p>Geen taken in deze filter.</p></div>';
+  }
+  H+='<div style="display:flex;flex-direction:column;gap:18px">'+body+'</div>';
+  H+='</div>';
+  return H;
+}
+function cardHTML(d){
+  var cat=gcFirst(d),tk=d.taken||[],dn=tk.filter(function(t){return t.gedaan;}).length,pct=tk.length?Math.round(dn/tk.length*100):0;
+  var feiten=(d.pv_feiten||[]).slice().sort(function(a,b){return (a.datum_van||a.datum||'').localeCompare(b.datum_van||b.datum||'');});
+  var srch=(document.getElementById('srch')?document.getElementById('srch').value:'').toLowerCase().trim();
+  var pvMatch=null;
+  if(srch&&(d.naam||'').toLowerCase().indexOf(srch)===-1){var mf=feiten.find(function(f){return f.pv.toLowerCase().indexOf(srch)!==-1;});if(mf)pvMatch=mf.pv;}
+  var fBadge=feiten.length===1?'<span class="sw" style="background:'+cat.color+'"></span>'+esc(cat.label):'<span class="sw" style="background:'+cat.color+'"></span>'+feiten.length+' feiten';
+  return '<div class="dcard'+(d.gesloten?' closed':'')+'" onclick="opD(\''+d.id+'\')">'
+    +'<div class="daccent" style="background:'+cat.color+'"></div>'
+    +'<div class="dbody">'
+    +'<div class="dacts" onclick="event.stopPropagation()">'
+    +'<button onclick="openED(\''+d.id+'\')" style="'+IW+'">\u270e</button>'
+    +'<button onclick="delD(\''+d.id+'\')" style="'+IR+'">\u2715</button>'
+    +'</div>'
+    +'<div class="dcard-naam">'+esc(d.naam||'\u2014')+'</div>'
+    +(pvMatch?'<div style="font-size:10px;color:var(--accent);font-weight:600;margin-bottom:3px;font-family:monospace">Match op '+esc(pvMatch)+'</div>':'')
+    +'<div style="font-size:10px;padding:2px 7px;border-radius:8px;font-weight:700;display:inline-flex;align-items:center;gap:5px;margin-bottom:7px;background:var(--bg4);color:var(--text2);border:1px solid var(--border)">'+fBadge+'</div>'
+    +'<div style="font-size:11px;color:var(--text3);display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px;font-weight:600">'
+    +'<span>\uD83D\uDCC5 '+fd(d.datum)+'</span><span>\u2713 '+dn+'/'+tk.length+'</span>'
+    +(d.gesloten?'<span>\uD83D\uDD12 Gesloten</span>':'')
+    +'</div>'
+    +(tk.length?'<div class="prog"><div class="prog-fill" style="width:'+pct+'%;background:'+(pct===100?'#16a34a':'#2563eb')+'"></div></div>':'')
+    +(d.gedeeld?'<div style="font-size:10px;font-weight:700;color:var(--accent);margin-top:4px">👥 Gedeeld</div>':'')
+    +'</div></div>';
+}
+
+function buildDetail(){
+  var d=DOS.find(function(x){return x.id===AID;});
+  if(!d)return '<p style="color:var(--text)">Niet gevonden</p>';
+  var isSys=d.id==='__werk__'||d.id==='__prive__';
+  var sysColor=d.id==='__werk__'?'#2563eb':'#7c3aed';
+  var cat=gcFirst(d),tk=d.taken||[],dn=tk.filter(function(t){return t.gedaan;}).length,pct=tk.length?Math.round(dn/tk.length*100):0;
+  var allExt=tk.reduce(function(a,t){return a.concat(t.extern||[]);},[]  );
+  var extWacht=allExt.filter(function(e){return !e.ontvangen;}).length;
+
+  var html='<div class="dtop">'
+    +'<div style="height:5px;background:'+(isSys?sysColor:cat.color)+'"></div>'
+    +'<div style="padding:14px 16px">'
+    +'<div class="dtop-hdr" style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:8px">'
+    +'<div style="min-width:0;flex:1">'
+    +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:2px"><div style="font-size:18px;font-weight:800;color:var(--text)">'+esc(d.naam||'—')+'</div>'
+    +(d.gedeeld?'<span style="font-size:11px;font-weight:700;color:var(--accent);white-space:nowrap;padding:2px 7px;border-radius:6px;border:1px solid var(--accent);background:transparent">👥 Gedeeld</span>':'')
+    +'</div>'
+    +'</div>'
+    +'<div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap">'
+    +(isSys
+      ?'<button onclick="openED(\''+d.id+'\')" style="'+BW+'">\u270e Bewerken</button>'
+      :(!isSys&&(!d.gedeeld||(d.eigenaar_uid===_uid))?'<button onclick="openShare(\''+d.id+'\')" style="'+BW+'">'+(d.gedeeld?'\uD83D\uDC65 Beheer delen':'\uD83D\uDC65 Delen')+'</button>':'')
+       +(d.gesloten?'<button onclick="togSl(\''+d.id+'\')" style="'+BGN+'">\uD83D\uDD13 Heropenen</button>':'<button onclick="togSl(\''+d.id+'\')" style="'+BW+'">\uD83D\uDD12 Sluiten</button>')
+       +'<button onclick="openED(\''+d.id+'\')" style="'+BW+'">\u270e Bewerken</button>'
+       +'<button onclick="delD(\''+d.id+'\')" style="'+BR+'">\u2715 Verwijderen</button>')
+    +'</div></div>'
+    +'<div class="dinfo-grid">'
+    +'<div class="dinfo"><div class="dinfo-lbl">Aanmaakdatum</div><div class="dinfo-val">'+fd(d.datum)+'</div></div>'
+    +'<div class="dinfo"><div class="dinfo-lbl">Status</div><div class="dinfo-val" style="color:'+(d.gesloten?'var(--text3)':'#16a34a')+'">'+(d.gesloten?'Gesloten':'Lopend')+'</div></div>'
+    +'<div class="dinfo"><div class="dinfo-lbl">Voortgang</div><div class="dinfo-val">'+pct+'%</div></div>'
+    +'</div>'
+    +(d.notitie?'<div style="margin-top:10px;font-size:12px;color:var(--text);font-weight:500;background:var(--bg3);border-radius:6px;padding:8px 12px;line-height:1.55;word-break:break-word;overflow-wrap:anywhere;text-wrap:pretty;border-left:3px solid '+(isSys?sysColor:cat.color)+'">'+esc(d.notitie)+'</div>':'')
+    +'<div class="mini-stats">'
+    +'<div class="mini-stat"><div style="font-size:17px;font-weight:800;color:var(--text)">'+tk.length+'</div><div style="font-size:10px;color:var(--text2);font-weight:700">Taken</div></div>'
+    +'<div class="mini-stat"><div style="font-size:17px;font-weight:800;color:#16a34a">'+dn+'</div><div style="font-size:10px;color:var(--text2);font-weight:700">Gedaan</div></div>'
+    +'<div class="mini-stat"><div style="font-size:17px;font-weight:800;color:#dc2626">'+(tk.length-dn)+'</div><div style="font-size:10px;color:var(--text2);font-weight:700">Open</div></div>'
+    +(extWacht>0?'<div class="mini-stat"><div style="font-size:17px;font-weight:800;color:#f59e0b">'+extWacht+'</div><div style="font-size:10px;color:var(--text2);font-weight:700">Wachten</div></div>':'')
+    +'</div></div></div>';
+
+  // Feiten sectie (niet voor sys dossiers)
+  var feitenHtml='';
+  if(!isSys){
+    var feiten=(d.pv_feiten||[]).slice().sort(function(a,b){return (a.datum_van||a.datum||'').localeCompare(b.datum_van||b.datum||'');});
+    feitenHtml='<div class="tsectie" style="margin-bottom:12px"><div class="thdr">'
+      +'<span style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.06em">📋 Feiten</span>'
+      +'<button onclick="openNF(\''+d.id+'\')" style="'+BB+'">+ Feit toevoegen</button>'
+      +'</div>';
+    if(feiten.length===0){
+      feitenHtml+='<div style="padding:14px 16px;color:var(--text3);font-size:12px;font-weight:600">— Nog geen feiten —</div>';
+    }else{
+      feiten.forEach(function(f,fi){
+        var fc=gc(f.categorie);
+        feitenHtml+='<div style="display:flex;border-top:1px solid var(--border)">'
+          +'<div style="width:4px;background:'+fc.color+';flex-shrink:0"></div>'
+          +'<div style="padding:9px 12px;flex:1;min-width:0">'
+          +'<div style="display:flex;align-items:baseline;gap:8px;min-width:0"><div style="font-size:12px;font-weight:800;color:var(--text);font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0">'+esc(f.pv)+'</div><span style="font-size:10px;color:var(--text3);font-weight:600;flex-shrink:0;white-space:nowrap">'+fdPeriod(f)+'</span></div>'
+          +'<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:4px;align-items:center">'
+          +'<span style="font-size:10px;padding:2px 7px;border-radius:8px;font-weight:700;display:inline-flex;align-items:center;gap:4px;background:var(--bg4);color:var(--text2);border:1px solid var(--border)"><span style="width:6px;height:6px;border-radius:2px;background:'+fc.color+'"></span>'+esc(fc.id)+' · '+esc(fc.label)+'</span>'
+          +''
+          +(f.notitie?'<span style="font-size:10px;color:var(--text2);font-style:italic">'+esc(f.notitie)+'</span>':'')
+          +(d.gedeeld&&f.gewijzigd_door?'<span style="font-size:10px;color:var(--text3);font-style:italic">✎ '+esc(f.gewijzigd_door)+'</span>':'')
+          +'</div></div>'
+          +'<div style="display:flex;flex-direction:column;gap:3px;padding:7px 8px;justify-content:center;flex-shrink:0">'
+          +'<button onclick="openEF(\''+d.id+'\','+fi+')" style="'+IW+'">✎</button>'
+          +(feiten.length>1?'<button onclick="delF(\''+d.id+'\','+fi+')" style="'+IR+'">✕</button>':'<button style="'+IR+';opacity:.25;cursor:default" disabled>✕</button>')
+          +'</div></div>';
+      });
+    }
+    feitenHtml+='</div>';
+    html+=feitenHtml;
+  }
+
+  var algFn=function(t){
+    if(!isSys) return true;
+    if(ALG_FP&&(t.prioriteit||'laag')!==ALG_FP) return false;
+    return true;
+  };
+  var visCount=tk.filter(algFn).length;
+  var hasAlgF=!!(isSys&&(ALG_FP||ALG_SORT_DATE));
+  var taakLbl='\u2713 Taken'+(isSys?hasAlgF?' ('+visCount+'/'+tk.length+')':' ('+tk.length+')':'');
+  if(isSys){
+    var _wD=DOS.find(function(x){return x.id==='__werk__';}),_pD=DOS.find(function(x){return x.id==='__prive__';});
+    var _wOT=(_wD?(_wD.taken||[]).filter(function(t){return !t.gedaan;}).length:0);
+    var _pOT=(_pD?(_pD.taken||[]).filter(function(t){return !t.gedaan;}).length:0);
+    var _sb=function(id,icon,lbl,cnt){var on=AID===id;return '<button onclick="opD(\''+id+'\')" style="font-family:inherit;font-size:11px;font-weight:700;padding:5px 10px;border-radius:7px;cursor:pointer;border:1.5px solid '+(on?'var(--accent)':'var(--border)')+';background:'+(on?'var(--accent)':'var(--bg2)')+';color:'+(on?'#fff':'var(--text2)')+';transition:all .15s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px">'+icon+' '+lbl+'<span style="opacity:.7;margin-left:2px">'+cnt+'</span></button>';};
+    html+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">'+_sb('__werk__','\ud83d\udcbc','Werk',_wOT)+_sb('__prive__','\ud83d\udc64','Priv\u00e9',_pOT)+'</div>';
+  }
+  html+='<div class="tsectie"><div class="thdr">'
+    +'<span style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.06em">'+taakLbl+'</span>'
+    +'<div style="display:flex;gap:6px;align-items:center">'
+    +'<button onclick="toggleDNpv()" style="font-family:inherit;font-size:11px;font-weight:700;padding:5px 10px;border-radius:7px;cursor:pointer;border:1.5px solid '+(D_NPV_GRP?'var(--accent)':'var(--border)')+';background:'+(D_NPV_GRP?'var(--accent)':'var(--bg2)')+';color:'+(D_NPV_GRP?'#fff':'var(--text2)')+';white-space:nowrap;transition:all .15s">📋 Per NPV</button>'
+    +'<button onclick="openNT(\''+d.id+'\')" style="'+BB+'">+ Taak toevoegen</button>'
+    +'</div></div>';
+  if(isSys){
+    var pbtn=function(val,lbl,col){var on=ALG_FP===val;return '<button onclick="setAlgFP(\''+val+'\')" style="font-family:inherit;font-size:11px;font-weight:700;padding:5px 10px;border-radius:7px;cursor:pointer;border:1.5px solid '+(on?col:'var(--border)')+';background:'+(on?col:'var(--bg2)')+';color:'+(on?'#fff':'var(--text2)')+';transition:all .15s;white-space:nowrap">'+lbl+'</button>';};
+    html+='<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--bg3)">'
+      +'<div style="display:flex;gap:5px;flex-wrap:wrap">'
+      +pbtn('laag','\ud83d\udfe2 Laag','#16a34a')
+      +pbtn('midden','\ud83d\udfe0 Midden','#ea580c')
+      +pbtn('hoog','\ud83d\udd34 Hoog','#dc2626')
+      +'</div>'
+      +'<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-left:auto">'
+      +'<button onclick="toggleAlgSortDate()" style="font-family:inherit;font-size:11px;font-weight:700;padding:5px 10px;border-radius:7px;cursor:pointer;border:1.5px solid '+(ALG_SORT_DATE?'#2563eb':'var(--border)')+';background:'+(ALG_SORT_DATE?'#2563eb':'var(--bg2)')+';color:'+(ALG_SORT_DATE?'#fff':'var(--text2)')+';white-space:nowrap;transition:all .15s">'+(ALG_SORT_DATE==='desc'?'\ud83d\udcc5 Datum \u2193':ALG_SORT_DATE==='asc'?'\ud83d\udcc5 Datum \u2191':'\ud83d\udcc5 Datum')+'</button>'
+      +(hasAlgF?'<button onclick="resetAlgF()" style="font-family:inherit;font-size:11px;font-weight:700;padding:5px 9px;border-radius:6px;cursor:pointer;border:1.5px solid var(--btn-del-border);background:var(--btn-del-bg);color:var(--btn-del-text)">\u2715 Reset</button>':'')
+      +'</div>'
+      +'</div>';
+  }
+  if(d.gedeeld&&d.toegang_namen&&Object.keys(d.toegang_namen).length>0){
+    var tzNamen=d.toegang_namen;
+    var openTaken=tk.filter(function(t){return !t.gedaan;});
+    var tvRows='';
+    Object.keys(tzNamen).forEach(function(uid){
+      var naam=tzNamen[uid]||uid;
+      var ini=naam.split(' ').map(function(w){return w[0]||'';}).join('').slice(0,2).toUpperCase();
+      var cnt=openTaken.filter(function(t){return t.toegewezen&&t.toegewezen[uid];}).length;
+      tvRows+='<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);last-child:border:none">'
+        +'<div style="width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0">'+ini+'</div>'
+        +'<div style="flex:1;font-size:13px;font-weight:700;color:var(--text)">'+esc(naam)+'</div>'
+        +'<div style="font-size:12px;font-weight:700;color:'+(cnt>0?'var(--accent)':'var(--text3)')+'">'+cnt+' open taak'+(cnt!==1?'en':'')+'</div>'
+        +'</div>';
+    });
+    var cntNiet=openTaken.filter(function(t){return !t.toegewezen||!Object.keys(t.toegewezen).length;}).length;
+    if(cntNiet>0){
+      tvRows+='<div style="display:flex;align-items:center;gap:8px;padding:5px 0">'
+        +'<div style="width:28px;height:28px;border-radius:50%;background:var(--bg4);color:var(--text3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;border:1px solid var(--border);flex-shrink:0">?</div>'
+        +'<div style="flex:1;font-size:12px;font-weight:600;color:var(--text3);font-style:italic">Niet toegewezen</div>'
+        +'<div style="font-size:12px;font-weight:700;color:var(--text3)">'+cntNiet+' taak'+(cntNiet!==1?'en':'')+'</div>'
+        +'</div>';
+    }
+    html+='<div style="padding:12px 16px 6px;background:var(--bg3);border-bottom:1px solid var(--border)">'
+      +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:8px">Taakverdeling</div>'
+      +tvRows
+      +'</div>';
+  }
+  if(tk.length===0){html+='<div class="empty"><div style="font-size:32px">\u2713</div><p>Nog geen taken.</p></div>';}
+  else if(D_NPV_GRP){
+    var npvGrpsD={},npvOrdD=[],noNpvD=[],doneAllD=[];
+    tk.forEach(function(t,i){
+      if(t.gedaan){doneAllD.push({t:t,i:i});}
+      else if(t.npv){if(!npvGrpsD[t.npv]){npvGrpsD[t.npv]=[];npvOrdD.push(t.npv);}npvGrpsD[t.npv].push({t:t,i:i});}
+      else{noNpvD.push({t:t,i:i});}
+    });
+    npvOrdD.sort();
+    if(!npvOrdD.length&&!noNpvD.length&&!doneAllD.length){html+='<div class="empty"><div style="font-size:32px">\ud83d\udccb</div><p>Geen taken.</p></div>';}
+    else{
+      npvOrdD.forEach(function(npv){
+        var g=npvGrpsD[npv];
+        if(!g.length)return;
+        html+='<div style="padding:7px 14px 5px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px">'
+          +'<span style="font-size:11px;font-weight:800;color:var(--accent);font-family:monospace">NPV '+esc(npv)+'</span>'
+          +'<span style="font-size:11px;font-weight:600;color:var(--text3)">'+g.length+(g.length!==1?' taken':' taak')+'</span>'
+          +'</div>';
+        g.forEach(function(p){html+=buildTaak(d.id,p.t,p.i);});
+      });
+      if(noNpvD.length){
+        html+='<div style="padding:7px 14px 5px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px">'
+          +'<span style="font-size:11px;font-weight:800;color:var(--text3)">Geen NPV</span>'
+          +'<span style="font-size:11px;font-weight:600;color:var(--text3)">'+noNpvD.length+(noNpvD.length!==1?' taken':' taak')+'</span>'
+          +'</div>';
+        noNpvD.forEach(function(p){html+=buildTaak(d.id,p.t,p.i);});
+      }
+      if(doneAllD.length){
+        html+='<div style="padding:7px 14px 5px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px">'
+          +'<span style="font-size:11px;font-weight:800;color:var(--text3)">\u2713 Voltooide taken</span>'
+          +'<span style="font-size:11px;font-weight:600;color:var(--text3)">'+doneAllD.length+(doneAllD.length!==1?' taken':' taak')+'</span>'
+          +'</div>';
+        doneAllD.forEach(function(p){html+=buildTaak(d.id,p.t,p.i);});
+      }
+    }
+  }
+  else{
+    var openPairs=[],donePairs=[];
+    tk.forEach(function(t,i){if(!algFn(t))return;(t.gedaan?donePairs:openPairs).push({t:t,i:i});});
+    if(ALG_SORT_DATE){
+      var sortByDate=function(a,b){var da=a.t.datum||'',db=b.t.datum||'';return ALG_SORT_DATE==='asc'?(da<db?-1:da>db?1:0):(da>db?-1:da<db?1:0);};
+      openPairs.sort(sortByDate);donePairs.sort(sortByDate);
+    }
+    var anyVis=false;
+    openPairs.forEach(function(p){anyVis=true;html+=buildTaak(d.id,p.t,p.i);});
+    if(donePairs.length){
+      anyVis=true;
+      html+='<div style="padding:7px 14px 5px;background:var(--bg3);border-bottom:1px solid var(--border);border-top:1px solid var(--border);display:flex;align-items:center;gap:8px">'
+        +'<span style="font-size:11px;font-weight:800;color:var(--text3)">\u2713 Voltooide taken</span>'
+        +'<span style="font-size:11px;font-weight:600;color:var(--text3)">'+donePairs.length+(donePairs.length!==1?' taken':' taak')+'</span>'
+        +'</div>';
+      donePairs.forEach(function(p){html+=buildTaak(d.id,p.t,p.i);});
+    }
+    if(!anyVis)html+='<div class="empty"><div style="font-size:32px">\ud83d\udd0d</div><p>Geen taken met de huidige filters.</p></div>';
+  }
+  html+='</div>';
+  if(!isSys){
+    var links=d.links||[];
+    html+='<div class="tsectie" style="margin-top:12px"><div class="thdr">'
+      +'<span style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.06em">\ud83d\udd17 Gekoppelde dossiers</span>'
+      +'<button onclick="openLink(\''+d.id+'\')" style="'+BB+'">+ Koppelen</button>'
+      +'</div>';
+    if(links.length===0){
+      html+='<div style="padding:14px 16px;text-align:center;color:var(--text3);font-size:12px;font-weight:600">\u2014 Geen gekoppelde dossiers \u2014</div>';
+    }else{
+      links.forEach(function(lid){
+        var ld=DOS.find(function(x){return x.id===lid;});if(!ld)return;
+        var lcat=gcFirst(ld);var lpf=ld.pv_feiten||[];var lok=(ld.taken||[]).filter(function(t){return !t.gedaan;}).length;
+        html+='<div style="display:flex;align-items:center;border-top:1px solid var(--border);padding:10px 14px;gap:10px;cursor:pointer" onclick="opD(\''+lid+'\')">'
+          +'<div style="width:3px;height:36px;border-radius:2px;background:'+lcat.color+';flex-shrink:0"></div>'
+          +'<div style="flex:1;min-width:0">'
+          +'<div style="font-size:13px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(ld.naam||'\u2014')+'</div>'
+          +'<div style="font-size:11px;color:var(--text3);font-weight:600;margin-top:2px">'+lpf.length+' feit'+(lpf.length!==1?'en':'')+' \u00b7 '+lok+' open taak'+(lok!==1?'en':'')+'</div>'
+          +'</div>'
+          +'<button onclick="event.stopPropagation();doUnlink(\''+d.id+'\',\''+lid+'\')" style="'+IR+';flex-shrink:0">\u2715</button>'
+          +'</div>';
+      });
+    }
+    html+='</div>';
+  }
+  return html;
+}
+
+function buildTaak(did,t,ti){
+  var pr=gp(t.prioriteit),ext=t.extern||[],edn=ext.filter(function(e){return e.ontvangen;}).length;
+  var isO=t.deadline&&!t.gedaan&&t.deadline<td(),isD=!!t.gedaan;
+  var openstaand=ext.filter(function(e){return !e.ontvangen;}).length;
+  var exp=EE[did+'-'+ti]===true;
+  var showAdd=EAF[did+'-'+ti]===true;
+  var pb=isD?'#16a34a':{hoog:'#dc2626',midden:'#f59e0b',laag:'#22c55e'}[t.prioriteit||'laag'];
+  var mp={
+    hoog:'background:var(--badge-err-bg);color:var(--badge-err-text);border:1px solid var(--badge-err-border)',
+    midden:'background:var(--badge-warn-bg);color:var(--badge-warn-text);border:1px solid var(--badge-warn-border)',
+    laag:'background:var(--badge-ok-bg);color:var(--badge-ok-text);border:1px solid var(--badge-ok-border)'
+  }[t.prioriteit||'laag'];
+  var wc='twrap'+(isD?' tdone':isO?' tover':' topen');
+
+  var html='<div class="'+wc+'" draggable="true" data-ti="'+ti+'" data-did="'+did+'"><div class="tmain">'
+    +'<div class="tpbar" style="background:'+pb+'"></div>'
+    +'<div class="tcont">'
+    +'<div class="trow1">'
+    +'<div class="drag-hdl" title="Versleep om te herordenen">\u2630</div>'
+    +'<div class="tchk'+(isD?' on':'')+'" onclick="chkT(\''+did+'\','+ti+')">'+(isD?'\u2713':'')+'</div>'
+    +'<div style="flex:1;min-width:0">'
+    +'<div style="font-size:13px;font-weight:'+(isD?400:700)+';color:'+(isD?'var(--text3)':'var(--text)')+';line-height:1.3;'+(isD?'text-decoration:line-through;':'')+'">'+esc(t.titel)+'</div>'
+    +(((t.prioriteit&&t.prioriteit!=='laag')||t.deadline)?'<div class="tmeta">'
+      +((t.prioriteit&&t.prioriteit!=='laag')?'<span style="font-size:10px;padding:2px 7px;border-radius:8px;font-weight:700;'+mp+'">'+pr.label+'</span>':'')
+      +(t.deadline?'<span style="font-size:10px;padding:2px 7px;border-radius:8px;font-weight:700;'+(isO?'background:var(--badge-err-bg);color:var(--badge-err-text);border:1px solid var(--badge-err-border)':'background:var(--badge-warn-bg);color:var(--badge-warn-text);border:1px solid var(--badge-warn-border)')+'">&#8987; '+fd(t.deadline)+(isO?' ⚠':'')+'</span>':'')
+      +'</div>':'')
+    +'<div style="display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-top:4px">'
+    +'<span style="font-size:10px;padding:2px 7px;border-radius:8px;font-weight:700;background:var(--bg4);color:var(--text);border:1px solid var(--border)">📅 '+fd(t.datum)+'</span>'
+    +(t.npv
+      ?'<span style="font-size:10px;padding:2px 7px;border-radius:8px;font-weight:700;background:var(--bg4);color:var(--text2);border:1px solid var(--border);font-family:monospace">NPV '+esc(t.npv)+'</span>'
+      :'')
+    +(isD
+      ?'<span style="font-size:10px;padding:2px 7px;border-radius:8px;font-weight:700;background:var(--badge-ok-bg);color:var(--badge-ok-text);border:1px solid var(--badge-ok-border)">✓ Voltooid '+(typeof t.gedaan==='string'?fd(t.gedaan):'')+'</span>'
+      :'')
+    +'</div>'
+    +(t.notitie?'<div style="font-size:11px;color:var(--text2);margin-top:5px;background:var(--bg3);border-left:2px solid var(--border2);border-radius:0 5px 5px 0;padding:6px 9px;line-height:1.5;word-break:break-word;overflow-wrap:anywhere;text-wrap:pretty">'+esc(t.notitie)+'</div>':'')
+    +(function(){var tz=t.toegewezen;if(!tz||!Object.keys(tz).length)return '';var chips=Object.keys(tz).map(function(uid){var nm=tz[uid]||uid;var ini=nm.split(' ').map(function(w){return w[0]||'';}).join('').slice(0,2).toUpperCase();return '<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 7px 2px 3px;border-radius:10px;background:var(--bg4);color:var(--text2);border:1px solid var(--border)"><span style="width:16px;height:16px;border-radius:50%;background:var(--accent);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:7px;font-weight:800;flex-shrink:0">'+ini+'</span>'+esc(nm)+'</span>';}).join('');return '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px">'+chips+'</div>';}())
+    +(function(){var dp=DOS.find(function(x){return x.id===did;});return dp&&dp.gedeeld&&t.gewijzigd_door?'<div style="font-size:10px;color:var(--text3);margin-top:3px;font-style:italic">✎ '+esc(t.gewijzigd_door)+' — '+fd(t.gewijzigd_op?t.gewijzigd_op.slice(0,10):'')+'</div>':'';}())
+    +'</div>'
+    +'<div class="trow-actions">'
+    +(ext.length===0
+      ?'<button onclick="openExtModal(\''+did+'\','+ti+')" title="Externe factoren" style="'+IW+';opacity:.4;font-size:15px">\u231b</button>'
+      :openstaand===0
+        ?'<button onclick="openExtModal(\''+did+'\','+ti+')" title="Alles ontvangen" style="background:var(--badge-ok-bg);color:var(--badge-ok-text);border:1.5px solid var(--badge-ok-border);border-radius:5px;padding:3px 7px;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit">\u231b <span style=\"font-size:9px\">'+edn+'/'+ext.length+'</span></button>'
+        :'<button onclick="openExtModal(\''+did+'\','+ti+')" title="'+openstaand+' wachtend" style="background:var(--badge-warn-bg);color:var(--badge-warn-text);border:1.5px solid var(--badge-warn-border);border-radius:5px;padding:3px 7px;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit">\u231b <span style=\"font-size:9px\">'+edn+'/'+ext.length+'</span></button>')
+    +'<button onclick="openET(\''+did+'\','+ti+')" style="'+IW+'">\u270e</button>'
+    +'<button onclick="delT(\''+did+'\','+ti+')" style="'+IR+'">\u2715</button>'
+    +'</div></div></div></div>';
+  html+='</div>';
+  return html;
+
+}
+function onSrch(){var inp=document.getElementById('srch'),pos=inp?inp.selectionStart:0;render();setTimeout(function(){var n=document.getElementById('srch');if(n){n.focus();try{n.setSelectionRange(pos,pos);}catch(e){}}},0);}
+function toggleSort(){SO=SO==='asc'?'desc':'asc';render();}
+function setFS(s){FS=s;render();}
+function setFC(id){FC=id;render();}
+function setView(v){VIEW=v;render();}
+function goL(){VW='list';AID=null;render();}
+function goDash(){VW='dash';AID=null;render();}
+function goTaken(){VW='taken';AID=null;render();}
+function goSys(){opD(AID==='__prive__'?'__prive__':'__werk__');}
+function setTF(f){TF=(TF===f?'alles':f);render();}
+function setAlgFP(p){ALG_FP=(ALG_FP===p?'':p);render();}
+function toggleAlgSortDate(){ALG_SORT_DATE=ALG_SORT_DATE===''?'asc':ALG_SORT_DATE==='asc'?'desc':'';render();}
+function resetAlgF(){ALG_FP='';ALG_SORT_DATE='';render();}
+function toggleDNpv(){D_NPV_GRP=!D_NPV_GRP;render();}
+function opD(id){AID=id;VW='detail';render();}
+function gotoExt(did,ti){opD(did);openExtModal(did,+ti);}
+function dashOntvangen(did,ti,ei){var d=DOS.find(function(x){return x.id===did;});if(d&&d.taken[+ti]&&d.taken[+ti].extern&&d.taken[+ti].extern[+ei]!=null){d.taken[+ti].extern[+ei].ontvangen=td();sv();render();toast('\u2713 Ontvangen bevestigd');}}
+function togSl(id){var d=DOS.find(function(x){return x.id===id;});if(d){d.gesloten=!d.gesloten;sv();render();toast(d.gesloten?'Dossier gesloten':'Dossier heropend');}}
+function togE(did,ti){
+  var k=did+'-'+ti;
+  var d=DOS.find(function(x){return x.id===did;});
+  var openstaand=d&&d.taken[+ti]?(d.taken[+ti].extern||[]).filter(function(e){return !e.ontvangen;}).length:0;
+  if(EE[k]===undefined){EE[k]=openstaand===0;}
+  else{EE[k]=!EE[k];}
+  render();
+}
+function openExtModal(did,ti){
+  EXT_MODAL={did:did,ti:+ti};
+  var d=DOS.find(function(x){return x.id===did;});
+  if(!d)return;
+  var t=d.taken&&d.taken[+ti];if(!t)return;
+  var ext=t.extern||[],edn=ext.filter(function(e){return e.ontvangen;}).length;
+  var showAdd=EAF[did+'-'+ti]===true;
+  var html='<div class="ob-title">⌛ Externe factoren</div>'
+    +'<div style="font-size:12px;color:var(--text2);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border)">'+t.titel+'</div>';
+  if(ext.length===0&&!showAdd){
+    html+='<div style="text-align:center;padding:18px 0;color:var(--text3);font-size:12px">— Nog geen externe factoren —</div>';
+  }
+  ext.forEach(function(e,ei){
+    var isOk=!!e.ontvangen,dagen=ds(e.aanvraag);
+    html+='<div class="ext-item '+(isOk?'ok':'wait')+'">'
+      +'<div class="ext-bar '+(isOk?'ok':'wait')+'"></div>'
+      +'<div class="ext-body">'
+      +'<div class="ext-naam">'+extNm(e)+'</div>'
+      +'<div class="ext-meta">'
+      +'<span style="font-size:10px;padding:2px 6px;border-radius:6px;background:var(--bg4);color:var(--text2);font-weight:600;border:1px solid var(--border)">📄 '+fd(e.aanvraag)+'</span>'
+      +(isOk?'<span style="font-size:10px;padding:2px 6px;border-radius:6px;background:var(--badge-ok-bg);color:var(--badge-ok-text);border:1px solid var(--badge-ok-border);font-weight:700">✓ '+fd(e.ontvangen)+'</span>'
+            :'<span style="font-size:10px;padding:2px 6px;border-radius:6px;background:var(--badge-warn-bg);color:var(--badge-warn-text);border:1px solid var(--badge-warn-border);font-weight:700">&#8987; '+dagen+'d wachten</span>')
+      +'</div></div>'
+      +'<div class="ext-actions">'
+      +(!isOk?'<button onclick="ontvangenE(\''+did+'\','+ti+','+ei+')" style="'+IGN+'">✓</button>':'')
+      +'<button onclick="openEE(\''+did+'\','+ti+','+ei+')" style="'+IW+'">✎</button>'
+      +'<button onclick="delE(\''+did+'\','+ti+','+ei+')" style="'+IR+'">✕</button>'
+      +'</div></div>';
+  });
+  html+='<div class="ext-add"'+(showAdd?'':' style="background:none;border:none;padding:4px 0"')+'>';
+  if(!showAdd){
+    html+='<button class="ext-add-toggle" onclick="togEAF(\''+did+'\','+ti+')">+ Factor toevoegen</button>';
+  }else{
+    html+='<button class="ext-add-toggle" onclick="togEAF(\''+did+'\','+ti+')">✕ Annuleren</button>'
+      +'<div class="ext-add-form"><div class="ext-add-row">'
+      +'<select id="xcat-'+did+'-'+ti+'" onchange="inlineExtUpdate(\''+did+'\','+ti+')">'
+      +'<option value="">-- Categorie --</option><option value="bank">🏦 Bank</option><option value="telecom">📡 Telecom</option><option value="parket">⚖️ Parket</option><option value="or">🔍 Onderzoeksrechter</option><option value="pz">🚔 Politiezone</option><option value="andere">📝 Andere</option>'
+      +'</select>'
+      +'<div id="xwrap-'+did+'-'+ti+'" style="flex:1;min-width:120px"></div>'
+      +'</div><div class="ext-add-row">'
+      +'<input type="date" id="xd-'+did+'-'+ti+'" value="'+td()+'" style="flex:1">'
+      +'<button onclick="addE(\''+did+'\','+ti+')" style="'+SBN+'">+ Toevoegen</button>'
+      +'</div></div>';
+  }
+  html+='</div><div class="f-actions" style="margin-top:10px"><button class="btn btn-white" onclick="CM(\'mo-ext\')">Sluiten</button></div>';
+  document.getElementById('mo-ext-body').innerHTML=html;
+  OM('mo-ext');
+}
+function togEAF(did,ti){var k=did+'-'+ti;EAF[k]=!EAF[k];openExtModal(did,ti);}
+
+function openND(){
+  MDI=null;
+  document.getElementById('mo-d-t').textContent='Nieuw dossier';
+  document.getElementById('f-naam').value='';
+  document.getElementById('f-datum').value=td();
+  document.getElementById('f-not').value='';
+  document.getElementById('f-pv').value='';
+  var ph=document.getElementById('pv-hint');if(ph)ph.textContent='';
+  document.getElementById('f-cat').value=CATS[0].id;
+  document.getElementById('f-fdat-van').value=td();
+  document.getElementById('f-fdat-tot').value='';
+  document.getElementById('f-eerste-feit-blok').style.display='';
+  OM('mo-d');
+  setTimeout(function(){document.getElementById('f-naam').focus();},80);
+}
+function openED(id){
+  var d=DOS.find(function(x){return x.id===id;});if(!d)return;
+  MDI=id;
+  document.getElementById('mo-d-t').textContent='Dossier bewerken';
+  document.getElementById('f-naam').value=d.naam||'';
+  document.getElementById('f-datum').value=d.datum||td();
+  document.getElementById('f-not').value=d.notitie||'';
+  document.getElementById('f-eerste-feit-blok').style.display='none';
+  OM('mo-d');
+  setTimeout(function(){document.getElementById('f-naam').focus();},80);
+}
+function saveDos(){
+  var naam=document.getElementById('f-naam').value.trim().toUpperCase();
+  var datum=document.getElementById('f-datum').value;
+  var notitie=document.getElementById('f-not').value.trim();
+  if(!naam){document.getElementById('f-naam').focus();return;}
+  if(MDI===null){
+    var pv=document.getElementById('f-pv').value.trim().toUpperCase();
+    var cat=document.getElementById('f-cat').value;
+    var fdatVan=document.getElementById('f-fdat-van').value||datum;
+    var fdatTot=document.getElementById('f-fdat-tot').value||'';
+    if(!pv){document.getElementById('f-pv').focus();return;}
+    var allPvs=[];DOS.forEach(function(x){(x.pv_feiten||[]).forEach(function(f){allPvs.push(f.pv);});});
+    if(allPvs.indexOf(pv)>=0){toast('PV-nummer bestaat al in een ander dossier');document.getElementById('f-pv').focus();return;}
+    DOS.unshift({id:gId(),naam:naam,datum:datum,notitie:notitie,pv_feiten:[{id:gId(),pv:pv,categorie:cat,datum_van:fdatVan,datum_tot:fdatTot,notitie:''}],links:[],taken:[],gesloten:false});
+  }else{
+    var d=DOS.find(function(x){return x.id===MDI;});
+    if(d)Object.assign(d,{naam:naam,datum:datum,notitie:notitie});
+  }
+  sv();CM('mo-d');render();toast('Dossier opgeslagen');
+}
+function feitPvInput(){
+  var inp=document.getElementById('ff-pv');if(!inp)return;
+  var sel=inp.selectionStart;
+  var rawBefore=inp.value.slice(0,sel).replace(/[^A-Za-z0-9]/g,'').length;
+  var raw=inp.value.replace(/[^A-Za-z0-9]/g,'').toUpperCase().slice(0,16);
+  var fmt='',i;
+  for(i=0;i<raw.length;i++){if(i===2||i===4||i===6)fmt+='.';if(i===12)fmt+='/';fmt+=raw[i];}
+  inp.value=fmt;
+  var newPos=0,cnt=0;
+  for(i=0;i<fmt.length;i++){if(fmt[i]!=='.'&&fmt[i]!=='/')cnt++;if(cnt===rawBefore){newPos=i+1;break;}}
+  if(rawBefore===0)newPos=0;
+  try{inp.setSelectionRange(newPos,newPos);}catch(e){}
+  var hint=document.getElementById('ff-pv-hint');
+  var catSel=document.getElementById('ff-cat');
+  if(!fmt){if(hint)hint.textContent='';return;}
+  var valid=/^[A-Za-z]{2}\.[0-9]{2}\.[A-Za-z0-9]{2}\.[0-9]{6}\/[0-9]{4}$/.test(fmt);
+  if(!valid){if(hint){hint.textContent='! Verwacht: HV.20.L8.002244/2026';hint.style.color='#dc2626';}return;}
+  if(hint){hint.textContent='✓ OK';hint.style.color='#16a34a';}
+  var m=fmt.match(/^[A-Z]{2}\.([0-9]{2})/);
+  if(m&&catSel){var base=m[1];for(var j=0;j<catSel.options.length;j++){if(catSel.options[j].value===base||catSel.options[j].value.indexOf(base)===0){catSel.value=catSel.options[j].value;break;}}}
+}
+function openNF(did){
+  MFD=did;MFI=null;
+  document.getElementById('mo-f-t').textContent='Feit toevoegen';
+  document.getElementById('ff-pv').value='';
+  var h=document.getElementById('ff-pv-hint');if(h)h.textContent='';
+  document.getElementById('ff-cat').value=CATS[0].id;
+  document.getElementById('ff-dat-van').value=td();
+  document.getElementById('ff-dat-tot').value='';
+  document.getElementById('ff-not').value='';
+  OM('mo-f');setTimeout(function(){document.getElementById('ff-pv').focus();},80);
+}
+function openEF(did,fi){
+  var d=DOS.find(function(x){return x.id===did;});if(!d)return;
+  var f=(d.pv_feiten||[])[+fi];if(!f)return;
+  MFD=did;MFI=+fi;
+  document.getElementById('mo-f-t').textContent='Feit bewerken';
+  document.getElementById('ff-pv').value=f.pv||'';
+  var h=document.getElementById('ff-pv-hint');if(h)h.textContent='';
+  document.getElementById('ff-cat').value=f.categorie||CATS[0].id;
+  document.getElementById('ff-dat-van').value=f.datum_van||f.datum||td();
+  document.getElementById('ff-dat-tot').value=f.datum_tot||'';
+  document.getElementById('ff-not').value=f.notitie||'';
+  OM('mo-f');
+}
+function saveF(){
+  var pv=document.getElementById('ff-pv').value.trim().toUpperCase();
+  var cat=document.getElementById('ff-cat').value;
+  var datVan=document.getElementById('ff-dat-van').value;
+  var datTot=document.getElementById('ff-dat-tot').value;
+  var not=document.getElementById('ff-not').value.trim();
+  if(!pv){document.getElementById('ff-pv').focus();return;}
+  if(!datVan){document.getElementById('ff-dat-van').focus();return;}
+  var allPvs=[];
+  DOS.forEach(function(x){
+    var skip=(x.id===MFD&&MFI!==null);
+    if(!skip)(x.pv_feiten||[]).forEach(function(f){allPvs.push(f.pv);});
+    else (x.pv_feiten||[]).forEach(function(f,i){if(i!==MFI)allPvs.push(f.pv);});
+  });
+  if(allPvs.indexOf(pv)>=0){toast('⚠️ Dit PV-nummer bestaat al in een ander dossier');return;}
+  var d=DOS.find(function(x){return x.id===MFD;});if(!d)return;
+  if(!Array.isArray(d.pv_feiten))d.pv_feiten=[];
+  if(MFI===null){d.pv_feiten.push({id:gId(),pv:pv,categorie:cat,datum_van:datVan,datum_tot:datTot,notitie:not});}
+  else{Object.assign(d.pv_feiten[MFI],{pv:pv,categorie:cat,datum_van:datVan,datum_tot:datTot,notitie:not});}
+  if(d.gedeeld){
+    if(MFI===null&&d.pv_feiten.length>0)Object.assign(d.pv_feiten[d.pv_feiten.length-1],metaStamp());
+    else if(MFI!==null&&d.pv_feiten[MFI])Object.assign(d.pv_feiten[MFI],metaStamp());
+  }
+  sv();CM('mo-f');render();toast('Feit opgeslagen');
+}
+function delF(did,fi){
+  var d=DOS.find(function(x){return x.id===did;});
+  if(!d||!d.pv_feiten||d.pv_feiten.length<=1)return;
+  var f=d.pv_feiten[+fi];
+  ask('Feit verwijderen?','"'+(f&&f.pv||'?')+'" wordt verwijderd.',function(){d.pv_feiten.splice(+fi,1);sv();render();toast('Feit verwijderd');});
+}
+function delD(id){var d=DOS.find(function(x){return x.id===id;});ask('Dossier verwijderen?','"'+(d&&(d.naam||'Dit dossier')||'Dit dossier')+'" wordt definitief verwijderd.',function(){DOS=DOS.filter(function(x){return x.id!==id;});sv();if(VW==='detail')goL();else render();toast('Dossier verwijderd');});}
+
+
+function openLink(did){
+  var html='<div style="margin-bottom:12px"><input id="link-srch" type="text" placeholder="Zoek dossier..." oninput="renderLinkList(\''+did+'\')" style="width:100%;padding:8px 12px;border:1.5px solid var(--input-border);border-radius:7px;background:var(--input-bg);color:var(--text);font-family:inherit;font-size:13px;box-sizing:border-box"></div>'
+    +'<div id="link-list" style="max-height:280px;overflow-y:auto;border:1px solid var(--border);border-radius:8px"></div>'
+    +'<div class="f-actions" style="margin-top:10px"><button class="btn btn-white" onclick="CM(\'mo-link\')">Sluiten</button></div>';
+  document.getElementById('mo-link-body').innerHTML=html;
+  renderLinkList(did);
+  OM('mo-link');setTimeout(function(){var s=document.getElementById('link-srch');if(s)s.focus();},80);
+}
+function renderLinkList(did){
+  var d=DOS.find(function(x){return x.id===did;});if(!d)return;
+  var curLinks=d.links||[];
+  var srch=(document.getElementById('link-srch')||{value:''}).value.toLowerCase().trim();
+  var others=DOS.filter(function(x){return x.id!==did&&x.id!=='__werk__'&&x.id!=='__prive__';});
+  if(srch)others=others.filter(function(x){if((x.naam||'').toLowerCase().indexOf(srch)!==-1)return true;return (x.pv_feiten||[]).some(function(f){return f.pv.toLowerCase().indexOf(srch)!==-1;});});
+  var el=document.getElementById('link-list');if(!el)return;
+  if(!others.length){el.innerHTML='<div style="padding:16px;text-align:center;color:var(--text3);font-size:12px">Geen dossiers gevonden</div>';return;}
+  var html='';
+  others.forEach(function(x){
+    var xcat=gcFirst(x);var xpf=x.pv_feiten||[];var isLinked=curLinks.indexOf(x.id)>=0;
+    html+='<div onclick="'+(isLinked?'':'doLink(\''+did+'\',\''+x.id+'\')')+'" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);cursor:'+(isLinked?'default':'pointer')+';opacity:'+(isLinked?'.5':'1')+'" '+(isLinked?'':'onmouseover="this.style.background=\'var(--bg3)\'" onmouseout="this.style.background=\'\'"')+'>'
+      +'<div style="width:4px;height:36px;border-radius:2px;background:'+xcat.color+';flex-shrink:0"></div>'
+      +'<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(x.naam||'—')+'</div>'
+      +(xpf.length>0?'<div style="font-size:11px;color:var(--text3);font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(xpf[0].pv)+'</div>':'')
+      +'</div>'
+      +(isLinked?'<span style="font-size:10px;font-weight:700;color:var(--text3);white-space:nowrap">Al gekoppeld</span>':'')
+      +'</div>';
+  });
+  el.innerHTML=html;
+}
+function openShare(did){
+  var d=DOS.find(function(x){return x.id===did;});if(!d)return;
+  var isOwner=!d.gedeeld||(d.eigenaar_uid===_uid);
+  if(d.gedeeld&&!isOwner)return;
+  document.getElementById('mo-share-t').textContent=d.gedeeld?'Gedeeld met':'Dossier delen';
+  if(!d.gedeeld){
+    document.getElementById('mo-share-body').innerHTML='<div style="text-align:center;padding:18px;color:var(--text3);font-size:12px">Gebruikers laden…</div><div class="f-actions"><button class="btn btn-white" onclick="CM(\'mo-share\')">Annuleren</button></div>';
+    OM('mo-share');
+    _db.ref('gebruikernamen').once('value').then(function(snap){
+      var namen=snap.val()||{};
+      var users=[];
+      Object.keys(namen).forEach(function(key){
+        var entry=namen[key];
+        var uid=entry&&typeof entry==='object'?entry.uid:entry;
+        var naam=entry&&typeof entry==='object'?entry.naam:key.replace(/_/g,' ').replace(/\b\w/g,function(c){return c.toUpperCase();});
+        if(uid&&uid!==_uid)users.push({uid:uid,naam:naam,key:key});
+      });
+      window._shareUsers=users;window._shareDid=did;
+      var html='<div style="margin-bottom:10px"><input id="share-srch" type="text" placeholder="Zoek gebruiker…" oninput="filterShareList()" style="width:100%;padding:8px 12px;border:1.5px solid var(--input-border);border-radius:7px;background:var(--input-bg);color:var(--text);font-family:inherit;font-size:13px;box-sizing:border-box"></div>'
+        +'<div id="share-user-list" style="max-height:280px;overflow-y:auto;border:1px solid var(--border);border-radius:8px">';
+      if(!users.length){
+        html+='<div style="padding:16px;text-align:center;color:var(--text3);font-size:12px">Geen andere gebruikers gevonden</div>';
+      }else{
+        users.forEach(function(u,i){
+          var initials=u.naam.split(' ').map(function(w){return w[0]||'';}).join('').slice(0,2).toUpperCase();
+          html+='<div class="share-user-row" data-search="'+esc(u.key)+'" data-uid="'+esc(u.uid)+'" data-naam="'+esc(u.naam)+'" onclick="selectShareUser(this.dataset.uid,this.dataset.naam)" style="display:flex;align-items:center;gap:12px;padding:10px 14px;'+(i>0?'border-top:1px solid var(--border);':'')+';cursor:pointer" onmouseover="this.style.background=\'var(--bg3)\'" onmouseout="this.style.background=\'\'">'
+            +'<div style="width:36px;height:36px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0">'+initials+'</div>'
+            +'<div style="font-size:13px;font-weight:700;color:var(--text)">'+esc(u.naam)+'</div>'
+            +'</div>';
+        });
+      }
+      html+='</div><div class="f-actions"><button class="btn btn-white" onclick="CM(\'mo-share\')">Annuleren</button></div>';
+      document.getElementById('mo-share-body').innerHTML=html;
+      setTimeout(function(){var s=document.getElementById('share-srch');if(s)s.focus();},80);
+    }).catch(function(e){toast('❌ Fout bij laden gebruikers.');});
+  }else{
+    var toegang=d.toegang||{};
+    var toegangNamen=d.toegang_namen||{};
+    var lijstHtml='<div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:14px">';
+    Object.keys(toegang).forEach(function(u,i){
+      var displayName=toegangNamen[u]||(u===_uid?(_userName||_userEmail):u);
+      var initials=displayName.split(' ').map(function(w){return w[0]||'';}).join('').slice(0,2).toUpperCase();
+      lijstHtml+='<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;'+(i>0?'border-top:1px solid var(--border);':'')+';font-size:13px;color:var(--text);font-weight:600">';
+      lijstHtml+='<div style="width:32px;height:32px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0">'+initials+'</div>';
+      lijstHtml+=esc(u===_uid?displayName+' (jij)':displayName)+'</div>';
+    });
+    lijstHtml+='</div>';
+    document.getElementById('mo-share-body').innerHTML=lijstHtml
+      +'<div class="f-actions"><button class="btn btn-white" onclick="CM(\'mo-share\')">Sluiten</button><button class="btn btn-red" onclick="unshareDossier(\''+did+'\')">🔒 Privé maken</button></div>';
+    OM('mo-share');
+  }
+}
+function filterShareList(){
+  var srch=(document.getElementById('share-srch')||{value:''}).value.toLowerCase().trim();
+  var rows=document.querySelectorAll('#share-user-list .share-user-row');
+  rows.forEach(function(row){row.style.display=(!srch||(row.getAttribute('data-search')||'').indexOf(srch)>=0)?'':'none';});
+}
+function selectShareUser(collegaUid,collegaNaam){
+  window._selectedShareUid=collegaUid;window._selectedShareNaam=collegaNaam;
+  var initials=collegaNaam.split(' ').map(function(w){return w[0]||'';}).join('').slice(0,2).toUpperCase();
+  document.getElementById('mo-share-body').innerHTML=
+    '<div style="padding:14px;background:var(--bg3);border-radius:8px;margin-bottom:14px;display:flex;align-items:center;gap:12px;border:1px solid var(--border)">'
+    +'<div style="width:44px;height:44px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;flex-shrink:0">'+initials+'</div>'
+    +'<div><div style="font-size:15px;font-weight:800;color:var(--text)">'+esc(collegaNaam)+'</div>'
+    +'<div style="font-size:11px;color:var(--text3);margin-top:2px">Wordt toegevoegd als medewerker</div></div>'
+    +'</div>'
+    +'<div class="f-actions"><button class="btn btn-white" onclick="openShare(\''+window._shareDid+'\')">&#8592; Terug</button><button class="btn btn-blue" onclick="confirmShare()">👥 Dossier delen</button></div>';
+}
+function confirmShare(){
+  if(!window._selectedShareUid||!window._shareDid)return;
+  doShareWithUser(window._shareDid,window._selectedShareUid,window._selectedShareNaam);
+}
+function doShareWithUser(did,collegaUid,collegaNaam){
+  var d=DOS.find(function(x){return x.id===did;});if(!d)return;
+  var dosBackup=JSON.parse(JSON.stringify(d));
+  d.gedeeld=true;d.eigenaar_uid=_uid;
+  if(!d.toegang)d.toegang={};
+  d.toegang[_uid]=true;d.toegang[collegaUid]=true;
+  if(!d.toegang_namen)d.toegang_namen={};
+  d.toegang_namen[_uid]=_userName||_userEmail;
+  d.toegang_namen[collegaUid]=collegaNaam;
+  var updates={};
+  updates['gebruikers/'+_uid+'/dossiers/'+did]=null;
+  updates['gedeeld/'+did]=d;
+  _db.ref().update(updates).then(function(){
+    CM('mo-share');toast('✓ Dossier gedeeld met '+collegaNaam);
+  }).catch(function(e){
+    Object.assign(d,dosBackup);delete d.gedeeld;delete d.eigenaar_uid;delete d.toegang;delete d.toegang_namen;
+    toast('❌ Fout bij delen. Probeer opnieuw.');
+  });
+}
+function unshareDossier(did){
+  var d=DOS.find(function(x){return x.id===did;});
+  if(!d||d.eigenaar_uid!==_uid)return;
+  ask('Privé maken?','Het dossier wordt teruggeplaatst naar je privédossiers. Collega\'s verliezen toegang.',function(){
+    var copy=JSON.parse(JSON.stringify(d));
+    delete copy.gedeeld;delete copy.eigenaar_uid;delete copy.toegang;delete copy.toegang_namen;
+    _db.ref('gebruikers/'+_uid+'/dossiers/'+did).set(copy).then(function(){
+      _db.ref('gedeeld/'+did).remove().catch(function(e){console.warn(e);});
+      _gedeeldDOS=_gedeeldDOS.filter(function(x){return x.id!==did;});
+      _priveDOS.push(copy);
+      DOS=_priveDOS.concat(_gedeeldDOS);
+      CM('mo-share');toast('🔒 Dossier is nu privé');render();
+    }).catch(function(e){toast('❌ Fout. Probeer opnieuw.');});
+  });
+}
+function doLink(did,otherId){
+  var d=DOS.find(function(x){return x.id===did;});
+  var o=DOS.find(function(x){return x.id===otherId;});
+  if(!d||!o)return;
+  if(!Array.isArray(d.links))d.links=[];if(!Array.isArray(o.links))o.links=[];
+  if(d.links.indexOf(otherId)<0)d.links.push(otherId);
+  if(o.links.indexOf(did)<0)o.links.push(did);
+  sv();CM('mo-link');render();toast('🔗 Dossiers gekoppeld');
+}
+function doUnlink(did,otherId){
+  ask('Koppeling verwijderen?','De koppeling tussen de twee dossiers wordt verwijderd.',function(){
+    var d=DOS.find(function(x){return x.id===did;});
+    var o=DOS.find(function(x){return x.id===otherId;});
+    if(d&&Array.isArray(d.links))d.links=d.links.filter(function(l){return l!==otherId;});
+    if(o&&Array.isArray(o.links))o.links=o.links.filter(function(l){return l!==did;});
+    sv();render();toast('Koppeling verwijderd');
+  });
+}
+function buildAssignChips(did,selectedUids){
+  var d=DOS.find(function(x){return x.id===did;});
+  if(!d||!d.toegang_namen)return '';
+  var html='';
+  Object.keys(d.toegang_namen).forEach(function(uid){
+    var naam=d.toegang_namen[uid]||uid;
+    var sel=selectedUids&&selectedUids[uid]?'1':'0';
+    var initials=naam.split(' ').map(function(w){return w[0]||'';}).join('').slice(0,2).toUpperCase();
+    var selStyle=sel==='1'?'border:1.5px solid var(--accent);background:var(--accent);color:#fff':'border:1.5px solid var(--border);background:var(--bg3);color:var(--text2)';
+    html+='<div onclick="toggleAssign(this)" data-uid="'+uid+'" data-naam="'+esc(naam)+'" data-sel="'+sel+'" style="display:flex;align-items:center;gap:6px;padding:5px 10px;border-radius:20px;cursor:pointer;font-size:12px;font-weight:600;transition:all .15s;'+selStyle+'">'
+      +'<div style="width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;flex-shrink:0">'+initials+'</div>'
+      +esc(naam)
+      +'</div>';
+  });
+  return html;
+}
+function toggleAssign(el){
+  var sel=el.getAttribute('data-sel')==='1';
+  el.setAttribute('data-sel',sel?'0':'1');
+  if(!sel){el.style.border='1.5px solid var(--accent)';el.style.background='var(--accent)';el.style.color='#fff';}
+  else{el.style.border='1.5px solid var(--border)';el.style.background='var(--bg3)';el.style.color='var(--text2)';}
+}
+function showAssignRow(did,selectedUids){
+  var d=DOS.find(function(x){return x.id===did;});
+  var row=document.getElementById('t-assign-row');
+  var chips=document.getElementById('t-assign-chips');
+  if(!row||!chips)return;
+  if(d&&d.gedeeld&&d.toegang_namen&&Object.keys(d.toegang_namen).length>0){
+    chips.innerHTML=buildAssignChips(did,selectedUids);
+    row.style.display='';
+  }else{
+    chips.innerHTML='';row.style.display='none';
+  }
+}
+function openNT(did){MTD=did;MTI=null;document.getElementById('mo-t-t').textContent='Taak toevoegen';document.getElementById('t-ti').value='';document.getElementById('t-pr').value='laag';document.getElementById('t-da').value=td();document.getElementById('t-dl').value='';document.getElementById('t-npv').value='';var nh=document.getElementById('npv-hint');if(nh)nh.textContent='';document.getElementById('t-no').value='';document.getElementById('t-gd-row').style.display='none';document.getElementById('t-gd').value='';showAssignRow(did,null);OM('mo-t');}
+function openET(did,ti){var d=DOS.find(function(x){return x.id===did;});if(!d)return;var t=(d.taken||[])[+ti];if(!t)return;MTD=did;MTI=+ti;document.getElementById('mo-t-t').textContent='Taak bewerken';document.getElementById('t-ti').value=t.titel||'';document.getElementById('t-pr').value=t.prioriteit||'laag';document.getElementById('t-da').value=t.datum||td();document.getElementById('t-dl').value=t.deadline||'';document.getElementById('t-npv').value=t.npv||'';var nh=document.getElementById('npv-hint');if(nh)nh.textContent='';document.getElementById('t-no').value=t.notitie||'';var gdRow=document.getElementById('t-gd-row');if(t.gedaan){gdRow.style.display='';document.getElementById('t-gd').value=t.gedaan===true?td():t.gedaan;}else{gdRow.style.display='none';document.getElementById('t-gd').value='';}showAssignRow(did,t.toegewezen||null);OM('mo-t');}
+function saveTaak(){var titel=document.getElementById('t-ti').value.trim(),prio=document.getElementById('t-pr').value,datum=document.getElementById('t-da').value,deadline=document.getElementById('t-dl').value,npv=document.getElementById('t-npv').value.trim(),notitie=document.getElementById('t-no').value.trim(),gdVal=document.getElementById('t-gd').value;if(!titel){document.getElementById('t-ti').focus();return;}if(npv&&!/^[0-9]{6}\/[0-9]{4}$/.test(npv)){toast('NPV-formaat ongeldig — verwacht: 002244/2026');document.getElementById('t-npv').focus();return;}var d=DOS.find(function(x){return x.id===MTD;});if(!d)return;if(!d.taken)d.taken=[];var toegewezen={};document.querySelectorAll('#t-assign-chips [data-uid]').forEach(function(chip){if(chip.getAttribute('data-sel')==='1')toegewezen[chip.getAttribute('data-uid')]=chip.getAttribute('data-naam');});var taak;if(MTI===null){taak={id:gId(),titel:titel,prioriteit:prio,datum:datum,deadline:deadline,npv:npv,notitie:notitie,gedaan:false,extern:[],toegewezen:toegewezen};if(d.gedeeld)Object.assign(taak,metaStamp());d.taken.push(taak);}else{taak=d.taken[MTI];Object.assign(taak,{titel:titel,prioriteit:prio,datum:datum,deadline:deadline,npv:npv,notitie:notitie,toegewezen:toegewezen});if(taak.gedaan&&gdVal)taak.gedaan=gdVal;if(d.gedeeld)Object.assign(taak,metaStamp());}sv();CM('mo-t');render();toast('Taak opgeslagen');}
+function chkT(did,ti){var d=DOS.find(function(x){return x.id===did;});if(d&&d.taken[+ti]!=null){var t=d.taken[+ti];var wasGedaan=!!t.gedaan;var gedaanDate=typeof t.gedaan==='string'?t.gedaan:'';t.gedaan=t.gedaan?false:td();if(!wasGedaan&&t.extern){t.extern.forEach(function(e){if(!e.ontvangen)e.ontvangen=td();});}else if(wasGedaan&&t.extern&&gedaanDate){t.extern.forEach(function(e){if(e.ontvangen===gedaanDate)e.ontvangen='';}); }if(d.gedeeld&&d.taken[+ti])Object.assign(d.taken[+ti],metaStamp());sv();render();}}
+function delT(did,ti){var d=DOS.find(function(x){return x.id===did;}),t=d&&d.taken&&d.taken[+ti];ask('Taak verwijderen?','"'+(t&&t.titel||'Deze taak')+'" wordt verwijderd.',function(){if(d){d.taken.splice(+ti,1);sv();render();toast('Taak verwijderd');}});}
+
+function addE(did,ti){
+  var cat=document.getElementById('xcat-'+did+'-'+ti)&&document.getElementById('xcat-'+did+'-'+ti).value;
+  if(!cat){toast('Kies een categorie');return;}
+  var subEl=document.getElementById('xsub-'+did+'-'+ti);
+  var vrijEl=document.getElementById('xvrij-'+did+'-'+ti);
+  var sub;
+  if(subEl&&subEl.tagName==='SELECT'&&subEl.value==='__vrij__'){sub=(vrijEl&&vrijEl.value||'').trim();if(!sub){toast('Vul de vrije tekst in');vrijEl&&vrijEl.focus();return;}}
+  else{sub=(subEl&&subEl.value||'').trim();}
+  if((cat==='or'||cat==='andere')&&!sub){toast('Vul een naam/omschrijving in');return;}
+  var datum=document.getElementById('xd-'+did+'-'+ti)&&document.getElementById('xd-'+did+'-'+ti).value;
+  var d=DOS.find(function(x){return x.id===did;});
+  if(!d||!d.taken[+ti])return;
+  if(!d.taken[+ti].extern)d.taken[+ti].extern=[];
+  d.taken[+ti].extern.push({cat:cat,sub:sub,aanvraag:datum||td(),ontvangen:''});
+  EAF[did+'-'+ti]=false;
+  sv();render();toast('Factor toegevoegd');
+  if(EXT_MODAL.did)openExtModal(EXT_MODAL.did,EXT_MODAL.ti);
+}
+function ontvangenE(did,ti,ei){
+  var d=DOS.find(function(x){return x.id===did;});
+  if(d&&d.taken[+ti]&&d.taken[+ti].extern&&d.taken[+ti].extern[+ei]!=null){d.taken[+ti].extern[+ei].ontvangen=td();sv();render();toast('\u2713 Ontvangen bevestigd');if(EXT_MODAL.did)openExtModal(EXT_MODAL.did,EXT_MODAL.ti);}
+}
+function delE(did,ti,ei){
+  var d=DOS.find(function(x){return x.id===did;});
+  ask('Factor verwijderen?','',function(){if(d&&d.taken[+ti]&&d.taken[+ti].extern){d.taken[+ti].extern.splice(+ei,1);sv();render();toast('Factor verwijderd');if(EXT_MODAL.did)openExtModal(EXT_MODAL.did,EXT_MODAL.ti);}});
+}
+function openEE(did,ti,ei){
+  var d=DOS.find(function(x){return x.id===did;});if(!d)return;
+  var e=(d.taken[+ti]&&d.taken[+ti].extern||[])[+ei];if(!e)return;
+  MED=did;MET=+ti;MEI=+ei;
+  document.getElementById('e-cat').value=e.cat||'';
+  extSubUpdate();
+  setTimeout(function(){
+    var se=document.getElementById('e-sub'),ve=document.getElementById('e-vrij'),sv2=document.getElementById('e-sub-vrij');
+    var sub=e.sub||'';
+    if(se){var found=false;for(var i=0;i<se.options.length;i++){if(se.options[i].value===sub){se.value=sub;found=true;break;}}if(!found&&sub){se.value='__vrij__';if(sv2){sv2.style.display='block';sv2.value=sub;}}}
+    if(ve)ve.value=sub;
+  },20);
+  document.getElementById('e-aa').value=e.aanvraag||td();
+  document.getElementById('e-on').value=e.ontvangen||'';
+  OM('mo-e');
+}
+function saveExt(){
+  var cat=document.getElementById('e-cat').value;if(!cat){toast('Kies een categorie');return;}
+  var se=document.getElementById('e-sub'),ve=document.getElementById('e-vrij'),sv2=document.getElementById('e-sub-vrij');
+  var sub;
+  if(se&&se.offsetParent){if(se.value==='__vrij__'){sub=(sv2&&sv2.value||'').trim();if(!sub){toast('Vul vrije tekst in');sv2&&sv2.focus();return;}}else{sub=se.value;}}
+  else{sub=(ve&&ve.value||'').trim();}
+  sub=sub||'';if((cat==='or'||cat==='andere')&&!sub){toast('Vul een naam/omschrijving in');return;}
+  var aa=document.getElementById('e-aa').value,on=document.getElementById('e-on').value;
+  var d=DOS.find(function(x){return x.id===MED;});
+  if(d&&d.taken[MET]&&d.taken[MET].extern&&d.taken[MET].extern[MEI]!=null){
+    Object.assign(d.taken[MET].extern[MEI],{cat:cat,sub:sub,aanvraag:aa,ontvangen:on});
+    if(d.gedeeld)Object.assign(d.taken[MET].extern[MEI],metaStamp());
+    sv();CM('mo-e');toast('Factor opgeslagen');render();if(EXT_MODAL.did)openExtModal(EXT_MODAL.did,EXT_MODAL.ti);
+  }
+}
+
+var THEME=localStorage.getItem('dos_theme')||(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+function applyTheme(t){THEME=t;document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'');localStorage.setItem('dos_theme',t);var btn=document.getElementById('theme-toggle');if(btn)btn.innerHTML=t==='dark'?'\u2600 Licht':'\u263e Donker';}
+function toggleTheme(){applyTheme(THEME==='dark'?'light':'dark');}
+document.documentElement.setAttribute('data-theme',THEME==='dark'?'dark':'');
+
+// Koppel modal event handlers
+
+document.addEventListener('DOMContentLoaded',function(){
+  function bindPvKd(id,fn){
+    var inp=document.getElementById(id);
+    if(inp){
+      inp.addEventListener('keydown',function(e){
+        if(e.key==='Backspace'&&!e.ctrlKey&&!e.metaKey&&inp.selectionStart===inp.selectionEnd){
+          var s=inp.selectionStart,v=inp.value;
+          if(s>0&&/[.\/]/.test(v[s-1])){e.preventDefault();inp.value=v.slice(0,s-2)+v.slice(s);inp.setSelectionRange(s-2,s-2);fn();}
+        }
+      });
+    }
+  }
+  bindPvKd('f-pv',pvInput);
+  bindPvKd('ff-pv',feitPvInput);
+});
+
+// Start app: laad lokale data meteen, Firebase asynchroon
+(function waitForFirebase(tries){
+  tries=tries||0;
+  if(window._fbLoadErr||tries>30){initFB();return;}
+  if(typeof firebase!=='undefined'){initAuth();return;}
+  setTimeout(function(){waitForFirebase(tries+1);},100);
+})();
+window.addEventListener('load',function(){
+  if(typeof firebase!=='undefined'&&!_uid){initAuth();}
+});
+
+</script>
+</body>
+</html>

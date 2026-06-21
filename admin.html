@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Beheer – Mijn Dossiers</title>
+<style>
+:root{--bg:#0f172a;--bg2:#1e293b;--bg3:#334155;--border:#334155;--text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;--accent:#2563eb;--shadow:rgba(0,0,0,.5);--input-bg:#0f172a;--input-border:#475569}
+[data-theme="light"]{--bg:#f8fafc;--bg2:#ffffff;--bg3:#f1f5f9;--border:#e2e8f0;--text:#1e293b;--text2:#64748b;--text3:#94a3b8;--accent:#2563eb;--shadow:rgba(0,0,0,.12);--input-bg:#ffffff;--input-border:#cbd5e1}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh;font-size:14px}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:11px 20px;padding-top:calc(11px + env(safe-area-inset-top));padding-left:calc(20px + env(safe-area-inset-left));padding-right:calc(20px + env(safe-area-inset-right));display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10}
+.topbar-title{font-weight:800;font-size:15px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.layout{display:grid;grid-template-columns:300px 1fr;height:calc(100vh - 49px)}
+@media(max-width:640px){.layout{grid-template-columns:1fr;height:auto}.topbar{flex-wrap:wrap;gap:8px}.topbar-title{font-size:14px}.topbar .btn{flex-shrink:0;white-space:nowrap;min-height:40px}#uid-label{order:10;flex-basis:100%;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}}
+.panel{border-right:1px solid var(--border);overflow-y:auto;height:100%}
+.detail{overflow-y:auto;height:100%;padding:24px}
+.panel-hdr{padding:10px 16px;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:1;display:flex;align-items:center;justify-content:space-between}
+.user-item{padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;border-left:3px solid transparent}
+.user-item:hover{background:var(--bg3)}
+.user-item.on{background:var(--bg3);border-left-color:var(--accent)}
+.user-email{font-size:13px;font-weight:700;color:var(--text);word-break:break-all}
+.user-meta{font-size:11px;color:var(--text3);margin-top:3px}
+.stat-grid{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;min-width:90px;text-align:center}
+.stat-icon{font-size:18px}
+.stat-val{font-size:22px;font-weight:800;color:var(--text)}
+.stat-lbl{font-size:10px;color:var(--text3);margin-top:1px}
+.sec-hdr{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:0 0 10px}
+.dos-row{padding:10px 0;border-bottom:1px solid var(--border)}
+.dos-row:last-child{border-bottom:none}
+.dos-pv{font-size:13px;font-weight:700;color:var(--text)}
+.dos-name{font-size:12px;color:var(--text2);margin-top:1px}
+.dos-meta{font-size:11px;color:var(--text3);margin-top:3px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tag{display:inline-block;padding:2px 9px;border-radius:10px;font-size:10px;font-weight:700}
+.tag-open{background:rgba(37,99,235,.18);color:#60a5fa}
+.tag-arch{background:var(--bg3);color:var(--text3)}
+.empty{text-align:center;padding:48px 20px;color:var(--text3)}
+.empty-icon{font-size:36px;margin-bottom:10px}
+.btn{padding:7px 14px;border-radius:7px;border:none;cursor:pointer;font-family:inherit;font-size:12px;font-weight:700;transition:all .15s}
+.btn-outline{background:none;border:1.5px solid var(--border);color:var(--text2)}
+.btn-outline:hover{border-color:var(--text2);color:var(--text)}
+.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;padding:20px}
+.ov.show{display:flex}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:28px 24px;width:100%;max-width:320px;box-shadow:0 20px 60px var(--shadow)}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--bg2);color:var(--text);padding:9px 18px;border-radius:8px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;border:1px solid var(--border);white-space:nowrap}
+#toast.show{opacity:1}
+.uid-box{font-family:monospace;font-size:11px;color:var(--text3);background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:4px 8px;cursor:pointer;user-select:all}
+.uid-box:hover{color:var(--text2)}
+.refresh-btn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:14px;padding:2px 4px;border-radius:4px}
+.refresh-btn:hover{color:var(--text)}
+input[type=text],input[type=email],input[type=password]{appearance:none;-webkit-appearance:none}
+</style>
+</head>
+<body>
+
+<!-- Login overlay -->
+<div id="login-ov" class="ov show">
+  <div class="card">
+    <div style="text-align:center;margin-bottom:24px">
+      <div style="font-size:28px;margin-bottom:6px">🛡️</div>
+      <div style="font-size:18px;font-weight:800;margin-bottom:4px">Mijn Dossiers</div>
+      <div style="font-size:12px;color:var(--text2)">Beheerders login</div>
+    </div>
+    <div style="margin-bottom:10px">
+      <label style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:3px">E-mailadres</label>
+      <input id="l-em" type="email" autocomplete="email" placeholder="naam@politie.be" style="width:100%;padding:9px 12px;border:1.5px solid var(--input-border);border-radius:7px;background:var(--input-bg);color:var(--text);font-family:inherit;font-size:14px;box-sizing:border-box" onkeydown="if(event.key==='Enter')document.getElementById('l-pw').focus()">
+    </div>
+    <div style="margin-bottom:8px">
+      <label style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:3px">Wachtwoord</label>
+      <input id="l-pw" type="password" autocomplete="current-password" placeholder="••••••••" style="width:100%;padding:9px 12px;border:1.5px solid var(--input-border);border-radius:7px;background:var(--input-bg);color:var(--text);font-family:inherit;font-size:14px;box-sizing:border-box" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div id="l-err" style="font-size:12px;color:#dc2626;min-height:16px;margin-bottom:12px"></div>
+    <button id="l-btn" onclick="doLogin()" style="width:100%;padding:11px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer">Aanmelden</button>
+  </div>
+</div>
+
+<!-- Geen toegang -->
+<div id="noaccess-ov" class="ov">
+  <div class="card" style="text-align:center">
+    <div style="font-size:36px;margin-bottom:12px">🔒</div>
+    <div style="font-size:15px;font-weight:800;margin-bottom:8px">Geen toegang</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:6px">Je account heeft geen beheerdersrechten.</div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:20px">Jouw UID (nodig voor activatie):</div>
+    <div id="na-uid" class="uid-box" style="margin-bottom:20px;display:inline-block" title="Klik om te kopiëren"></div>
+    <br><br>
+    <button onclick="doLogout()" style="padding:9px 20px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text2);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer">⏻ Afmelden</button>
+  </div>
+</div>
+
+<!-- Admin UI -->
+<div id="admin-ui" style="display:none">
+  <div class="topbar">
+    <span style="font-size:18px">🛡️</span>
+    <span class="topbar-title">Beheerder – Mijn Dossiers</span>
+    <span id="uid-label" class="uid-box" title="Jouw UID – klik om te kopiëren" onclick="copyUID()"></span>
+    <button class="btn btn-outline" onclick="doLogout()">⏻ Afmelden</button>
+  </div>
+  <div class="layout">
+    <div class="panel">
+      <div class="panel-hdr">
+        <span id="user-count-lbl">Gebruikers</span>
+        <button class="refresh-btn" onclick="loadUsers()" title="Herladen">↻</button>
+      </div>
+      <div id="user-list"></div>
+    </div>
+    <div class="detail" id="detail-panel">
+      <div class="empty">
+        <div class="empty-icon">👤</div>
+        <div>Selecteer een gebruiker om details te bekijken</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+var _db=null,_uid=null,_selUid=null,_users=[],_detailUser=null,_detailTab='dossiers',_detailShared=[];
+
+var THEME=(function(){try{return localStorage.getItem('dos_theme')||'dark';}catch(e){return 'dark';}}());
+document.documentElement.setAttribute('data-theme',THEME);
+
+function toast(msg){
+  var el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');
+  clearTimeout(toast._t);toast._t=setTimeout(function(){el.classList.remove('show');},2800);
+}
+
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function copyUID(){
+  var uid=_uid||'';
+  if(!uid)return;
+  try{navigator.clipboard.writeText(uid).then(function(){toast('✓ UID gekopieerd');}).catch(function(){});}catch(e){}
+}
+
+function doLogin(){
+  var em=(document.getElementById('l-em').value||'').trim();
+  var pw=document.getElementById('l-pw').value||'';
+  var err=document.getElementById('l-err');
+  var btn=document.getElementById('l-btn');
+  if(!em||!pw){err.textContent='Vul e-mail en wachtwoord in.';return;}
+  err.textContent='';btn.textContent='Bezig...';btn.disabled=true;
+  firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL).then(function(){
+    return firebase.auth().signInWithEmailAndPassword(em,pw);
+  }).then(function(){
+    try{localStorage.setItem('last_login_email',em);}catch(e){}
+  }).catch(function(e){
+    var m=e.code==='auth/invalid-credential'||e.code==='auth/user-not-found'||e.code==='auth/wrong-password'?'Ongeldig e-mailadres of wachtwoord.':
+           e.code==='auth/too-many-requests'?'Te veel pogingen. Probeer later opnieuw.':'Aanmelden mislukt.';
+    err.textContent=m;btn.textContent='Aanmelden';btn.disabled=false;
+  });
+}
+
+function doLogout(){
+  firebase.auth().signOut().then(function(){
+    document.getElementById('admin-ui').style.display='none';
+    document.getElementById('noaccess-ov').classList.remove('show');
+    document.getElementById('login-ov').classList.add('show');
+    _uid=null;_users=[];_selUid=null;
+  });
+}
+
+function loadUsers(){
+  document.getElementById('user-list').innerHTML='<div style="padding:16px;color:var(--text3);font-size:12px">Laden...</div>';
+  _db.ref('gebruikers').once('value').then(function(snap){
+    var data=snap.val()||{};
+    var uids=Object.keys(data);
+    _users=uids.map(function(uid){
+      var u=data[uid]||{};
+      var profiel=u.profiel||{};
+      var dosArr=u.dossiers?Object.values(u.dossiers):[];
+      var regDos=dosArr.filter(function(d){return d.id!=='__werk__'&&d.id!=='__prive__';});
+      var agCount=u.agenda?Object.keys(u.agenda).length:0;
+      var openTk=0;
+      dosArr.forEach(function(d){if(d.taken)d.taken.forEach(function(t){if(!t.gedaan)openTk++;});});
+      return{uid:uid,email:profiel.email||uid,lastSeen:profiel.lastSeen||null,dosCount:regDos.length,agCount:agCount,openTk:openTk,raw:u};
+    });
+    _users.sort(function(a,b){return a.email.localeCompare(b.email);});
+    document.getElementById('user-count-lbl').textContent='Gebruikers ('+_users.length+')';
+    renderUserList();
+    // Re-select if was selected
+    if(_selUid){var idx=_users.findIndex(function(u){return u.uid===_selUid;});if(idx>=0)selectUser(idx);}
+  }).catch(function(e){
+    document.getElementById('user-list').innerHTML='<div style="padding:16px;color:#dc2626;font-size:12px">Fout: '+esc(e.message)+'</div>';
+  });
+}
+
+function renderUserList(){
+  var html='';
+  _users.forEach(function(u,i){
+    var ls=u.lastSeen?new Date(u.lastSeen).toLocaleDateString('nl-BE',{day:'2-digit',month:'2-digit',year:'numeric'}):'–';
+    html+='<div class="user-item'+(u.uid===_selUid?' on':'')+'" onclick="selectUser('+i+')">'
+      +'<div class="user-email">'+esc(u.email)+(u.uid===_uid?' <span style="font-size:10px;color:var(--accent)">(jij)</span>':'')+'</div>'
+      +'<div class="user-meta">'+ls+' &nbsp;·&nbsp; '+u.dosCount+' dossier(s) &nbsp;·&nbsp; '+u.agCount+' afspraken'+(u.openTk?' &nbsp;·&nbsp; '+u.openTk+' open taak/taken':'')+'</div>'
+      +'</div>';
+  });
+  document.getElementById('user-list').innerHTML=html||'<div style="padding:20px;color:var(--text3);font-size:12px">Geen gebruikers gevonden.</div>';
+}
+
+function selectUser(idx){
+  var u=_users[idx];if(!u)return;
+  _selUid=u.uid;_detailUser=u;_detailTab='dossiers';_detailShared=[];
+  renderUserList();
+  // Laad gedeelde dossiers voor deze gebruiker
+  _db.ref('gedeeld').once('value').then(function(snap){
+    var gedeeld=snap.val()||{};
+    _detailShared=Object.values(gedeeld).filter(function(d){
+      return d.toegang&&d.toegang[u.uid];
+    });
+    renderDetail();
+  }).catch(function(){renderDetail();});
+}
+
+function showTab(tab){_detailTab=tab;renderDetail();}
+
+function prioKleur(p){return p==='hoog'?'#ef4444':p==='midden'?'#f59e0b':'#3b82f6';}
+
+function buildTaken(taken,toonGedaan){
+  if(!taken||!taken.length)return '<div style="font-size:11px;color:var(--text3);padding:4px 0">Geen taken</div>';
+  var open=taken.filter(function(t){return !t.gedaan;});
+  var done=taken.filter(function(t){return t.gedaan;});
+  var html='';
+  open.forEach(function(t){
+    html+='<div style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:1px solid var(--border)">'
+      +'<span style="color:'+prioKleur(t.prio)+';font-size:10px;margin-top:2px;flex-shrink:0">⬤</span>'
+      +'<div style="min-width:0">'
+      +'<div style="font-size:12px;color:var(--text)">'+esc(t.titel||'')+'</div>'
+      +(t.deadline?'<div style="font-size:10px;color:var(--text3)">Deadline: '+esc(t.deadline)+'</div>':'')
+      +(t.notitie?'<div style="font-size:10px;color:var(--text3);font-style:italic">'+esc(t.notitie)+'</div>':'')
+      +'</div></div>';
+  });
+  if(toonGedaan&&done.length){
+    html+='<div style="font-size:10px;color:var(--text3);padding:6px 0 3px;font-weight:700">VOLTOOID ('+done.length+')</div>';
+    done.forEach(function(t){
+      html+='<div style="display:flex;align-items:center;gap:7px;padding:4px 0;opacity:.55">'
+        +'<span style="font-size:11px;color:var(--text3)">✓</span>'
+        +'<div style="font-size:12px;color:var(--text2);text-decoration:line-through">'+esc(t.titel||'')+'</div>'
+        +'</div>';
+    });
+  }
+  return html||'<div style="font-size:11px;color:var(--text3);padding:4px 0">Geen open taken</div>';
+}
+
+function renderDetail(){
+  var u=_detailUser;if(!u)return;
+  var dosArr=u.raw.dossiers?Object.values(u.raw.dossiers):[];
+  var agArr=u.raw.agenda?Object.values(u.raw.agenda):[];
+  var reg=dosArr.filter(function(d){return d.id!=='__werk__'&&d.id!=='__prive__';});
+  var werk=dosArr.find(function(d){return d.id==='__werk__';});
+  var prive=dosArr.find(function(d){return d.id==='__prive__';});
+  var werkTk=(werk&&werk.taken)||[];
+  var priveTk=(prive&&prive.taken)||[];
+  var werkOpen=werkTk.filter(function(t){return !t.gedaan;}).length;
+  var priveOpen=priveTk.filter(function(t){return !t.gedaan;}).length;
+  var openDos=reg.filter(function(d){return !d.gesloten;});
+  var archDos=reg.filter(function(d){return d.gesloten;});
+  var openTkTotaal=0;reg.forEach(function(d){if(d.taken)d.taken.forEach(function(t){if(!t.gedaan)openTkTotaal++;});});
+  var ls=u.lastSeen?new Date(u.lastSeen).toLocaleString('nl-BE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}):'–';
+
+  var tabs=[
+    {id:'dossiers',lbl:'📂 Dossiers',cnt:reg.length+_detailShared.length},
+    {id:'taken',lbl:'✏️ Taken',cnt:werkOpen+priveOpen},
+    {id:'agenda',lbl:'📅 Agenda',cnt:agArr.length}
+  ];
+  var tabBar='<div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap">';
+  tabs.forEach(function(t){
+    var on=_detailTab===t.id;
+    tabBar+='<button onclick="showTab(\''+t.id+'\')" style="padding:6px 13px;border-radius:7px;border:1.5px solid '+(on?'var(--accent)':'var(--border)')+';background:'+(on?'rgba(37,99,235,.15)':'none')+';color:'+(on?'var(--accent)':'var(--text2)')+';font-family:inherit;font-size:12px;font-weight:700;cursor:pointer">'+t.lbl+(t.cnt?' <span style="background:var(--bg3);border-radius:8px;padding:1px 7px;font-size:10px;margin-left:4px">'+t.cnt+'</span>':'')+'</button>';
+  });
+  tabBar+='</div>';
+
+  var html='<div style="margin-bottom:16px">'
+    +'<div style="font-size:17px;font-weight:800;margin-bottom:3px">'+esc(u.email)+'</div>'
+    +'<div style="font-size:11px;color:var(--text3)">Laatste login: '+ls+'</div>'
+    +'</div>'
+    +'<div class="stat-grid">'
+    +sc('📂',reg.length,'Dossiers')+sc('📬',openDos.length,'Lopend')+sc('🗄️',archDos.length,'Archief')
+    +sc('✏️',openTkTotaal,'Open taken')+sc('💼',werkOpen,'Werk')+sc('👤',priveOpen,'Privé')+sc('📅',agArr.length,'Afspraken')
+    +'</div>'
+    +tabBar;
+
+  // === TAB: DOSSIERS ===
+  if(_detailTab==='dossiers'){
+    if(!reg.length&&!_detailShared.length){
+      html+='<div class="empty"><div class="empty-icon">📂</div><div>Geen dossiers</div></div>';
+    }else{
+      reg.sort(function(a,b){return (b.datum||'').localeCompare(a.datum||'');});
+      reg.forEach(function(d){
+        var tk=d.taken||[];
+        var openTk=tk.filter(function(t){return !t.gedaan;}).length;
+        html+='<div class="dos-row">'
+          +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">'
+          +'<div class="dos-pv">'+esc((d.pv_feiten&&d.pv_feiten[0]&&d.pv_feiten[0].pv)||d.pv||'—')+(d.pv_feiten&&d.pv_feiten.length>1?' <span style="font-size:10px;color:var(--text3)">('+d.pv_feiten.length+' feiten)</span>':'')+'</div>'
+          +'<span class="tag '+(d.gesloten?'tag-arch':'tag-open')+'">'+(d.gesloten?'Archief':'Lopend')+'</span>'
+          +(d.pv_feiten&&d.pv_feiten[0]&&d.pv_feiten[0].categorie?'<span style="font-size:10px;color:var(--text3)">'+esc(d.pv_feiten[0].categorie)+'</span>':'')
+          +(d.datum?'<span style="font-size:10px;color:var(--text3)">'+esc(d.datum)+'</span>':'')
+          +'</div>'
+          +(d.naam?'<div class="dos-name" style="margin-bottom:6px">'+esc(d.naam)+'</div>':'')
+          +'<div style="font-size:10px;font-weight:700;color:var(--text3);margin-bottom:4px">TAKEN ('+openTk+' open / '+tk.length+' totaal)</div>'
+          +buildTaken(tk,true)
+          +'</div>';
+      });
+      if(_detailShared.length){
+        html+='<div style="margin:14px 0 8px;display:flex;align-items:center;gap:8px"><div style="flex:1;height:1px;background:var(--border)"></div><span style="font-size:10px;font-weight:700;color:var(--text3);white-space:nowrap">👥 Gedeelde dossiers</span><div style="flex:1;height:1px;background:var(--border)"></div></div>';
+        _detailShared.forEach(function(d){
+          var tk=d.taken||[];
+          var openTk=tk.filter(function(t){return !t.gedaan;}).length;
+          html+='<div class="dos-row">'
+            +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">'
+            +'<div class="dos-pv">'+esc((d.pv_feiten&&d.pv_feiten[0]&&d.pv_feiten[0].pv)||d.pv||'—')+(d.pv_feiten&&d.pv_feiten.length>1?' <span style="font-size:10px;color:var(--text3)">('+d.pv_feiten.length+' feiten)</span>':'')+'</div>'
+            +'<span class="tag '+(d.gesloten?'tag-arch':'tag-open')+'">'+(d.gesloten?'Archief':'Lopend')+'</span>'
+            +'<span style="font-size:10px;font-weight:700;color:#60a5fa">👥 Gedeeld</span>'
+            +(d.datum?'<span style="font-size:10px;color:var(--text3)">'+esc(d.datum)+'</span>':'')
+            +'</div>'
+            +(d.naam?'<div class="dos-name" style="margin-bottom:6px">'+esc(d.naam)+'</div>':'')
+            +'<div style="font-size:10px;font-weight:700;color:var(--text3);margin-bottom:4px">TAKEN ('+openTk+' open / '+tk.length+' totaal)</div>'
+            +buildTaken(tk,true)
+            +'</div>';
+        });
+      }
+    }
+  }
+
+  // === TAB: TAKEN (WERK + PRIVÉ) ===
+  else if(_detailTab==='taken'){
+    html+='<div style="margin-bottom:16px">'
+      +'<div style="font-size:13px;font-weight:800;margin-bottom:10px">💼 Werk <span style="font-size:11px;font-weight:400;color:var(--text3)">('+werkOpen+' open)</span></div>'
+      +buildTaken(werkTk,true)
+      +'</div>'
+      +'<div style="margin-top:20px">'
+      +'<div style="font-size:13px;font-weight:800;margin-bottom:10px">👤 Privé <span style="font-size:11px;font-weight:400;color:var(--text3)">('+priveOpen+' open)</span></div>'
+      +buildTaken(priveTk,true)
+      +'</div>';
+  }
+
+  // === TAB: AGENDA ===
+  else if(_detailTab==='agenda'){
+    if(!agArr.length){
+      html+='<div class="empty"><div class="empty-icon">📅</div><div>Geen agenda-afspraken</div></div>';
+    }else{
+      agArr.sort(function(a,b){return (a.datum||'').localeCompare(b.datum||'');});
+      var vandaag=new Date().toISOString().slice(0,10);
+      agArr.forEach(function(ev){
+        var verleden=ev.datum&&ev.datum<vandaag;
+        html+='<div class="dos-row" style="'+(verleden?'opacity:.6;':'')+'">'
+          +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
+          +'<span style="font-size:12px;font-weight:700;color:var(--text)">'+esc(ev.datum||'?')+'</span>'
+          +(ev.tot&&ev.tot!==ev.datum?'<span style="font-size:11px;color:var(--text3)">→ '+esc(ev.tot)+'</span>':'')
+          +(ev.type?'<span class="tag" style="background:var(--bg3);color:var(--text2)">'+esc(ev.type)+'</span>':'')
+          +'</div>'
+          +'<div style="font-size:13px;font-weight:700;color:var(--text);margin:3px 0">'+esc(ev.titel||ev.type||'—')+'</div>'
+          +(ev.notitie?'<div style="font-size:11px;color:var(--text3)">'+esc(ev.notitie)+'</div>':'')
+          +'</div>';
+      });
+    }
+  }
+
+  document.getElementById('detail-panel').innerHTML=html;
+}
+
+function sc(icon,val,lbl){
+  return '<div class="stat-card"><div class="stat-icon">'+icon+'</div><div class="stat-val">'+val+'</div><div class="stat-lbl">'+lbl+'</div></div>';
+}
+
+// Boot
+(function(){
+  if(!firebase.apps||!firebase.apps.length){
+    firebase.initializeApp({
+      apiKey:'AIzaSyC3pWjrW7I9jP1MIS0HAU9bVhGo4E8vs8Y',
+      authDomain:'todo-4314e.firebaseapp.com',
+      databaseURL:'https://todo-4314e-default-rtdb.europe-west1.firebasedatabase.app',
+      projectId:'todo-4314e',storageBucket:'todo-4314e.firebasestorage.app',
+      messagingSenderId:'848360095244',appId:'1:848360095244:web:1e349fcb650e37b3623829'
+    });
+  }
+  try{var em=localStorage.getItem('last_login_email');if(em)document.getElementById('l-em').value=em;}catch(e){}
+
+  firebase.auth().onAuthStateChanged(function(user){
+    if(user){
+      _uid=user.uid;
+      _db=firebase.database();
+      document.getElementById('uid-label').textContent=_uid;
+      _db.ref('admins/'+_uid).once('value').then(function(snap){
+        if(snap.val()){
+          document.getElementById('login-ov').classList.remove('show');
+          document.getElementById('noaccess-ov').classList.remove('show');
+          document.getElementById('admin-ui').style.display='block';
+          loadUsers();
+        }else{
+          document.getElementById('login-ov').classList.remove('show');
+          var naUid=document.getElementById('na-uid');if(naUid)naUid.textContent=_uid;
+          document.getElementById('noaccess-ov').classList.add('show');
+        }
+      }).catch(function(){
+        document.getElementById('login-ov').classList.remove('show');
+        var naUid=document.getElementById('na-uid');if(naUid)naUid.textContent=_uid;
+        document.getElementById('noaccess-ov').classList.add('show');
+      });
+    }else{
+      _uid=null;_db=null;_users=[];_selUid=null;
+      document.getElementById('admin-ui').style.display='none';
+      document.getElementById('noaccess-ov').classList.remove('show');
+      document.getElementById('login-ov').classList.add('show');
+    }
+  });
+})();
+</script>
+</body>
+</html>
