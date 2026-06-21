@@ -552,6 +552,7 @@ function render(){
   else document.getElementById('day-panel').innerHTML='';
 }
 var _mpickYear=new Date().getFullYear();
+var _mpickerSkipClose=false;
 function renderMonthLabel(){
   var el=document.getElementById('month-label');if(!el)return;
   var months=['Januari','Februari','Maart','April','Mei','Juni','Juli','Augustus','September','Oktober','November','December'];
@@ -560,7 +561,7 @@ function renderMonthLabel(){
 function toggleMonthPicker(){
   var p=document.getElementById('mpicker');if(!p)return;
   if(p.style.display==='none'){_mpickYear=CUR.getFullYear();renderMonthPicker();p.style.display='block';}
-  else{p.style.display='none';}
+  else{closeMonthPicker();}
 }
 function closeMonthPicker(){var p=document.getElementById('mpicker');if(p)p.style.display='none';}
 function renderMonthPicker(){
@@ -568,9 +569,9 @@ function renderMonthPicker(){
   var MAANDEN=['Jan','Feb','Mrt','Apr','Mei','Jun','Jul','Aug','Sep','Okt','Nov','Dec'];
   var today=new Date();
   var html='<div class="mpicker-yr">'
-    +'<button class="mpicker-yr-btn" onclick="event.stopPropagation();mpYr(-1)">‹</button>'
+    +'<button class="mpicker-yr-btn" onclick="_mpickerSkipClose=true;mpYr(-1)">‹</button>'
     +'<span class="mpicker-yr-lbl">'+_mpickYear+'</span>'
-    +'<button class="mpicker-yr-btn" onclick="event.stopPropagation();mpYr(1)">›</button>'
+    +'<button class="mpicker-yr-btn" onclick="_mpickerSkipClose=true;mpYr(1)">›</button>'
     +'</div><div class="mpicker-grid">';
   for(var i=0;i<12;i++){
     var isCur=(_mpickYear===CUR.getFullYear()&&i===CUR.getMonth());
@@ -584,6 +585,7 @@ function renderMonthPicker(){
 function mpYr(d){_mpickYear+=d;renderMonthPicker();}
 function goToMonth(y,m){CUR=new Date(y,m,1);closeMonthPicker();render();}
 document.addEventListener('click',function(e){
+  if(_mpickerSkipClose){_mpickerSkipClose=false;return;}
   var wrap=document.querySelector('.mpicker-wrap');
   if(wrap&&!wrap.contains(e.target))closeMonthPicker();
 });
