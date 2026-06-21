@@ -20,7 +20,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 .topbar-title{font-size:14px;font-weight:800;color:var(--text)}
 .nav-btn{background:var(--btn-edit-bg);border:1.5px solid var(--btn-edit-border);color:var(--btn-edit-text);font-family:inherit;font-size:16px;font-weight:700;border-radius:7px;padding:4px 12px;cursor:pointer;line-height:1;transition:opacity .15s}
 .nav-btn:hover{opacity:.75}
-.month-label{font-size:14px;font-weight:800;color:var(--text);min-width:150px;text-align:center;white-space:nowrap}
+.month-label{font-size:14px;font-weight:800;color:var(--text);min-width:150px;text-align:center;white-space:nowrap;background:none;border:none;cursor:pointer;font-family:inherit;border-radius:6px;padding:3px 8px;transition:background .15s}
+.month-label:hover{background:var(--bg4)}
+.mpicker-wrap{position:relative;display:inline-flex;align-items:center;justify-content:center}
+.mpicker{position:absolute;top:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.18);z-index:200;padding:10px;min-width:220px}
+.mpicker-yr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:6px}
+.mpicker-yr-lbl{font-size:14px;font-weight:800;color:var(--text);text-align:center;flex:1}
+.mpicker-yr-btn{background:none;border:1.5px solid var(--border);border-radius:6px;cursor:pointer;font-size:14px;font-weight:700;color:var(--text2);width:30px;height:30px;display:flex;align-items:center;justify-content:center;line-height:1;transition:background .15s}
+.mpicker-yr-btn:hover{background:var(--bg4)}
+.mpicker-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+.mpicker-m{background:none;border:none;cursor:pointer;border-radius:7px;padding:7px 4px;font-family:inherit;font-size:12px;font-weight:700;color:var(--text2);transition:background .15s;text-align:center}
+.mpicker-m:hover{background:var(--bg4);color:var(--text)}
+.mpicker-m.cur{background:#2563eb;color:#fff}
+.mpicker-m.today{outline:2px solid #2563eb;outline-offset:-2px;color:var(--text)}
 .btn{cursor:pointer;font-family:inherit;font-size:12px;font-weight:700;border-radius:6px;padding:5px 12px;display:inline-flex;align-items:center;gap:4px;line-height:1;transition:opacity .15s;white-space:nowrap;border:none}
 .btn:hover{opacity:.85}
 .btn-blue{background:#2563eb;color:#fff}
@@ -147,6 +159,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
   .topbar{justify-content:center;row-gap:9px}
   .tb-group{flex-basis:100%;justify-content:center;flex-wrap:wrap;margin-left:0}
   .tb-month .month-label{min-width:0}
+  .mpicker{min-width:190px}
 }
 </style>
 </head>
@@ -257,7 +270,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
   </div>
   <div class="tb-group tb-month">
     <button class="nav-btn" onclick="prevMonth()">‹</button>
-    <span class="month-label" id="month-label"></span>
+    <div class="mpicker-wrap">
+      <button class="month-label" id="month-label" onclick="toggleMonthPicker()"></button>
+      <div class="mpicker" id="mpicker" style="display:none"></div>
+    </div>
     <button class="nav-btn" onclick="nextMonth()">›</button>
     <button class="btn btn-white" onclick="goToday()">Vandaag</button>
   </div>
@@ -535,11 +551,42 @@ function render(){
   if(SEL)renderDayPanel(SEL);
   else document.getElementById('day-panel').innerHTML='';
 }
+var _mpickYear=new Date().getFullYear();
 function renderMonthLabel(){
   var el=document.getElementById('month-label');if(!el)return;
   var months=['Januari','Februari','Maart','April','Mei','Juni','Juli','Augustus','September','Oktober','November','December'];
   el.textContent=months[CUR.getMonth()]+' '+CUR.getFullYear();
 }
+function toggleMonthPicker(){
+  var p=document.getElementById('mpicker');if(!p)return;
+  if(p.style.display==='none'){_mpickYear=CUR.getFullYear();renderMonthPicker();p.style.display='block';}
+  else{p.style.display='none';}
+}
+function closeMonthPicker(){var p=document.getElementById('mpicker');if(p)p.style.display='none';}
+function renderMonthPicker(){
+  var p=document.getElementById('mpicker');if(!p)return;
+  var MAANDEN=['Jan','Feb','Mrt','Apr','Mei','Jun','Jul','Aug','Sep','Okt','Nov','Dec'];
+  var today=new Date();
+  var html='<div class="mpicker-yr">'
+    +'<button class="mpicker-yr-btn" onclick="mpYr(-1)">‹</button>'
+    +'<span class="mpicker-yr-lbl">'+_mpickYear+'</span>'
+    +'<button class="mpicker-yr-btn" onclick="mpYr(1)">›</button>'
+    +'</div><div class="mpicker-grid">';
+  for(var i=0;i<12;i++){
+    var isCur=(_mpickYear===CUR.getFullYear()&&i===CUR.getMonth());
+    var isToday=(_mpickYear===today.getFullYear()&&i===today.getMonth());
+    var cls='mpicker-m'+(isCur?' cur':isToday?' today':'');
+    html+='<button class="'+cls+'" onclick="goToMonth('+_mpickYear+','+i+')">'+MAANDEN[i]+'</button>';
+  }
+  html+='</div>';
+  p.innerHTML=html;
+}
+function mpYr(d){_mpickYear+=d;renderMonthPicker();}
+function goToMonth(y,m){CUR=new Date(y,m,1);closeMonthPicker();render();}
+document.addEventListener('click',function(e){
+  var wrap=document.querySelector('.mpicker-wrap');
+  if(wrap&&!wrap.contains(e.target))closeMonthPicker();
+});
 
 
 // === GRID (week-based) ===
