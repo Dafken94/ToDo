@@ -1004,7 +1004,7 @@ function render(){
     +'<button class="sb-item" onclick="exportJSON()">\u2193 Exporteer</button>'
     +'<button class="sb-item" onclick="importJSON()">\u2191 Importeer</button>'
     +'<div class="sb-div"></div>'
-    +(_isAdmin?'<button class="sb-item" onclick="window.open(\'admin.html\',\'_blank\')"><span class="sb-ic">\ud83d\udee1\ufe0f</span> Beheerder</button>':'')
+    +(_isAdmin?'<button class="sb-item" onclick="window.location.href=\'admin.html\'"><span class="sb-ic">\ud83d\udee1\ufe0f</span> Beheerder</button>':'')
     +'<button class="sb-item" onclick="openPwChange()"><span class="sb-ic">\ud83d\udd11</span> Wachtwoord wijzigen</button>'
     +'<button class="sb-item" onclick="doLogout()"><span class="sb-ic">\u23fb</span> Afmelden</button>'
     +'<div class="sb-bottom"><span id="sync-dot" style="font-size:11px;font-weight:600">\u25cf Verbinden...</span>'
@@ -1492,7 +1492,7 @@ function buildDetail(){
       tvRows+='<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);last-child:border:none">'
         +'<div style="width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0">'+ini+'</div>'
         +'<div style="flex:1;font-size:13px;font-weight:700;color:var(--text)">'+esc(naam)+'</div>'
-        +'<div style="font-size:12px;font-weight:700;color:'+(cnt>0?'var(--accent)':'var(--text3)')+'">'+cnt+' open taak'+(cnt!==1?'en':'')+'</div>'
+        +'<div style="font-size:12px;font-weight:700;color:'+(cnt>0?'var(--accent)':'var(--text3)')+'">'+cnt+' open '+(cnt!==1?'taken':'taak')+'</div>'
         +'</div>';
     });
     var cntNiet=openTaken.filter(function(t){return !t.toegewezen||!Object.keys(t.toegewezen).length;}).length;
@@ -1500,7 +1500,7 @@ function buildDetail(){
       tvRows+='<div style="display:flex;align-items:center;gap:8px;padding:5px 0">'
         +'<div style="width:28px;height:28px;border-radius:50%;background:var(--bg4);color:var(--text3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;border:1px solid var(--border);flex-shrink:0">?</div>'
         +'<div style="flex:1;font-size:12px;font-weight:600;color:var(--text3);font-style:italic">Niet toegewezen</div>'
-        +'<div style="font-size:12px;font-weight:700;color:var(--text3)">'+cntNiet+' taak'+(cntNiet!==1?'en':'')+'</div>'
+        +'<div style="font-size:12px;font-weight:700;color:var(--text3)">'+cntNiet+' '+(cntNiet!==1?'taken':'taak')+'</div>'
         +'</div>';
     }
     html+='<div style="padding:12px 16px 6px;background:var(--bg3);border-bottom:1px solid var(--border)">'
@@ -1586,7 +1586,7 @@ function buildDetail(){
           +'<div style="width:3px;height:36px;border-radius:2px;background:'+lcat.color+';flex-shrink:0"></div>'
           +'<div style="flex:1;min-width:0">'
           +'<div style="font-size:13px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(ld.naam||'\u2014')+'</div>'
-          +'<div style="font-size:11px;color:var(--text3);font-weight:600;margin-top:2px">'+lpf.length+' feit'+(lpf.length!==1?'en':'')+' \u00b7 '+lok+' open taak'+(lok!==1?'en':'')+'</div>'
+          +'<div style="font-size:11px;color:var(--text3);font-weight:600;margin-top:2px">'+lpf.length+' feit'+(lpf.length!==1?'en':'')+' \u00b7 '+lok+' open '+(lok!==1?'taken':'taak')+'</div>'
           +'</div>'
           +'<button onclick="event.stopPropagation();doUnlink(\''+d.id+'\',\''+lid+'\')" style="'+IR+';flex-shrink:0">\u2715</button>'
           +'</div>';
