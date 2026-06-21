@@ -44,7 +44,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 .topbar{background:var(--topbar);border-bottom:1px solid var(--topbar-border);padding:9px 14px;padding-top:calc(9px + env(safe-area-inset-top));padding-left:calc(14px + env(safe-area-inset-left));padding-right:calc(14px + env(safe-area-inset-right));display:flex;align-items:center;gap:8px;position:sticky;top:0;z-index:40;transition:background .25s;min-width:0;width:100%}
 .topbar-title{font-size:14px;font-weight:700;color:var(--text);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .hamburger{display:block;background:none;border:none;cursor:pointer;font-size:20px;color:var(--text);padding:2px 6px;flex-shrink:0}
-#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:#1e293b;color:#f1f5f9;padding:9px 20px;border-radius:20px;font-size:13px;font-weight:700;z-index:9999;transition:transform .3s,opacity .3s;opacity:0;pointer-events:none;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.3)}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:#1e293b;color:#f1f5f9;padding:9px 18px 9px 14px;border-radius:10px;border-left:3px solid transparent;font-size:13px;font-weight:700;z-index:9999;transition:transform .3s,opacity .3s,border-left-color .15s;opacity:0;pointer-events:none;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.3)}
 #toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 .banner-dringend{margin-bottom:10px;padding:9px 14px;background:var(--badge-err-bg);border:1px solid var(--badge-err-border);border-radius:8px;font-size:12px;font-weight:700;color:var(--badge-err-text);display:flex;align-items:center;gap:6px}
 .content{padding:12px 14px;flex:1;min-width:0;width:100%}
@@ -172,7 +172,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 .notif-flag-btn{background:none;border:none;cursor:pointer;font-size:18px;padding:2px 6px;line-height:1;position:relative;display:inline-flex;align-items:center;border-radius:6px}
 .notif-flag-btn:hover{background:var(--bg3)}
 .notif-badge{position:absolute;top:-3px;right:-3px;background:#dc2626;color:#fff;font-size:9px;font-weight:800;border-radius:10px;padding:1px 4px;min-width:14px;text-align:center;line-height:14px;pointer-events:none}
-.notif-panel{position:fixed;top:52px;right:10px;width:320px;max-width:calc(100vw - 20px);background:var(--bg2);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 32px var(--shadow);z-index:500;max-height:70vh;overflow-y:auto}
+.notif-panel{position:fixed;top:calc(52px + env(safe-area-inset-top));right:10px;width:320px;max-width:calc(100vw - 20px);background:var(--bg2);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 32px var(--shadow);z-index:500;max-height:70vh;overflow-y:auto}
 .notif-panel-hdr{padding:11px 14px 8px;border-bottom:1px solid var(--border);font-size:12px;font-weight:800;color:var(--text);display:flex;align-items:center;justify-content:space-between}
 .notif-sec-hdr{padding:6px 14px 2px;font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em}
 .notif-item{padding:10px 14px;border-bottom:1px solid var(--border)}
@@ -184,6 +184,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 .notif-item-agenda:last-child{border-bottom:none}
 .notif-item-acts{display:flex;gap:6px}
 .notif-empty{padding:22px 14px;text-align:center;color:var(--text3);font-size:12px}
+/* ===== ANIMATIES & TRANSITIONS ===== */
+@keyframes mo-in{from{opacity:0;transform:translateY(8px) scale(.97)}to{opacity:1;transform:none}}
+.ov.show .ob,.conf-ov.show .conf-box{animation:mo-in .2s cubic-bezier(.25,.8,.25,1)}
+@keyframes sync-pulse{0%,100%{opacity:1}50%{opacity:.28}}
+.sync-pulse{animation:sync-pulse 1.5s ease-in-out infinite}
+.prog-fill{transition:width .4s ease}
+.tchk:active{transform:scale(.75)}
+.dinfo,.mini-stat,.ext-item,.conf-box,.notif-panel,.notif-item,.notif-item-agenda{transition:background .25s,border-color .25s}
+#toast.t-ok{border-left-color:#22c55e}
+#toast.t-err{border-left-color:#f87171}
+#toast.t-warn{border-left-color:#fb923c}
 </style>
 </head>
 <body>
@@ -511,7 +522,21 @@ function extNm(e){if(!e||!e.cat)return esc(e.naam||'?');var lb={bank:'\ud83c\udf
 function OM(id){document.getElementById(id).classList.add('show');}
 function CM(id){document.getElementById(id).classList.remove('show');}
 document.querySelectorAll('.ov').forEach(function(o){var _md=null;o.addEventListener('mousedown',function(e){_md=e.target;});o.addEventListener('click',function(e){if(e.target===o&&_md===o)o.classList.remove('show');_md=null;});});
-function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2200);}
+function toast(msg,type){
+  var t=document.getElementById('toast');
+  t.classList.remove('t-ok','t-err','t-warn','show');
+  var auto=type;
+  if(!auto){
+    if(/^[✓✔]/.test(msg))auto='ok';
+    else if(/^❌/.test(msg))auto='err';
+    else if(/^⚠/.test(msg))auto='warn';
+  }
+  if(auto==='ok')t.classList.add('t-ok');
+  else if(auto==='err')t.classList.add('t-err');
+  else if(auto==='warn')t.classList.add('t-warn');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show');},2200);
+}
 
 var DOS=[], VW='dash', VIEW='grid', AID=null, FS='open', FC=null, SO='desc', EE={}, EAF={}, TF='alles';
 var ALG_FP='', ALG_SORT_DATE='', ALG_HIDE_DONE=true;
@@ -760,6 +785,8 @@ function updateSync(){
     connecting:'\u25cf <span style="color:#94a3b8">Verbinden...</span>'
   };
   el.innerHTML=map[_sync]||map.connecting;
+  if(_sync==='connecting')el.classList.add('sync-pulse');
+  else el.classList.remove('sync-pulse');
 }
 
 
@@ -954,7 +981,8 @@ function fil(q){
   var query=(q!==undefined?String(q):(document.getElementById('srch')?document.getElementById('srch').value:'')).toLowerCase().trim();
   if(query)l=l.filter(function(d){
     if((d.naam||'').toLowerCase().indexOf(query)!==-1)return true;
-    return (d.pv_feiten||[]).some(function(f){return f.pv.toLowerCase().indexOf(query)!==-1;});
+    if((d.pv_feiten||[]).some(function(f){return f.pv.toLowerCase().indexOf(query)!==-1;}))return true;
+    return (d.taken||[]).some(function(t){return (t.titel||'').toLowerCase().indexOf(query)!==-1;});
   });
   l.sort(function(a,b){var da=new Date(a.datum||'2000-01-01'),db=new Date(b.datum||'2000-01-01');return SO==='asc'?da-db:db-da;});
   return l;
@@ -1009,7 +1037,7 @@ function render(){
     +'<button class="sb-item" onclick="doLogout()"><span class="sb-ic">\u23fb</span> Afmelden</button>'
     +'<div class="sb-bottom"><span id="sync-dot" style="font-size:11px;font-weight:600">\u25cf Verbinden...</span>'
     +'<button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()">'+(THEME==='dark'?'\u2600 Licht':'\u263e Donker')+'</button></div>'
-    +'<div style="padding:4px 14px 10px;text-align:right;font-size:9px;font-weight:600;color:var(--sb-text);opacity:.4;letter-spacing:.06em">v21/06 23:25</div>'
+    +'<div style="padding:4px 14px 10px;text-align:right;font-size:9px;font-weight:600;color:var(--sb-text);opacity:.4;letter-spacing:.06em">v22/06 11:30</div>'
     +'</div>';
 
   var tb='<div class="topbar">'
@@ -1282,8 +1310,11 @@ function buildDash(){
     +'</div>';
   H+='</div></div>';
   var sorted=openD.slice().sort(function(a,b){return new Date(b.datum||'2000-01-01')-new Date(a.datum||'2000-01-01');});
+  var DASH_LIMIT=5;var dashVisible=sorted.slice(0,DASH_LIMIT);
   H+='<div><div style="display:flex;align-items:center;gap:9px;margin-bottom:13px"><span style="font-size:13px;font-weight:800;color:var(--text)">Mijn dossiers</span><span style="font-size:11px;font-weight:600;color:var(--text3)">'+openD.length+' lopend</span><span style="margin-left:auto;font-size:11px;font-weight:700;color:var(--text2);cursor:pointer" onclick="setFS(\'open\');setFC(null);goL()">Alles tonen \u2192</span></div>';
-  H+='<div style="display:flex;flex-direction:column;gap:9px">'+(sorted.length?sorted.map(dashRow).join(''):'<div class="empty"><div style="font-size:40px">\ud83d\udcc1</div><p>Nog geen open dossiers.</p></div>')+'</div></div>';
+  H+='<div style="display:flex;flex-direction:column;gap:9px">'+(dashVisible.length?dashVisible.map(dashRow).join(''):'<div class="empty"><div style="font-size:40px">\ud83d\udcc1</div><p>Nog geen open dossiers.</p></div>')+'</div>';
+  if(sorted.length>DASH_LIMIT){H+='<div style="margin-top:10px;text-align:center"><button onclick="setFS(\'open\');setFC(null);goL()" style="background:none;border:1.5px solid var(--border);border-radius:8px;padding:8px 20px;font-family:inherit;font-size:12px;font-weight:700;color:var(--text2);cursor:pointer;transition:background .15s" onmouseover="this.style.background=\'var(--bg3)\'" onmouseout="this.style.background=\'none\'">Toon alle '+sorted.length+' dossiers \u2192</button></div>';}
+  H+='</div>';
   H+='</div>';
   return H;
 }
@@ -1677,9 +1708,10 @@ function delVoltooide(did){
   var d=DOS.find(function(x){return x.id===did;});if(!d)return;
   var cnt=(d.taken||[]).filter(function(t){return t.gedaan;}).length;
   if(!cnt)return;
-  if(!confirm(cnt+' voltooide '+(cnt===1?'taak':'taken')+' permanent verwijderen? Dit kan niet ongedaan worden.'))return;
-  d.taken=(d.taken||[]).filter(function(t){return !t.gedaan;});
-  sv();render();toast('Voltooide taken verwijderd');
+  ask(cnt+' voltooide '+(cnt===1?'taak':'taken')+' verwijderen?','Dit kan niet ongedaan worden.',function(){
+    d.taken=(d.taken||[]).filter(function(t){return !t.gedaan;});
+    sv();render();toast('✓ Voltooide taken verwijderd');
+  });
 }
 function toggleDNpv(){D_NPV_GRP=!D_NPV_GRP;render();}
 function opD(id){AID=id;VW='detail';render();}
@@ -1843,6 +1875,7 @@ function saveF(){
   var not=document.getElementById('ff-not').value.trim();
   if(!pv){document.getElementById('ff-pv').focus();return;}
   if(!datVan){document.getElementById('ff-dat-van').focus();return;}
+  if(datTot&&datTot<datVan){toast('⚠️ Einddatum moet na de begindatum liggen');document.getElementById('ff-dat-tot').focus();return;}
   var allPvs=[];
   DOS.forEach(function(x){
     var skip=(x.id===MFD&&MFI!==null);
