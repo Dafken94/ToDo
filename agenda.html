@@ -272,7 +272,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
     <button class="nav-btn" onclick="prevMonth()">‹</button>
     <div class="mpicker-wrap">
       <button class="month-label" id="month-label" onclick="toggleMonthPicker()"></button>
-      <div class="mpicker" id="mpicker" style="display:none"></div>
+      <div class="mpicker" id="mpicker" style="display:none" onclick="event.stopPropagation()"></div>
     </div>
     <button class="nav-btn" onclick="nextMonth()">›</button>
     <button class="btn btn-white" onclick="goToday()">Vandaag</button>
