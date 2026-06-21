@@ -1169,6 +1169,7 @@ function buildList(srchVal){
     order.sort(function(a,b){return gc(a).label.localeCompare(gc(b).label,'nl');});
     return order.map(function(cid){
       var c=gc(cid),grp=lst.filter(function(d){return gcFirst(d).id===cid;});
+      grp.sort(function(a,b){var da=new Date(a.datum||'2000-01-01'),db=new Date(b.datum||'2000-01-01');return SO==='asc'?da-db:db-da;});
       return catSep(c)+wrap(grp.map(renderer).join(''));
     }).join('');
   };
