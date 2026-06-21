@@ -293,6 +293,36 @@ function buildTaken(taken,toonGedaan){
   return html||'<div style="font-size:11px;color:var(--text3);padding:4px 0">Geen open taken</div>';
 }
 
+function fdAdmin(d){if(!d)return'';var p=d.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:d;}
+
+function buildDosRow(d,badge){
+  var tk=d.taken||[];
+  var openTk=tk.filter(function(t){return !t.gedaan;}).length;
+  var naam=d.naam||'';
+  var pvFeiten=d.pv_feiten&&d.pv_feiten.length?d.pv_feiten:[];
+  var eersteLabel=!naam&&pvFeiten.length?pvFeiten[0].pv:'';
+  var titel=naam||eersteLabel||'—';
+  var pvLijst='';
+  pvFeiten.forEach(function(f){
+    var periode=f.datum_van?(fdAdmin(f.datum_van)+(f.datum_tot&&f.datum_tot!==f.datum_van?' – '+fdAdmin(f.datum_tot):'')):'';
+    pvLijst+='<div style="display:flex;align-items:baseline;gap:6px;padding:2px 0">'
+      +'<span style="font-family:monospace;font-size:11px;font-weight:700;color:var(--accent);white-space:nowrap">'+esc(f.pv||'—')+'</span>'
+      +(f.categorie?'<span style="font-size:10px;color:var(--text3)">'+esc(f.categorie)+'</span>':'')
+      +(periode?'<span style="font-size:10px;color:var(--text3)">'+esc(periode)+'</span>':'')
+      +'</div>';
+  });
+  return '<div class="dos-row">'
+    +'<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:5px">'
+    +'<span style="font-size:13px;font-weight:800;color:var(--text)">'+esc(titel)+'</span>'
+    +'<span class="tag '+(d.gesloten?'tag-arch':'tag-open')+'">'+(d.gesloten?'Archief':'Lopend')+'</span>'
+    +(badge==='gedeeld'?'<span style="font-size:10px;font-weight:700;color:#60a5fa">👥 Gedeeld</span>':'')
+    +'</div>'
+    +(pvLijst?'<div style="margin-bottom:7px;padding:5px 8px;background:var(--bg3);border-radius:6px;border-left:2px solid var(--accent)">'+pvLijst+'</div>':'')
+    +'<div style="font-size:10px;font-weight:700;color:var(--text3);margin-bottom:4px">TAKEN ('+openTk+' open / '+tk.length+' totaal)</div>'
+    +buildTaken(tk,true)
+    +'</div>';
+}
+
 function renderDetail(){
   var u=_detailUser;if(!u)return;
   var dosArr=u.raw.dossiers?Object.values(u.raw.dossiers):[];
@@ -338,38 +368,10 @@ function renderDetail(){
       html+='<div class="empty"><div class="empty-icon">📂</div><div>Geen dossiers</div></div>';
     }else{
       reg.sort(function(a,b){return (b.datum||'').localeCompare(a.datum||'');});
-      reg.forEach(function(d){
-        var tk=d.taken||[];
-        var openTk=tk.filter(function(t){return !t.gedaan;}).length;
-        html+='<div class="dos-row">'
-          +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">'
-          +'<div class="dos-pv">'+esc((d.pv_feiten&&d.pv_feiten[0]&&d.pv_feiten[0].pv)||d.pv||'—')+(d.pv_feiten&&d.pv_feiten.length>1?' <span style="font-size:10px;color:var(--text3)">('+d.pv_feiten.length+' feiten)</span>':'')+'</div>'
-          +'<span class="tag '+(d.gesloten?'tag-arch':'tag-open')+'">'+(d.gesloten?'Archief':'Lopend')+'</span>'
-          +(d.pv_feiten&&d.pv_feiten[0]&&d.pv_feiten[0].categorie?'<span style="font-size:10px;color:var(--text3)">'+esc(d.pv_feiten[0].categorie)+'</span>':'')
-          +(d.datum?'<span style="font-size:10px;color:var(--text3)">'+esc(d.datum)+'</span>':'')
-          +'</div>'
-          +(d.naam?'<div class="dos-name" style="margin-bottom:6px">'+esc(d.naam)+'</div>':'')
-          +'<div style="font-size:10px;font-weight:700;color:var(--text3);margin-bottom:4px">TAKEN ('+openTk+' open / '+tk.length+' totaal)</div>'
-          +buildTaken(tk,true)
-          +'</div>';
-      });
+      reg.forEach(function(d){html+=buildDosRow(d,'');});
       if(_detailShared.length){
         html+='<div style="margin:14px 0 8px;display:flex;align-items:center;gap:8px"><div style="flex:1;height:1px;background:var(--border)"></div><span style="font-size:10px;font-weight:700;color:var(--text3);white-space:nowrap">👥 Gedeelde dossiers</span><div style="flex:1;height:1px;background:var(--border)"></div></div>';
-        _detailShared.forEach(function(d){
-          var tk=d.taken||[];
-          var openTk=tk.filter(function(t){return !t.gedaan;}).length;
-          html+='<div class="dos-row">'
-            +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">'
-            +'<div class="dos-pv">'+esc((d.pv_feiten&&d.pv_feiten[0]&&d.pv_feiten[0].pv)||d.pv||'—')+(d.pv_feiten&&d.pv_feiten.length>1?' <span style="font-size:10px;color:var(--text3)">('+d.pv_feiten.length+' feiten)</span>':'')+'</div>'
-            +'<span class="tag '+(d.gesloten?'tag-arch':'tag-open')+'">'+(d.gesloten?'Archief':'Lopend')+'</span>'
-            +'<span style="font-size:10px;font-weight:700;color:#60a5fa">👥 Gedeeld</span>'
-            +(d.datum?'<span style="font-size:10px;color:var(--text3)">'+esc(d.datum)+'</span>':'')
-            +'</div>'
-            +(d.naam?'<div class="dos-name" style="margin-bottom:6px">'+esc(d.naam)+'</div>':'')
-            +'<div style="font-size:10px;font-weight:700;color:var(--text3);margin-bottom:4px">TAKEN ('+openTk+' open / '+tk.length+' totaal)</div>'
-            +buildTaken(tk,true)
-            +'</div>';
-        });
+        _detailShared.forEach(function(d){html+=buildDosRow(d,'gedeeld');});
       }
     }
   }
