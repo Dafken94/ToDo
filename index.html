@@ -195,6 +195,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 #toast.t-ok{border-left-color:#22c55e}
 #toast.t-err{border-left-color:#f87171}
 #toast.t-warn{border-left-color:#fb923c}
+/* ===== CATEGORIE PICKER ===== */
+.cpick-wrap{position:relative}
+.cpick-inp{width:100%;font-family:inherit;font-size:13px;font-weight:500;border:1.5px solid var(--input-border);border-radius:6px;padding:7px 28px 7px 10px;background:var(--input-bg);color:var(--text);cursor:pointer;transition:background .25s,color .25s,border-color .15s;box-sizing:border-box;text-align:left;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.cpick-inp:focus{outline:none;border-color:#3b82f6;box-shadow:0 0 0 2px rgba(59,130,246,.15)}
+.cpick-wrap::after{content:'▾';position:absolute;right:9px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text3);font-size:11px}
+.cpick-drop{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--modal-bg);border:1.5px solid #3b82f6;border-radius:8px;box-shadow:0 8px 24px var(--shadow);z-index:400;overflow:hidden;animation:mo-in .15s ease}
+.cpick-srch{padding:6px 8px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--modal-bg)}
+.cpick-srch input{width:100%;font-family:inherit;font-size:12px;border:1.5px solid var(--input-border);border-radius:5px;padding:5px 8px;background:var(--input-bg);color:var(--text);box-sizing:border-box}
+.cpick-srch input:focus{outline:none;border-color:#3b82f6}
+.cpick-list{max-height:200px;overflow-y:auto}
+.cpick-opt{padding:7px 10px;cursor:pointer;font-size:12px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:7px;border-bottom:1px solid var(--border);transition:background .1s}
+.cpick-opt:last-child{border-bottom:none}
+.cpick-opt:hover{background:var(--bg3)}
+.cpick-opt.sel{background:rgba(59,130,246,.1);color:var(--accent)}
+.cpick-none{padding:14px;text-align:center;color:var(--text3);font-size:12px}
 </style>
 </head>
 <body>
@@ -208,7 +223,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
     <div id="f-eerste-feit-blok">
       <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;margin:10px 0 8px;padding-top:10px;border-top:1px solid var(--border)">Eerste feit</div>
       <div class="fr"><label>PV-nummer *</label><input id="f-pv" placeholder="__.__.__.______/____" oninput="pvInput()" style="text-transform:uppercase"><span id="pv-hint" style="font-size:11px;color:var(--text3);margin-top:3px;display:block"></span></div>
-      <div class="fr"><label>Categorie *</label><select id="f-cat"></select></div>
+      <div class="fr"><label>Categorie *</label>
+        <div class="cpick-wrap" id="f-cat-wrap">
+          <input type="text" id="f-cat-display" class="cpick-inp" placeholder="Kies categorie..." readonly onclick="openCatPicker('f-cat')">
+          <select id="f-cat" style="display:none"></select>
+        </div>
+      </div>
       <div class="fr"><label>Datum feit (van) *</label><input id="f-fdat-van" type="date"></div>
       <div class="fr"><label>Datum feit (tot, optioneel)</label><input id="f-fdat-tot" type="date"></div>
     </div>
@@ -257,7 +277,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
   <div class="ob">
     <div class="ob-title" id="mo-f-t">Feit toevoegen</div>
     <div class="fr"><label>PV-nummer *</label><input id="ff-pv" placeholder="__.__.__.______/____" oninput="feitPvInput()" style="text-transform:uppercase"><span id="ff-pv-hint" style="font-size:11px;color:var(--text3);margin-top:3px;display:block"></span></div>
-    <div class="fr"><label>Categorie *</label><select id="ff-cat"></select></div>
+    <div class="fr"><label>Categorie *</label>
+      <div class="cpick-wrap" id="ff-cat-wrap">
+        <input type="text" id="ff-cat-display" class="cpick-inp" placeholder="Kies categorie..." readonly onclick="openCatPicker('ff-cat')">
+        <select id="ff-cat" style="display:none"></select>
+      </div>
+    </div>
     <div class="fr"><label>Datum feit (van) *</label><input id="ff-dat-van" type="date"></div>
     <div class="fr"><label>Datum feit (tot, optioneel)</label><input id="ff-dat-tot" type="date"></div>
     <div class="fr"><label>Notitie</label><textarea id="ff-not" rows="2" placeholder="Toelichting bij dit feit..."></textarea></div>
@@ -520,8 +545,50 @@ function gp(id){return PRIOS.find(function(p){return p.id===id;})||PRIOS[2];}
 function rg(hex,a){var r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return 'rgba('+r+','+g+','+b+','+a+')';}
 function extNm(e){if(!e||!e.cat)return esc(e.naam||'?');var lb={bank:'\ud83c\udfe6 Bank',telecom:'\ud83d\udce1 Telecom',parket:'\u2696\ufe0f Parket',or:'\ud83d\udd0d Onderzoeksrechter',pz:'\ud83d\ude94 Politiezone',andere:'\ud83d\udcdd Andere'};return (lb[e.cat]||esc(e.cat))+(e.sub?' \u2014 '+esc(e.sub):'');}
 function OM(id){document.getElementById(id).classList.add('show');}
-function CM(id){document.getElementById(id).classList.remove('show');}
-document.querySelectorAll('.ov').forEach(function(o){var _md=null;o.addEventListener('mousedown',function(e){_md=e.target;});o.addEventListener('click',function(e){if(e.target===o&&_md===o)o.classList.remove('show');_md=null;});});
+function CM(id){document.getElementById(id).classList.remove('show');closeCatPicker();}
+document.querySelectorAll('.ov').forEach(function(o){var _md=null;o.addEventListener('mousedown',function(e){_md=e.target;});o.addEventListener('click',function(e){if(e.target===o&&_md===o){o.classList.remove('show');closeCatPicker();}_md=null;});});
+/* ===== CATEGORIE PICKER ===== */
+function setCatPicker(id,val){
+  var sel=document.getElementById(id);if(sel)sel.value=val;
+  var inp=document.getElementById(id+'-display');
+  if(inp){var cat=CATS.find(function(c){return c.id===val;});inp.value=cat?cat.label:'';}
+}
+function openCatPicker(id){
+  if(_catPickerActive===id){closeCatPicker();return;}
+  closeCatPicker();
+  _catPickerActive=id;
+  var wrap=document.getElementById(id+'-wrap');if(!wrap)return;
+  var drop=document.createElement('div');drop.className='cpick-drop';drop.id=id+'-drop';
+  drop.innerHTML='<div class="cpick-srch"><input id="'+id+'-srch" type="text" placeholder="Zoek categorie..." autocomplete="off" oninput="renderCatOpts(\''+id+'\',this.value)"></div><div class="cpick-list" id="'+id+'-list"></div>';
+  wrap.appendChild(drop);
+  renderCatOpts(id,'');
+  setTimeout(function(){
+    var sel=document.getElementById(id);
+    if(sel&&sel.value){var selEl=document.querySelector('#'+id+'-list .cpick-opt.sel');if(selEl)selEl.scrollIntoView({block:'nearest'});}
+    var s=document.getElementById(id+'-srch');if(s)s.focus();
+  },50);
+}
+function renderCatOpts(id,q){
+  var list=document.getElementById(id+'-list');var sel=document.getElementById(id);if(!list||!sel)return;
+  var lq=(q||'').toLowerCase().trim();
+  var filtered=lq?CATS.filter(function(c){return c.label.toLowerCase().indexOf(lq)!==-1||c.id.toLowerCase().indexOf(lq)!==-1;}):CATS;
+  if(!filtered.length){list.innerHTML='<div class="cpick-none">Geen categorieën gevonden</div>';return;}
+  list.innerHTML=filtered.map(function(c){
+    return '<div class="cpick-opt'+(sel.value===c.id?' sel':'')+'" onclick="selectCat(\''+id+'\',\''+c.id+'\')">'
+      +'<span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:'+c.color+';flex-shrink:0"></span>'+esc(c.label)+'</div>';
+  }).join('');
+}
+function selectCat(id,val){setCatPicker(id,val);closeCatPicker();}
+function closeCatPicker(){
+  if(!_catPickerActive)return;
+  var drop=document.getElementById(_catPickerActive+'-drop');if(drop)drop.remove();
+  _catPickerActive=null;
+}
+document.addEventListener('click',function(e){
+  if(!_catPickerActive)return;
+  var wrap=document.getElementById(_catPickerActive+'-wrap');
+  if(wrap&&!wrap.contains(e.target))closeCatPicker();
+},true);
 function toast(msg,type){
   var t=document.getElementById('toast');
   t.classList.remove('t-ok','t-err','t-warn','show');
@@ -550,6 +617,8 @@ var _userName='';
 var _priveDOS=[];
 var _gedeeldDOS=[];
 var _sharedRef=null;
+var _srchTimer=null;
+var _catPickerActive=null;
 function mergeDOS(){
   DOS=_priveDOS.concat(_gedeeldDOS);
   migrateCats();migratePvFeiten();ensureSystemDossiers();
@@ -802,7 +871,7 @@ function pvAutoFill(){
   if(!valid){if(hint){hint.textContent='! Verwacht: HV.20.L8.002244/2026';hint.style.color='#dc2626';}return;}
   if(hint){hint.textContent='\u2713 OK';hint.style.color='#16a34a';}
   var m=val.toUpperCase().match(/^[A-Z]{2}\.([0-9]{2})/);
-  if(m&&catSel){var base=m[1];var opts=catSel.options;for(var i=0;i<opts.length;i++){if(opts[i].value===base||opts[i].value.indexOf(base)===0){catSel.value=opts[i].value;break;}}}
+  if(m&&catSel){var base=m[1];var opts=catSel.options;for(var i=0;i<opts.length;i++){if(opts[i].value===base||opts[i].value.indexOf(base)===0){catSel.value=opts[i].value;setCatPicker('f-cat',catSel.value);break;}}}
 }
 function pvInput(){
   var inp=document.getElementById('f-pv');
@@ -1037,7 +1106,7 @@ function render(){
     +'<button class="sb-item" onclick="doLogout()"><span class="sb-ic">\u23fb</span> Afmelden</button>'
     +'<div class="sb-bottom"><span id="sync-dot" style="font-size:11px;font-weight:600">\u25cf Verbinden...</span>'
     +'<button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()">'+(THEME==='dark'?'\u2600 Licht':'\u263e Donker')+'</button></div>'
-    +'<div style="padding:4px 14px 10px;text-align:right;font-size:9px;font-weight:600;color:var(--sb-text);opacity:.4;letter-spacing:.06em">v22/06 11:30</div>'
+    +'<div style="padding:4px 14px 10px;text-align:right;font-size:9px;font-weight:600;color:var(--sb-text);opacity:.4;letter-spacing:.06em">v22/06 14:00</div>'
     +'</div>';
 
   var tb='<div class="topbar">'
@@ -1284,6 +1353,7 @@ function buildDash(){
       +'<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">'
       +'<span style="font-size:11px;font-weight:600;color:var(--text3);white-space:nowrap">'+fd(d.datum)+'</span>'
       +'<div style="display:flex;align-items:center;gap:8px"><div style="width:84px;height:5px;border-radius:3px;background:var(--prog-bg);overflow:hidden"><div style="height:5px;border-radius:3px;background:'+AC+';width:'+pct+'%"></div></div><span style="font-size:11px;font-weight:700;color:var(--text2);white-space:nowrap;min-width:30px;text-align:right">'+dn+'/'+tk.length+'</span></div>'
+      +'<button onclick="event.stopPropagation();openNT(\''+d.id+'\')" style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:6px;border:1.5px solid var(--border);background:var(--bg3);color:var(--text2);cursor:pointer;font-family:inherit;white-space:nowrap;transition:background .12s" onmouseover="this.style.background=\'var(--bg4)\'" onmouseout="this.style.background=\'var(--bg3)\'">+ Taak</button>'
       +'</div>'
       +'</div>';
   };
@@ -1291,7 +1361,8 @@ function buildDash(){
     return '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:13px;padding:15px 17px"><div style="font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text3)">'+lbl+'</div><div style="font-size:27px;font-weight:800;color:'+col+';line-height:1.1;margin-top:5px">'+val+'</div><div style="font-size:11px;font-weight:600;color:var(--text3);margin-top:1px">'+sub+'</div></div>';
   };
   var H='<div style="display:flex;flex-direction:column;gap:22px;max-width:1180px">';
-  H+='<div><div style="font-size:13px;font-weight:600;color:var(--text2)">'+dlong+'</div></div>';
+  var firstName=_userName?_userName.split(' ')[0]:'';
+  H+='<div><div style="font-size:20px;font-weight:800;color:var(--text);line-height:1.2;margin-bottom:3px">'+esc(greet)+(firstName?' <span style="color:var(--accent)">'+esc(firstName)+'</span>':'')+' 👋</div><div style="font-size:13px;font-weight:600;color:var(--text2)">'+dlong+'</div></div>';
   H+='<div class="dash-kpi-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">'
     +kpiCard('Lopende dossiers',openD.length,closed+' in archief','var(--text)')
     +kpiCard('Open taken',takenOpen,'over '+openD.length+' dossiers','var(--text)')
@@ -1690,7 +1761,14 @@ function buildTaak(did,t,ti){
   return html;
 
 }
-function onSrch(){var inp=document.getElementById('srch'),pos=inp?inp.selectionStart:0;render();setTimeout(function(){var n=document.getElementById('srch');if(n){n.focus();try{n.setSelectionRange(pos,pos);}catch(e){}}},0);}
+function onSrch(){
+  var inp=document.getElementById('srch'),pos=inp?inp.selectionStart:0;
+  clearTimeout(_srchTimer);
+  _srchTimer=setTimeout(function(){
+    render();
+    setTimeout(function(){var n=document.getElementById('srch');if(n){n.focus();try{n.setSelectionRange(pos,pos);}catch(e){}}},0);
+  },150);
+}
 function toggleSort(){SO=SO==='asc'?'desc':'asc';render();}
 function setFS(s){FS=s;render();}
 function setFC(id){FC=id;render();}
@@ -1784,7 +1862,7 @@ function openND(){
   document.getElementById('f-not').value='';
   document.getElementById('f-pv').value='';
   var ph=document.getElementById('pv-hint');if(ph)ph.textContent='';
-  document.getElementById('f-cat').value=CATS[0].id;
+  setCatPicker('f-cat',CATS[0].id);
   document.getElementById('f-fdat-van').value=td();
   document.getElementById('f-fdat-tot').value='';
   document.getElementById('f-eerste-feit-blok').style.display='';
@@ -1841,14 +1919,14 @@ function feitPvInput(){
   if(!valid){if(hint){hint.textContent='! Verwacht: HV.20.L8.002244/2026';hint.style.color='#dc2626';}return;}
   if(hint){hint.textContent='✓ OK';hint.style.color='#16a34a';}
   var m=fmt.match(/^[A-Z]{2}\.([0-9]{2})/);
-  if(m&&catSel){var base=m[1];for(var j=0;j<catSel.options.length;j++){if(catSel.options[j].value===base||catSel.options[j].value.indexOf(base)===0){catSel.value=catSel.options[j].value;break;}}}
+  if(m&&catSel){var base=m[1];for(var j=0;j<catSel.options.length;j++){if(catSel.options[j].value===base||catSel.options[j].value.indexOf(base)===0){catSel.value=catSel.options[j].value;setCatPicker('ff-cat',catSel.value);break;}}}
 }
 function openNF(did){
   MFD=did;MFI=null;
   document.getElementById('mo-f-t').textContent='Feit toevoegen';
   document.getElementById('ff-pv').value='';
   var h=document.getElementById('ff-pv-hint');if(h)h.textContent='';
-  document.getElementById('ff-cat').value=CATS[0].id;
+  setCatPicker('ff-cat',CATS[0].id);
   document.getElementById('ff-dat-van').value=td();
   document.getElementById('ff-dat-tot').value='';
   document.getElementById('ff-not').value='';
@@ -1861,7 +1939,7 @@ function openEF(did,fi){
   document.getElementById('mo-f-t').textContent='Feit bewerken';
   document.getElementById('ff-pv').value=f.pv||'';
   var h=document.getElementById('ff-pv-hint');if(h)h.textContent='';
-  document.getElementById('ff-cat').value=f.categorie||CATS[0].id;
+  setCatPicker('ff-cat',f.categorie||CATS[0].id);
   document.getElementById('ff-dat-van').value=f.datum_van||f.datum||td();
   document.getElementById('ff-dat-tot').value=f.datum_tot||'';
   document.getElementById('ff-not').value=f.notitie||'';
