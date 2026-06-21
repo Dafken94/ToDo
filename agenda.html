@@ -568,9 +568,9 @@ function renderMonthPicker(){
   var MAANDEN=['Jan','Feb','Mrt','Apr','Mei','Jun','Jul','Aug','Sep','Okt','Nov','Dec'];
   var today=new Date();
   var html='<div class="mpicker-yr">'
-    +'<button class="mpicker-yr-btn" onclick="mpYr(-1)">‹</button>'
+    +'<button class="mpicker-yr-btn" onclick="event.stopPropagation();mpYr(-1)">‹</button>'
     +'<span class="mpicker-yr-lbl">'+_mpickYear+'</span>'
-    +'<button class="mpicker-yr-btn" onclick="mpYr(1)">›</button>'
+    +'<button class="mpicker-yr-btn" onclick="event.stopPropagation();mpYr(1)">›</button>'
     +'</div><div class="mpicker-grid">';
   for(var i=0;i<12;i++){
     var isCur=(_mpickYear===CUR.getFullYear()&&i===CUR.getMonth());
