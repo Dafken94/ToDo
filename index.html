@@ -167,6 +167,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
   .dtop-hdr>div:last-child button{min-height:40px}
   .vbtn{min-height:40px;padding:8px 14px}
 }
+/* ===== NOTIFICATIES ===== */
+.notif-wrap{position:relative;flex-shrink:0}
+.notif-flag-btn{background:none;border:none;cursor:pointer;font-size:18px;padding:2px 6px;line-height:1;position:relative;display:inline-flex;align-items:center;border-radius:6px}
+.notif-flag-btn:hover{background:var(--bg3)}
+.notif-badge{position:absolute;top:-3px;right:-3px;background:#dc2626;color:#fff;font-size:9px;font-weight:800;border-radius:10px;padding:1px 4px;min-width:14px;text-align:center;line-height:14px;pointer-events:none}
+.notif-panel{position:fixed;top:52px;right:10px;width:320px;max-width:calc(100vw - 20px);background:var(--bg2);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 32px var(--shadow);z-index:500;max-height:70vh;overflow-y:auto}
+.notif-panel-hdr{padding:11px 14px 8px;border-bottom:1px solid var(--border);font-size:12px;font-weight:800;color:var(--text);display:flex;align-items:center;justify-content:space-between}
+.notif-sec-hdr{padding:6px 14px 2px;font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em}
+.notif-item{padding:10px 14px;border-bottom:1px solid var(--border)}
+.notif-item:last-child{border-bottom:none}
+.notif-item-title{font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px}
+.notif-item-sub{font-size:11px;color:var(--text2);margin-bottom:7px}
+.notif-item-agenda{padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer}
+.notif-item-agenda:hover{background:var(--bg3)}
+.notif-item-agenda:last-child{border-bottom:none}
+.notif-item-acts{display:flex;gap:6px}
+.notif-empty{padding:22px 14px;text-align:center;color:var(--text3);font-size:12px}
 </style>
 </head>
 <body>
@@ -593,6 +610,20 @@ function initFB(){
       });
       mergeDOS();
     },function(e){console.warn('gedeeld listener fout:',e);});
+    // Uitnodigingen listener
+    if(_uitnodigingenRef){_uitnodigingenRef.off();_uitnodigingenRef=null;}
+    _uitnodigingenRef=_db.ref('uitnodigingen/'+_uid);
+    _uitnodigingenRef.on('value',function(snap){
+      _uitnodigingen=snap.val()||{};
+      updateNotifBadge();
+    },function(e){console.warn('uitnodigingen listener fout:',e);});
+    // Agenda van vandaag (eenmalig bij login)
+    _db.ref('agenda').once('value').then(function(snap){
+      var all=snap.val()||{};
+      var today=td();
+      _agendaToday=Object.values(all).filter(function(a){return a.datum===today;});
+      updateNotifBadge();
+    }).catch(function(e){console.warn('agenda notif fout:',e);});
   }catch(e){
     console.warn('Firebase fout:',e);_sync='offline';updateSync();
   }
@@ -660,7 +691,8 @@ function doLogin(){
 function doLogout(){
   if(_ref){_ref.off();_ref=null;}
   if(_sharedRef){_sharedRef.off();_sharedRef=null;}
-  _gedeeldDOS=[];_priveDOS=[];
+  if(_uitnodigingenRef){_uitnodigingenRef.off();_uitnodigingenRef=null;}
+  _gedeeldDOS=[];_priveDOS=[];_uitnodigingen={};_agendaToday=[];
   _db=null;_fbReady=false;_uid=null;_isAdmin=false;_sync='connecting';DOS=[];_userEmail='';_userName='';
   try{localStorage.removeItem('auth_state');}catch(e){}
   firebase.auth().signOut();
@@ -982,7 +1014,8 @@ function render(){
   var tb='<div class="topbar">'
     +'<button class="hamburger" onclick="toggleSB()">\u2630</button>'
     +'<span class="topbar-title">'+(VW==='detail'?(AID==='__werk__'?'Werk':AID==='__prive__'?'Privé':'Dossier'):VW==='dash'?'Dashboard':VW==='taken'?'Openstaande taken':'Mijn Dossiers')+'</span>'
-    +(_userName?'<button onclick="openEditUsername()" style="flex-shrink:0;background:none;border:none;cursor:pointer;font-size:12px;font-weight:700;color:var(--text2);padding:3px 8px;border-radius:6px;white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis" title="Gebruikersnaam wijzigen">'+esc(_userName)+' ✎</button>':''  );
+    +(_userName?'<button onclick="openEditUsername()" style="flex-shrink:0;background:none;border:none;cursor:pointer;font-size:12px;font-weight:700;color:var(--text2);padding:3px 8px;border-radius:6px;white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis" title="Gebruikersnaam wijzigen">'+esc(_userName)+' ✎</button>':'')
+    +(function(){var _nc=countNotif();return '<div class="notif-wrap"><button class="notif-flag-btn" onclick="toggleNotifPanel()" title="Meldingen">🚩'+(_nc>0?'<span class="notif-badge">'+(_nc>9?'9+':_nc)+'</span>':'')+'</button></div>';})();
   if(VW==='detail'){
     tb+='<button onclick="goL()" style="'+BW+';font-size:12px;padding:5px 12px">\u2190 Overzicht</button>';
   }else if(VW==='list'){
@@ -1929,20 +1962,35 @@ function confirmShare(){
 }
 function doShareWithUser(did,collegaUid,collegaNaam){
   var d=DOS.find(function(x){return x.id===did;});if(!d)return;
+  // Al toegang? Geen nieuwe uitnodiging sturen
+  if(d.toegang&&d.toegang[collegaUid]){toast('⚠️ '+collegaNaam+' heeft al toegang.');return;}
   var dosBackup=JSON.parse(JSON.stringify(d));
-  d.gedeeld=true;d.eigenaar_uid=_uid;
-  if(!d.toegang)d.toegang={};
-  d.toegang[_uid]=true;d.toegang[collegaUid]=true;
-  if(!d.toegang_namen)d.toegang_namen={};
-  d.toegang_namen[_uid]=_userName||_userEmail;
-  d.toegang_namen[collegaUid]=collegaNaam;
+  var isFirstShare=!d.gedeeld;
+  if(isFirstShare){
+    d.gedeeld=true;d.eigenaar_uid=_uid;
+    if(!d.toegang)d.toegang={};
+    d.toegang[_uid]=true;
+    if(!d.toegang_namen)d.toegang_namen={};
+    d.toegang_namen[_uid]=_userName||_userEmail;
+  }
+  var inviteId='inv_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
+  var invite={
+    dossier_id:did,
+    dossier_naam:d.naam||(d.pv_feiten&&d.pv_feiten[0]&&d.pv_feiten[0].pv)||did,
+    van_uid:_uid,
+    van_naam:_userName||_userEmail,
+    aangemaakt_op:new Date().toISOString()
+  };
   var updates={};
-  updates['gebruikers/'+_uid+'/dossiers/'+did]=null;
-  updates['gedeeld/'+did]=d;
+  if(isFirstShare){
+    updates['gebruikers/'+_uid+'/dossiers/'+did]=null;
+    updates['gedeeld/'+did]=d;
+  }
+  updates['uitnodigingen/'+collegaUid+'/'+inviteId]=invite;
   _db.ref().update(updates).then(function(){
-    CM('mo-share');toast('✓ Dossier gedeeld met '+collegaNaam);
+    CM('mo-share');toast('✉️ Uitnodiging verstuurd aan '+collegaNaam);
   }).catch(function(e){
-    Object.assign(d,dosBackup);delete d.gedeeld;delete d.eigenaar_uid;delete d.toegang;delete d.toegang_namen;
+    if(isFirstShare){Object.assign(d,dosBackup);delete d.gedeeld;delete d.eigenaar_uid;delete d.toegang;delete d.toegang_namen;}
     toast('❌ Fout bij delen. Probeer opnieuw.');
   });
 }
@@ -2100,6 +2148,92 @@ document.addEventListener('DOMContentLoaded',function(){
   bindPvKd('ff-pv',feitPvInput);
 });
 
+// ===== NOTIFICATIES =====
+var _uitnodigingen={},_uitnodigingenRef=null,_agendaToday=[];
+
+function countNotif(){
+  var uitnCount=Object.keys(_uitnodigingen).length;
+  var today=td();
+  var agCount=_agendaToday.filter(function(a){return !localStorage.getItem('notif-agenda-'+a.id+'-'+today);}).length;
+  return uitnCount+agCount;
+}
+function updateNotifBadge(){
+  var btn=document.querySelector('.notif-flag-btn');if(!btn)return;
+  var count=countNotif();
+  var badge=btn.querySelector('.notif-badge');
+  if(count>0){
+    if(!badge){badge=document.createElement('span');badge.className='notif-badge';btn.appendChild(badge);}
+    badge.textContent=count>9?'9+':count;
+  }else{if(badge)badge.remove();}
+}
+function toggleNotifPanel(){
+  var p=document.getElementById('notif-panel'),ov=document.getElementById('notif-panel-ov');if(!p)return;
+  if(p.style.display==='none'||!p.style.display){renderNotifPanel();p.style.display='block';ov.style.display='block';}
+  else{p.style.display='none';ov.style.display='none';}
+}
+function closeNotifPanel(){
+  var p=document.getElementById('notif-panel'),ov=document.getElementById('notif-panel-ov');
+  if(p)p.style.display='none';if(ov)ov.style.display='none';
+}
+function renderNotifPanel(){
+  var p=document.getElementById('notif-panel');if(!p)return;
+  var today=td();
+  var uitnKeys=Object.keys(_uitnodigingen);
+  var agOngelezen=_agendaToday.filter(function(a){return !localStorage.getItem('notif-agenda-'+a.id+'-'+today);});
+  var html='<div class="notif-panel-hdr"><span>🚩 Meldingen</span>'
+    +'<button onclick="closeNotifPanel()" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--text3);line-height:1;padding:0 2px">×</button></div>';
+  if(!uitnKeys.length&&!agOngelezen.length){
+    html+='<div class="notif-empty">Geen nieuwe meldingen</div>';
+  }else{
+    if(uitnKeys.length){
+      html+='<div class="notif-sec-hdr">Gedeelde dossiers</div>';
+      uitnKeys.forEach(function(key){
+        var inv=_uitnodigingen[key];
+        html+='<div class="notif-item">'
+          +'<div class="notif-item-title">📂 '+esc(inv.dossier_naam||inv.dossier_id)+'</div>'
+          +'<div class="notif-item-sub">'+esc(inv.van_naam||'Collega')+' wil dit dossier met je delen</div>'
+          +'<div class="notif-item-acts">'
+          +'<button onclick="accepteerUitnodiging(\''+key+'\')" style="background:#16a34a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-family:inherit;font-size:11px;font-weight:700;cursor:pointer">✓ Accepteren</button>'
+          +'<button onclick="weigerUitnodiging(\''+key+'\')" style="background:var(--btn-del-bg);color:var(--btn-del-text);border:1px solid var(--btn-del-border);border-radius:6px;padding:5px 12px;font-family:inherit;font-size:11px;font-weight:700;cursor:pointer">✗ Weigeren</button>'
+          +'</div></div>';
+      });
+    }
+    if(agOngelezen.length){
+      html+='<div class="notif-sec-hdr">Vandaag op agenda</div>';
+      agOngelezen.forEach(function(a){
+        html+='<div class="notif-item-agenda" onclick="dismissAgendaNotif(\''+esc(a.id)+'\')">'
+          +'<div class="notif-item-title">📅 '+esc(a.titel)+'</div>'
+          +'<div class="notif-item-sub">'+(a.tijdstip?esc(a.tijdstip)+(a.locatie?' — '+esc(a.locatie):''):'Hele dag')+'</div>'
+          +'</div>';
+      });
+    }
+  }
+  p.innerHTML=html;
+}
+function accepteerUitnodiging(inviteId){
+  var inv=_uitnodigingen[inviteId];if(!inv)return;
+  _db.ref('gedeeld/'+inv.dossier_id).once('value').then(function(snap){
+    if(!snap.val()){toast('❌ Dossier niet gevonden.');return Promise.reject('not found');}
+    var updates={};
+    updates['gedeeld/'+inv.dossier_id+'/toegang/'+_uid]=true;
+    updates['gedeeld/'+inv.dossier_id+'/toegang_namen/'+_uid]=_userName||_userEmail;
+    updates['uitnodigingen/'+_uid+'/'+inviteId]=null;
+    return _db.ref().update(updates);
+  }).then(function(){
+    toast('✓ Dossier toegevoegd aan je overzicht');closeNotifPanel();
+  }).catch(function(e){if(e!=='not found')toast('❌ Fout bij accepteren. Probeer opnieuw.');});
+}
+function weigerUitnodiging(inviteId){
+  _db.ref('uitnodigingen/'+_uid+'/'+inviteId).remove()
+    .then(function(){toast('Uitnodiging geweigerd');closeNotifPanel();})
+    .catch(function(){toast('❌ Fout. Probeer opnieuw.');});
+}
+function dismissAgendaNotif(id){
+  var today=td();
+  try{localStorage.setItem('notif-agenda-'+id+'-'+today,'1');}catch(e){}
+  updateNotifBadge();renderNotifPanel();
+}
+
 // Start app: laad lokale data meteen, Firebase asynchroon
 (function waitForFirebase(tries){
   tries=tries||0;
@@ -2112,5 +2246,7 @@ window.addEventListener('load',function(){
 });
 
 </script>
+<div id="notif-panel" class="notif-panel" style="display:none"></div>
+<div id="notif-panel-ov" onclick="closeNotifPanel()" style="display:none;position:fixed;inset:0;z-index:499"></div>
 </body>
 </html>
