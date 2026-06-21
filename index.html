@@ -1009,7 +1009,7 @@ function render(){
     +'<button class="sb-item" onclick="doLogout()"><span class="sb-ic">\u23fb</span> Afmelden</button>'
     +'<div class="sb-bottom"><span id="sync-dot" style="font-size:11px;font-weight:600">\u25cf Verbinden...</span>'
     +'<button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()">'+(THEME==='dark'?'\u2600 Licht':'\u263e Donker')+'</button></div>'
-    +'<div style="padding:4px 14px 10px;text-align:right;font-size:9px;font-weight:600;color:var(--sb-text);opacity:.4;letter-spacing:.06em">v21/06 22:10</div>'
+    +'<div style="padding:4px 14px 10px;text-align:right;font-size:9px;font-weight:600;color:var(--sb-text);opacity:.4;letter-spacing:.06em">v21/06 22:25</div>'
     +'</div>';
 
   var tb='<div class="topbar">'
@@ -1166,7 +1166,15 @@ function buildList(srchVal){
     if(!GROUP_CAT){return wrap(lst.map(renderer).join(''));}
     var order=[],seen={};
     lst.forEach(function(d){var cid=gcFirst(d).id||'';if(!seen[cid]){seen[cid]=true;order.push(cid);}});
-    order.sort(function(a,b){return gc(a).label.localeCompare(gc(b).label,'nl');});
+    order.sort(function(a,b){
+      var gA=lst.filter(function(d){return gcFirst(d).id===a;});
+      var gB=lst.filter(function(d){return gcFirst(d).id===b;});
+      var repDate=function(g){
+        var dates=g.map(function(d){return new Date(d.datum||'2000-01-01');});
+        return SO==='asc'?Math.min.apply(null,dates):Math.max.apply(null,dates);
+      };
+      return SO==='asc'?repDate(gA)-repDate(gB):repDate(gB)-repDate(gA);
+    });
     return order.map(function(cid){
       var c=gc(cid),grp=lst.filter(function(d){return gcFirst(d).id===cid;});
       grp.sort(function(a,b){var da=new Date(a.datum||'2000-01-01'),db=new Date(b.datum||'2000-01-01');return SO==='asc'?da-db:db-da;});
