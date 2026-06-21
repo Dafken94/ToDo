@@ -2002,10 +2002,7 @@ function unshareDossier(did){
     delete copy.gedeeld;delete copy.eigenaar_uid;delete copy.toegang;delete copy.toegang_namen;
     _db.ref('gebruikers/'+_uid+'/dossiers/'+did).set(copy).then(function(){
       _db.ref('gedeeld/'+did).remove().catch(function(e){console.warn(e);});
-      _gedeeldDOS=_gedeeldDOS.filter(function(x){return x.id!==did;});
-      _priveDOS.push(copy);
-      DOS=_priveDOS.concat(_gedeeldDOS);
-      CM('mo-share');toast('🔒 Dossier is nu privé');render();
+      CM('mo-share');toast('🔒 Dossier is nu privé');
     }).catch(function(e){toast('❌ Fout. Probeer opnieuw.');});
   });
 }
