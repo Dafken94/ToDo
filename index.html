@@ -618,7 +618,7 @@ function initFB(){
       updateNotifBadge();
     },function(e){console.warn('uitnodigingen listener fout:',e);});
     // Agenda van vandaag (eenmalig bij login)
-    _db.ref('agenda').once('value').then(function(snap){
+    _db.ref('gebruikers/'+_uid+'/agenda').once('value').then(function(snap){
       var all=snap.val()||{};
       var today=td();
       _agendaToday=Object.values(all).filter(function(a){return a.datum===today;});
