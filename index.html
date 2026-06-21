@@ -497,7 +497,7 @@ document.querySelectorAll('.ov').forEach(function(o){var _md=null;o.addEventList
 function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2200);}
 
 var DOS=[], VW='dash', VIEW='grid', AID=null, FS='open', FC=null, SO='desc', EE={}, EAF={}, TF='alles';
-var ALG_FP='', ALG_SORT_DATE='';
+var ALG_FP='', ALG_SORT_DATE='', ALG_HIDE_DONE=true;
 var D_NPV_GRP=false;
 var MDI=null, MTD=null, MTI=null, MED=null, MET=null, MEI=null, CCB=null;
 var MFD=null, MFI=null;
@@ -1413,6 +1413,7 @@ function buildDetail(){
     if(ALG_FP&&(t.prioriteit||'laag')!==ALG_FP) return false;
     return true;
   };
+  var doneCount=tk.filter(function(t){return t.gedaan;}).length;
   var visCount=tk.filter(algFn).length;
   var hasAlgF=!!(isSys&&(ALG_FP||ALG_SORT_DATE));
   var taakLbl='\u2713 Taken'+(isSys?hasAlgF?' ('+visCount+'/'+tk.length+')':' ('+tk.length+')':'');
@@ -1440,6 +1441,10 @@ function buildDetail(){
       +'<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-left:auto">'
       +'<button onclick="toggleAlgSortDate()" style="font-family:inherit;font-size:11px;font-weight:700;padding:5px 10px;border-radius:7px;cursor:pointer;border:1.5px solid '+(ALG_SORT_DATE?'#2563eb':'var(--border)')+';background:'+(ALG_SORT_DATE?'#2563eb':'var(--bg2)')+';color:'+(ALG_SORT_DATE?'#fff':'var(--text2)')+';white-space:nowrap;transition:all .15s">'+(ALG_SORT_DATE==='desc'?'\ud83d\udcc5 Datum \u2193':ALG_SORT_DATE==='asc'?'\ud83d\udcc5 Datum \u2191':'\ud83d\udcc5 Datum')+'</button>'
       +(hasAlgF?'<button onclick="resetAlgF()" style="font-family:inherit;font-size:11px;font-weight:700;padding:5px 9px;border-radius:6px;cursor:pointer;border:1.5px solid var(--btn-del-border);background:var(--btn-del-bg);color:var(--btn-del-text)">\u2715 Reset</button>':'')
+      +'</div>'
+      +'<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">'
+      +'<button onclick="toggleAlgHideDone()" style="font-family:inherit;font-size:11px;font-weight:700;padding:5px 10px;border-radius:7px;cursor:pointer;border:1.5px solid '+(ALG_HIDE_DONE?'var(--border)':'#2563eb')+';background:'+(ALG_HIDE_DONE?'var(--bg2)':'#2563eb')+';color:'+(ALG_HIDE_DONE?'var(--text2)':'#fff')+';white-space:nowrap;transition:all .15s">'+(ALG_HIDE_DONE?'\ud83d\udc41 Toon voltooid'+(doneCount?' ('+doneCount+')':''):'\ud83d\udc41 Verberg voltooid')+'</button>'
+      +(doneCount>0?'<button onclick="delVoltooide(\''+d.id+'\')" style="font-family:inherit;font-size:11px;font-weight:700;padding:5px 9px;border-radius:6px;cursor:pointer;border:1.5px solid var(--btn-del-border);background:var(--btn-del-bg);color:var(--btn-del-text);white-space:nowrap">\ud83d\uddd1 Verwijder voltooid</button>':'')
       +'</div>'
       +'</div>';
   }
@@ -1497,7 +1502,7 @@ function buildDetail(){
           +'</div>';
         noNpvD.forEach(function(p){html+=buildTaak(d.id,p.t,p.i);});
       }
-      if(doneAllD.length){
+      if(doneAllD.length&&!(isSys&&ALG_HIDE_DONE)){
         html+='<div style="padding:7px 14px 5px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px">'
           +'<span style="font-size:11px;font-weight:800;color:var(--text3)">\u2713 Voltooide taken</span>'
           +'<span style="font-size:11px;font-weight:600;color:var(--text3)">'+doneAllD.length+(doneAllD.length!==1?' taken':' taak')+'</span>'
@@ -1515,7 +1520,7 @@ function buildDetail(){
     }
     var anyVis=false;
     openPairs.forEach(function(p){anyVis=true;html+=buildTaak(d.id,p.t,p.i);});
-    if(donePairs.length){
+    if(donePairs.length&&!(isSys&&ALG_HIDE_DONE)){
       anyVis=true;
       html+='<div style="padding:7px 14px 5px;background:var(--bg3);border-bottom:1px solid var(--border);border-top:1px solid var(--border);display:flex;align-items:center;gap:8px">'
         +'<span style="font-size:11px;font-weight:800;color:var(--text3)">\u2713 Voltooide taken</span>'
@@ -1523,7 +1528,13 @@ function buildDetail(){
         +'</div>';
       donePairs.forEach(function(p){html+=buildTaak(d.id,p.t,p.i);});
     }
-    if(!anyVis)html+='<div class="empty"><div style="font-size:32px">\ud83d\udd0d</div><p>Geen taken met de huidige filters.</p></div>';
+    if(!anyVis){
+      if(isSys&&ALG_HIDE_DONE&&donePairs.length){
+        html+='<div class="empty"><div style="font-size:32px">\u2713</div><p>Alle taken zijn voltooid.</p></div>';
+      } else {
+        html+='<div class="empty"><div style="font-size:32px">\ud83d\udd0d</div><p>Geen taken met de huidige filters.</p></div>';
+      }
+    }
   }
   html+='</div>';
   if(!isSys){
@@ -1617,7 +1628,16 @@ function goSys(){opD(AID==='__prive__'?'__prive__':'__werk__');}
 function setTF(f){TF=(TF===f?'alles':f);render();}
 function setAlgFP(p){ALG_FP=(ALG_FP===p?'':p);render();}
 function toggleAlgSortDate(){ALG_SORT_DATE=ALG_SORT_DATE===''?'asc':ALG_SORT_DATE==='asc'?'desc':'';render();}
-function resetAlgF(){ALG_FP='';ALG_SORT_DATE='';render();}
+function resetAlgF(){ALG_FP='';ALG_SORT_DATE='';ALG_HIDE_DONE=true;render();}
+function toggleAlgHideDone(){ALG_HIDE_DONE=!ALG_HIDE_DONE;render();}
+function delVoltooide(did){
+  var d=DOS.find(function(x){return x.id===did;});if(!d)return;
+  var cnt=(d.taken||[]).filter(function(t){return t.gedaan;}).length;
+  if(!cnt)return;
+  if(!confirm(cnt+' voltooide '+(cnt===1?'taak':'taken')+' permanent verwijderen? Dit kan niet ongedaan worden.'))return;
+  d.taken=(d.taken||[]).filter(function(t){return !t.gedaan;});
+  sv();render();toast('Voltooide taken verwijderd');
+}
 function toggleDNpv(){D_NPV_GRP=!D_NPV_GRP;render();}
 function opD(id){AID=id;VW='detail';render();}
 function gotoExt(did,ti){opD(did);openExtModal(did,+ti);}
