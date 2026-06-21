@@ -220,6 +220,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
     <div class="fr"><label>Naam *</label><input id="f-naam" placeholder="bijv. Zaak Van den Berg" style="text-transform:uppercase"></div>
     <div class="fr"><label>Aanmaakdatum</label><input id="f-datum" type="date"></div>
     <div class="fr"><label>Notitie</label><textarea id="f-not" rows="2" placeholder="Extra informatie..."></textarea></div>
+    <div class="fr"><label>Dossiernummer <span style="font-size:10px;font-weight:600;color:var(--text3)">(optioneel — enkel bij onderzoeksrechter)</span></label><input id="f-dosnr" placeholder="2026/0042" oninput="dosNrInput()" onblur="dosNrBlur()" maxlength="9" inputmode="numeric" autocomplete="off"><span id="dosnr-hint" style="font-size:11px;color:var(--text3);margin-top:3px;display:block"></span></div>
     <div id="f-eerste-feit-blok">
       <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;margin:10px 0 8px;padding-top:10px;border-top:1px solid var(--border)">Eerste feit</div>
       <div class="fr"><label>PV-nummer *</label><input id="f-pv" placeholder="__.__.__.______/____" oninput="pvInput()" style="text-transform:uppercase"><span id="pv-hint" style="font-size:11px;color:var(--text3);margin-top:3px;display:block"></span></div>
@@ -894,6 +895,33 @@ function pvInput(){
   try{inp.setSelectionRange(newPos,newPos);}catch(e){}
   pvAutoFill();
 }
+function dosNrInput(){
+  var inp=document.getElementById('f-dosnr');if(!inp)return;
+  var sel=inp.selectionStart;
+  var rawBefore=inp.value.slice(0,sel).replace(/[^0-9]/g,'').length;
+  var raw=inp.value.replace(/[^0-9]/g,'').slice(0,8);
+  var fmt=raw.length>4?raw.slice(0,4)+'/'+raw.slice(4):raw;
+  inp.value=fmt;
+  var newPos=0,cnt=0;
+  for(var i=0;i<fmt.length;i++){if(fmt[i]!=='/')cnt++;if(cnt===rawBefore){newPos=i+1;break;}}
+  if(rawBefore===0)newPos=0;
+  try{inp.setSelectionRange(newPos,newPos);}catch(e){}
+  var hint=document.getElementById('dosnr-hint');if(!hint)return;
+  if(!fmt){hint.textContent='';return;}
+  var valid=/^[0-9]{4}\/[0-9]{4}$/.test(fmt);
+  hint.textContent=valid?'✓ OK':'Verwacht: 2026/0042';
+  hint.style.color=valid?'#16a34a':'#dc2626';
+}
+function dosNrBlur(){
+  var inp=document.getElementById('f-dosnr');if(!inp||!inp.value.trim())return;
+  var parts=inp.value.split('/');
+  if(parts.length===2){
+    var yr=parts[0].replace(/[^0-9]/g,'').slice(0,4);
+    var num=parts[1].replace(/[^0-9]/g,'');
+    if(num.length>0&&num.length<4)inp.value=yr+'/'+('0000'+num).slice(-4);
+  }
+  dosNrInput();
+}
 function npvInput(){
   var inp=document.getElementById('t-npv');
   var hint=document.getElementById('npv-hint');
@@ -1050,6 +1078,7 @@ function fil(q){
   var query=(q!==undefined?String(q):(document.getElementById('srch')?document.getElementById('srch').value:'')).toLowerCase().trim();
   if(query)l=l.filter(function(d){
     if((d.naam||'').toLowerCase().indexOf(query)!==-1)return true;
+    if((d.dossiernummer||'').toLowerCase().indexOf(query)!==-1)return true;
     if((d.pv_feiten||[]).some(function(f){return f.pv.toLowerCase().indexOf(query)!==-1;}))return true;
     return (d.taken||[]).some(function(t){return (t.titel||'').toLowerCase().indexOf(query)!==-1;});
   });
@@ -1106,7 +1135,7 @@ function render(){
     +'<button class="sb-item" onclick="doLogout()"><span class="sb-ic">\u23fb</span> Afmelden</button>'
     +'<div class="sb-bottom"><span id="sync-dot" style="font-size:11px;font-weight:600">\u25cf Verbinden...</span>'
     +'<button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()">'+(THEME==='dark'?'\u2600 Licht':'\u263e Donker')+'</button></div>'
-    +'<div style="padding:4px 14px 10px;text-align:right;font-size:9px;font-weight:600;color:var(--sb-text);opacity:.4;letter-spacing:.06em">v22/06 15:30</div>'
+    +'<div style="padding:4px 14px 10px;text-align:right;font-size:9px;font-weight:600;color:var(--sb-text);opacity:.4;letter-spacing:.06em">v22/06 16:30</div>'
     +'</div>';
 
   var tb='<div class="topbar">'
@@ -1507,6 +1536,7 @@ function buildDetail(){
        +'<button onclick="openED(\''+d.id+'\')" style="'+BW+'">\u270e Bewerken</button>'
        +'<button onclick="delD(\''+d.id+'\')" style="'+BR+'">\u2715 Verwijderen</button>')
     +'</div></div>'
+    +(d.dossiernummer?'<div style="display:inline-flex;align-items:center;gap:8px;margin-bottom:8px;padding:6px 12px;background:var(--bg3);border-radius:7px;border:1px solid var(--border);border-left:3px solid var(--accent)"><span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2)">⚖️ Dossiernr.</span><span style="font-size:14px;font-weight:800;color:var(--accent);font-family:monospace;letter-spacing:.06em">'+esc(d.dossiernummer)+'</span></div>':'')
     +'<div class="dinfo-grid">'
     +'<div class="dinfo"><div class="dinfo-lbl">Aanmaakdatum</div><div class="dinfo-val">'+fd(d.datum)+'</div></div>'
     +'<div class="dinfo"><div class="dinfo-lbl">Status</div><div class="dinfo-val" style="color:'+(d.gesloten?'var(--text3)':'#16a34a')+'">'+(d.gesloten?'Gesloten':'Lopend')+'</div></div>'
@@ -1862,6 +1892,8 @@ function openND(){
   document.getElementById('f-not').value='';
   document.getElementById('f-pv').value='';
   var ph=document.getElementById('pv-hint');if(ph)ph.textContent='';
+  document.getElementById('f-dosnr').value='';
+  var dh=document.getElementById('dosnr-hint');if(dh)dh.textContent='';
   setCatPicker('f-cat',CATS[0].id);
   document.getElementById('f-fdat-van').value=td();
   document.getElementById('f-fdat-tot').value='';
@@ -1876,6 +1908,8 @@ function openED(id){
   document.getElementById('f-naam').value=d.naam||'';
   document.getElementById('f-datum').value=d.datum||td();
   document.getElementById('f-not').value=d.notitie||'';
+  document.getElementById('f-dosnr').value=d.dossiernummer||'';
+  var dh2=document.getElementById('dosnr-hint');if(dh2)dh2.textContent='';
   document.getElementById('f-eerste-feit-blok').style.display='none';
   OM('mo-d');
   setTimeout(function(){document.getElementById('f-naam').focus();},80);
@@ -1884,7 +1918,9 @@ function saveDos(){
   var naam=document.getElementById('f-naam').value.trim().toUpperCase();
   var datum=document.getElementById('f-datum').value;
   var notitie=document.getElementById('f-not').value.trim();
+  var dosnr=document.getElementById('f-dosnr').value.trim();
   if(!naam){document.getElementById('f-naam').focus();return;}
+  if(dosnr&&!/^[0-9]{4}\/[0-9]{4}$/.test(dosnr)){toast('⚠️ Dossiernummer moet het formaat YYYY/NNNN hebben (bijv. 2026/0042)');document.getElementById('f-dosnr').focus();return;}
   if(MDI===null){
     var pv=document.getElementById('f-pv').value.trim().toUpperCase();
     var cat=document.getElementById('f-cat').value;
@@ -1893,10 +1929,12 @@ function saveDos(){
     if(!pv){document.getElementById('f-pv').focus();return;}
     var allPvs=[];DOS.forEach(function(x){(x.pv_feiten||[]).forEach(function(f){allPvs.push(f.pv);});});
     if(allPvs.indexOf(pv)>=0){toast('PV-nummer bestaat al in een ander dossier');document.getElementById('f-pv').focus();return;}
-    DOS.unshift({id:gId(),naam:naam,datum:datum,notitie:notitie,pv_feiten:[{id:gId(),pv:pv,categorie:cat,datum_van:fdatVan,datum_tot:fdatTot,notitie:''}],links:[],taken:[],gesloten:false});
+    var nieuw={id:gId(),naam:naam,datum:datum,notitie:notitie,pv_feiten:[{id:gId(),pv:pv,categorie:cat,datum_van:fdatVan,datum_tot:fdatTot,notitie:''}],links:[],taken:[],gesloten:false};
+    if(dosnr)nieuw.dossiernummer=dosnr;
+    DOS.unshift(nieuw);
   }else{
     var d=DOS.find(function(x){return x.id===MDI;});
-    if(d)Object.assign(d,{naam:naam,datum:datum,notitie:notitie});
+    if(d){Object.assign(d,{naam:naam,datum:datum,notitie:notitie});if(dosnr)d.dossiernummer=dosnr;else delete d.dossiernummer;}
   }
   sv();CM('mo-d');render();toast('Dossier opgeslagen');
 }
