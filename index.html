@@ -1106,7 +1106,7 @@ function render(){
     +'<button class="sb-item" onclick="doLogout()"><span class="sb-ic">\u23fb</span> Afmelden</button>'
     +'<div class="sb-bottom"><span id="sync-dot" style="font-size:11px;font-weight:600">\u25cf Verbinden...</span>'
     +'<button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()">'+(THEME==='dark'?'\u2600 Licht':'\u263e Donker')+'</button></div>'
-    +'<div style="padding:4px 14px 10px;text-align:right;font-size:9px;font-weight:600;color:var(--sb-text);opacity:.4;letter-spacing:.06em">v22/06 14:00</div>'
+    +'<div style="padding:4px 14px 10px;text-align:right;font-size:9px;font-weight:600;color:var(--sb-text);opacity:.4;letter-spacing:.06em">v22/06 15:30</div>'
     +'</div>';
 
   var tb='<div class="topbar">'
@@ -2051,13 +2051,18 @@ function openShare(did){
     Object.keys(toegang).forEach(function(u,i){
       var displayName=toegangNamen[u]||(u===_uid?(_userName||_userEmail):u);
       var initials=displayName.split(' ').map(function(w){return w[0]||'';}).join('').slice(0,2).toUpperCase();
-      lijstHtml+='<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;'+(i>0?'border-top:1px solid var(--border);':'')+';font-size:13px;color:var(--text);font-weight:600">';
+      var isMe=u===_uid;
+      lijstHtml+='<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;'+(i>0?'border-top:1px solid var(--border);':'')+'">';
       lijstHtml+='<div style="width:32px;height:32px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0">'+initials+'</div>';
-      lijstHtml+=esc(u===_uid?displayName+' (jij)':displayName)+'</div>';
+      lijstHtml+='<div style="font-size:13px;font-weight:600;color:var(--text);flex:1">'+esc(isMe?displayName+' (jij)':displayName)+'</div>';
+      if(!isMe){lijstHtml+='<button onclick="removeUserFromShare(\''+did+'\',\''+u+'\')" style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:6px;border:1.5px solid var(--btn-del-border);background:none;color:var(--btn-del-bg);cursor:pointer;font-family:inherit;white-space:nowrap">✕ Verwijder</button>';}
+      lijstHtml+='</div>';
     });
     lijstHtml+='</div>';
     document.getElementById('mo-share-body').innerHTML=lijstHtml
-      +'<div class="f-actions"><button class="btn btn-white" onclick="CM(\'mo-share\')">Sluiten</button><button class="btn btn-red" onclick="unshareDossier(\''+did+'\')">🔒 Privé maken</button></div>';
+      +'<div class="f-actions"><button class="btn btn-white" onclick="CM(\'mo-share\')">Sluiten</button>'
+      +'<button class="btn btn-white" onclick="openShareAdd(\''+did+'\')">+ Medewerker</button>'
+      +'<button class="btn btn-red" onclick="unshareDossier(\''+did+'\')">🔒 Privé maken</button></div>';
     OM('mo-share');
   }
 }
@@ -2121,10 +2126,76 @@ function unshareDossier(did){
   ask('Privé maken?','Het dossier wordt teruggeplaatst naar je privédossiers. Collega\'s verliezen toegang.',function(){
     var copy=JSON.parse(JSON.stringify(d));
     delete copy.gedeeld;delete copy.eigenaar_uid;delete copy.toegang;delete copy.toegang_namen;
+    copy.taken=(copy.taken||[]).map(function(t){var tc=Object.assign({},t);delete tc.toegewezen;return tc;});
     _db.ref('gebruikers/'+_uid+'/dossiers/'+did).set(copy).then(function(){
       _db.ref('gedeeld/'+did).remove().catch(function(e){console.warn(e);});
       CM('mo-share');toast('🔒 Dossier is nu privé');
     }).catch(function(e){toast('❌ Fout. Probeer opnieuw.');});
+  });
+}
+function openShareAdd(did){
+  var d=DOS.find(function(x){return x.id===did;});if(!d)return;
+  window._shareDid=did;
+  document.getElementById('mo-share-body').innerHTML='<div style="text-align:center;padding:18px;color:var(--text3);font-size:12px">Gebruikers laden…</div><div class="f-actions"><button class="btn btn-white" onclick="openShare(\''+did+'\')">&#8592; Terug</button></div>';
+  _db.ref('gebruikernamen').once('value').then(function(snap){
+    var namen=snap.val()||{};
+    var users=[];
+    Object.keys(namen).forEach(function(key){
+      var entry=namen[key];
+      var uid=entry&&typeof entry==='object'?entry.uid:entry;
+      var naam=entry&&typeof entry==='object'?entry.naam:key.replace(/_/g,' ').replace(/\b\w/g,function(c){return c.toUpperCase();});
+      if(uid&&uid!==_uid&&!(d.toegang&&d.toegang[uid]))users.push({uid:uid,naam:naam,key:key});
+    });
+    window._shareUsers=users;
+    var html='<div style="margin-bottom:10px"><input id="share-srch" type="text" placeholder="Zoek gebruiker…" oninput="filterShareList()" style="width:100%;padding:8px 12px;border:1.5px solid var(--input-border);border-radius:7px;background:var(--input-bg);color:var(--text);font-family:inherit;font-size:13px;box-sizing:border-box"></div>'
+      +'<div id="share-user-list" style="max-height:240px;overflow-y:auto;border:1px solid var(--border);border-radius:8px">';
+    if(!users.length){html+='<div style="padding:16px;text-align:center;color:var(--text3);font-size:12px">Geen andere gebruikers beschikbaar</div>';}
+    else{users.forEach(function(u,i){
+      var initials=u.naam.split(' ').map(function(w){return w[0]||'';}).join('').slice(0,2).toUpperCase();
+      html+='<div class="share-user-row" data-search="'+esc(u.key)+'" data-uid="'+esc(u.uid)+'" data-naam="'+esc(u.naam)+'" onclick="selectShareUser(this.dataset.uid,this.dataset.naam)" style="display:flex;align-items:center;gap:12px;padding:10px 14px;'+(i>0?'border-top:1px solid var(--border);':'')+';cursor:pointer" onmouseover="this.style.background=\'var(--bg3)\'" onmouseout="this.style.background=\'\'">'
+        +'<div style="width:36px;height:36px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0">'+initials+'</div>'
+        +'<div style="font-size:13px;font-weight:700;color:var(--text)">'+esc(u.naam)+'</div>'
+        +'</div>';
+    });}
+    html+='</div><div class="f-actions"><button class="btn btn-white" onclick="openShare(\''+did+'\')">&#8592; Terug</button></div>';
+    document.getElementById('mo-share-body').innerHTML=html;
+    setTimeout(function(){var s=document.getElementById('share-srch');if(s)s.focus();},80);
+  }).catch(function(e){toast('❌ Fout bij laden gebruikers.');});
+}
+function removeUserFromShare(did,targetUid){
+  var d=DOS.find(function(x){return x.id===did;});
+  if(!d||d.eigenaar_uid!==_uid)return;
+  var targetNaam=(d.toegang_namen||{})[targetUid]||targetUid;
+  ask('Toegang intrekken?',esc(targetNaam)+' verliest toegang tot dit dossier. Zijn/haar taaktoewijzingen worden gewist.',function(){
+    var newToegang=Object.assign({},d.toegang||{});
+    var newToegangnamen=Object.assign({},d.toegang_namen||{});
+    delete newToegang[targetUid];delete newToegangnamen[targetUid];
+    var newTaken=(d.taken||[]).map(function(t){
+      if(!t.toegewezen||!t.toegewezen[targetUid])return t;
+      var tc=Object.assign({},t,{toegewezen:Object.assign({},t.toegewezen)});
+      delete tc.toegewezen[targetUid];
+      if(!Object.keys(tc.toegewezen).length)delete tc.toegewezen;
+      return tc;
+    });
+    var remaining=Object.keys(newToegang);
+    if(remaining.length<=1){
+      // Alleen eigenaar over → privé maken
+      var copy=JSON.parse(JSON.stringify(d));
+      copy.taken=newTaken.map(function(t){var tc=Object.assign({},t);delete tc.toegewezen;return tc;});
+      delete copy.gedeeld;delete copy.eigenaar_uid;delete copy.toegang;delete copy.toegang_namen;
+      _db.ref('gebruikers/'+_uid+'/dossiers/'+did).set(copy).then(function(){
+        _db.ref('gedeeld/'+did).remove().catch(function(e){console.warn(e);});
+        CM('mo-share');toast('🔒 Laatste medewerker verwijderd — dossier is nu privé');
+      }).catch(function(e){toast('❌ Fout. Probeer opnieuw.');});
+    }else{
+      var updates={};
+      updates['gedeeld/'+did+'/toegang']=newToegang;
+      updates['gedeeld/'+did+'/toegang_namen']=newToegangnamen;
+      updates['gedeeld/'+did+'/taken']=newTaken;
+      _db.ref().update(updates).then(function(){
+        CM('mo-share');toast('✓ '+esc(targetNaam)+' heeft geen toegang meer');
+      }).catch(function(e){toast('❌ Fout. Probeer opnieuw.');});
+    }
   });
 }
 function doLink(did,otherId){
