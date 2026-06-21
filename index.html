@@ -1007,11 +1007,9 @@ function render(){
     +(_isAdmin?'<button class="sb-item" onclick="window.location.href=\'admin.html\'"><span class="sb-ic">\ud83d\udee1\ufe0f</span> Beheerder</button>':'')
     +'<button class="sb-item" onclick="openPwChange()"><span class="sb-ic">\ud83d\udd11</span> Wachtwoord wijzigen</button>'
     +'<button class="sb-item" onclick="doLogout()"><span class="sb-ic">\u23fb</span> Afmelden</button>'
-    +'<div class="sb-bottom" style="flex-direction:column;align-items:stretch;gap:8px">'
-    +'<div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span id="sync-dot" style="font-size:11px;font-weight:600">\u25cf Verbinden...</span>'
+    +'<div class="sb-bottom"><span id="sync-dot" style="font-size:11px;font-weight:600">\u25cf Verbinden...</span>'
     +'<button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()">'+(THEME==='dark'?'\u2600 Licht':'\u263e Donker')+'</button></div>'
-    +'<div style="font-size:9px;color:var(--sb-div);text-align:right;letter-spacing:.04em">v21/06 20:45</div>'
-    +'</div>'
+    +'<div style="padding:4px 14px 10px;text-align:center;font-size:9px;font-weight:600;color:var(--sb-text);opacity:.4;letter-spacing:.06em">v21/06 20:45</div>'
     +'</div>';
 
   var tb='<div class="topbar">'
