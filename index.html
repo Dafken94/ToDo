@@ -165,7 +165,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
   .stat-lbl,.dinfo-lbl{font-size:10px}
   .dinfo-grid{grid-template-columns:1fr 1fr}
   .dtop-hdr>div:last-child button{min-height:40px}
-  .vbtn{min-height:40px;padding:8px 14px}
+  .dtools{width:100%;display:grid!important;grid-template-columns:repeat(3,1fr);gap:6px}
+  .dtools>button{width:100%;min-height:40px;font-size:12px!important;padding:6px 4px!important}
 }
 /* ===== NOTIFICATIES ===== */
 .notif-wrap{position:relative;flex-shrink:0}
@@ -184,6 +185,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 .notif-item-agenda:last-child{border-bottom:none}
 .notif-item-acts{display:flex;gap:6px}
 .notif-empty{padding:22px 14px;text-align:center;color:var(--text3);font-size:12px}
+.gsm-ov{display:none;position:fixed;inset:0;background:rgba(5,10,20,.8);z-index:4000;align-items:center;justify-content:center;flex-direction:column;gap:16px;padding:24px}
+.gsm-ov.show{display:flex}
+.gsm-phone{width:390px;max-width:100%;height:min(800px,86vh);background:#000;border-radius:42px;padding:11px;box-shadow:0 26px 80px rgba(0,0,0,.6)}
+.gsm-screen{width:100%;height:100%;border-radius:32px;overflow:hidden;background:var(--bg)}
+.gsm-screen iframe{width:100%;height:100%;border:0;display:block}
+.gsm-close{background:var(--bg2);border:1px solid var(--border);color:var(--text);font-family:inherit;font-size:13px;font-weight:700;border-radius:11px;padding:10px 20px;cursor:pointer}
 /* ===== ANIMATIES & TRANSITIONS ===== */
 @keyframes mo-in{from{opacity:0;transform:translateY(8px) scale(.97)}to{opacity:1;transform:none}}
 .ov.show .ob,.conf-ov.show .conf-box{animation:mo-in .2s cubic-bezier(.25,.8,.25,1)}
@@ -214,6 +221,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 </head>
 <body>
 <div id="toast"></div>
+<div id="gsm-ov" class="gsm-ov" onclick="if(event.target===this)closeGsm()">
+  <div class="gsm-phone"><div class="gsm-screen"><iframe id="gsm-iframe" title="Gsm preview"></iframe></div></div>
+  <button class="gsm-close" onclick="closeGsm()">✕ Sluiten</button>
+</div>
 <div class="ov" id="mo-d">
   <div class="ob">
     <div class="ob-title" id="mo-d-t">Dossier</div>
@@ -1096,6 +1107,8 @@ function toggleSB(){
     document.querySelector('.main').classList.toggle('sb-collapsed',SB_COLLAPSED);
   }
 }
+function openGsm(){var ov=document.getElementById('gsm-ov');var f=document.getElementById('gsm-iframe');if(f&&!f.getAttribute('srcdoc')){var html='<!DOCTYPE html>'+document.documentElement.outerHTML;html=html.replace(/<html(\s|>)/i,'<html data-preview="1"$1');f.setAttribute('srcdoc',html);}ov.classList.add('show');}
+function closeGsm(){var ov=document.getElementById('gsm-ov');if(ov)ov.classList.remove('show');}
 function closeSB(){SB_OPEN=false;document.getElementById('sidebar').classList.remove('open');document.getElementById('sb-ov').classList.remove('open');}
 
 function render(){
@@ -1125,6 +1138,7 @@ function render(){
   sb+='<div class="sb-div"></div>'
     +'<div class="sb-section">Planning</div>'
     +'<button class="sb-item" onclick="window.location.href=\'agenda.html\'"><span class="sb-ic">&#128197;</span> Agenda</button>'
+    +(document.documentElement.getAttribute('data-preview')==='1'?'':'<button class="sb-item" onclick="openGsm()"><span class="sb-ic">\uD83D\uDCF1</span> Gsm-preview</button>')
     +'<div class="sb-div"></div>'
     +'<div class="sb-section">Backup</div>'
     +'<button class="sb-item" onclick="exportJSON()">\u2193 Exporteer</button>'
@@ -1146,10 +1160,10 @@ function render(){
   if(VW==='detail'){
     tb+='<button onclick="goL()" style="'+BW+';font-size:12px;padding:5px 12px">\u2190 Overzicht</button>';
   }else if(VW==='list'){
-    tb+='<div style="margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap">'
-      +'<div class="view-toggle"><button class="vbtn'+(VIEW==='grid'?' on':'')+'" onclick="setView(\'grid\')">\u2637</button><button class="vbtn'+(VIEW==='list'?' on':'')+'" onclick="setView(\'list\')">\u2263</button></div>'
-      +'<button onclick="GROUP_CAT=!GROUP_CAT;render()" style="'+BW+';font-size:12px;padding:5px 12px'+(GROUP_CAT?';background:#1d4ed8':'')+'">\u2630 Per type</button>'
-      +'<button onclick="toggleSort()" style="'+BW+';font-size:12px;padding:5px 12px">\u21c5 '+(SO==='asc'?'Oudste':'Nieuwste')+'</button>'
+    tb+='<div class="dtools" style="margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap">'
+      +'<button onclick="setView(VIEW===\'grid\'?\'list\':\'grid\')" style="'+BW+';font-size:12px;padding:5px 12px;justify-content:center" title="Wissel tegels/lijst">'+(VIEW==='grid'?'\u25A6 Tegels':'\u2263 Lijst')+'</button>'
+      +'<button onclick="GROUP_CAT=!GROUP_CAT;render()" style="'+BW+';font-size:12px;padding:5px 12px;justify-content:center'+(GROUP_CAT?';background:#1d4ed8;border-color:#1d4ed8;color:#fff':'')+'">\u2630 Per type</button>'
+      +'<button onclick="toggleSort()" style="'+BW+';font-size:12px;padding:5px 12px;justify-content:center">\u21c5 '+(SO==='asc'?'Oudste':'Nieuwste')+'</button>'
       +'</div>';
   }
   tb+='</div>';

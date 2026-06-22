@@ -16,13 +16,54 @@
 html,body{height:100%}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);transition:background .25s,color .25s;min-height:100vh}
 /* TOPBAR */
-.topbar{background:var(--topbar);border-bottom:1px solid var(--topbar-border);padding:9px 14px;padding-top:calc(9px + env(safe-area-inset-top));padding-left:calc(14px + env(safe-area-inset-left));padding-right:calc(14px + env(safe-area-inset-right));display:flex;align-items:center;gap:8px;position:sticky;top:0;z-index:50;flex-wrap:wrap}
+/* ===== HEADER (voorstel B) ===== */
+.topbar{background:var(--topbar);border-bottom:1px solid var(--topbar-border);position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:12px;padding:9px calc(16px + env(safe-area-inset-right)) 9px calc(16px + env(safe-area-inset-left));padding-top:calc(9px + env(safe-area-inset-top))}
+.tb-left{flex:1;min-width:0;display:flex;align-items:center;gap:8px}
+.hdr-back{width:36px;height:36px;flex:none;display:flex;align-items:center;justify-content:center;background:transparent;border:none;border-radius:9px;color:var(--text3);font-size:22px;font-weight:700;cursor:pointer;font-family:inherit;line-height:1;transition:background .15s}
+.hdr-back:hover{background:var(--bg4)}
+.hdr-title{flex:1;min-width:0;font-size:18px;font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hdr-icons{display:flex;align-items:center;gap:6px;flex:1;min-width:0;justify-content:flex-end}
+.hdr-icon{width:38px;height:38px;display:flex;align-items:center;justify-content:center;background:var(--btn-edit-bg);border:1.5px solid var(--btn-edit-border);border-radius:9px;font-size:16px;cursor:pointer;font-family:inherit;color:var(--text2);line-height:1;transition:opacity .15s}
+.hdr-icon:hover{opacity:.8}
+.ovf-wrap{position:relative;display:inline-flex}
+.ovf-menu{position:absolute;top:calc(100% + 6px);right:0;background:var(--bg2);border:1px solid var(--border);border-radius:12px;box-shadow:0 12px 36px var(--shadow);padding:5px;min-width:210px;z-index:200}
+.ovf-item{display:flex;align-items:center;gap:10px;width:100%;padding:10px 11px;border:none;background:none;border-radius:8px;color:var(--text);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;text-align:left;transition:background .12s}
+.ovf-item:hover{background:var(--bg4)}
+.ovf-item.ovf-danger{color:#ef4444}
+.ovf-sep{height:1px;background:var(--border);margin:4px 8px}
+.month-pill{display:flex;align-items:center;background:var(--input-bg);border:1px solid var(--input-border);border-radius:11px;flex:0 1 420px;min-width:230px}
+.mp-nav{width:44px;height:42px;flex:none;display:flex;align-items:center;justify-content:center;background:transparent;border:none;color:var(--text2);font-size:18px;font-weight:700;cursor:pointer;font-family:inherit;line-height:1;transition:background .15s}
+.mp-nav:hover{background:var(--bg4)}
+.month-pill .mp-nav:first-child{border-radius:11px 0 0 11px}
+.mp-sep{width:1px;height:22px;background:var(--input-border);flex:none}
+.mp-today{flex:none;height:42px;padding:0 16px;background:transparent;border:none;border-radius:0 11px 11px 0;color:var(--accent);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .15s}
+.mp-today:hover{background:var(--bg4)}
+.fab-add{position:fixed;right:20px;bottom:calc(20px + env(safe-area-inset-bottom));width:56px;height:56px;border-radius:28px;background:#2563eb;border:none;color:#fff;font-size:30px;font-weight:300;line-height:1;cursor:pointer;box-shadow:0 8px 22px rgba(37,99,235,.5);display:flex;align-items:center;justify-content:center;z-index:60;transition:transform .15s,opacity .2s}
+.fab-add:hover{transform:scale(1.05)}
+.fab-add.hidden{opacity:0;pointer-events:none;transform:scale(.6)}
+.select-chip{position:fixed;left:20px;bottom:calc(20px + env(safe-area-inset-bottom));height:44px;padding:0 18px;background:var(--bg2);border:1.5px solid #16a34a;border-radius:22px;color:#16a34a;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px;box-shadow:0 6px 18px var(--shadow);z-index:60;white-space:nowrap;transition:opacity .15s,background .15s,color .15s}
+[data-theme="dark"] .select-chip{color:#22c55e}
+.select-chip.on{background:#16a34a;color:#fff;border-color:#16a34a}
+/* gsm preview overlay */
+.gsm-ov{display:none;position:fixed;inset:0;background:rgba(5,10,20,.8);z-index:300;align-items:center;justify-content:center;flex-direction:column;gap:16px;padding:24px}
+.gsm-ov.show{display:flex}
+.gsm-phone{width:390px;max-width:100%;height:min(800px,86vh);background:#000;border-radius:42px;padding:11px;box-shadow:0 26px 80px rgba(0,0,0,.6)}
+.gsm-screen{width:100%;height:100%;border-radius:32px;overflow:hidden;background:var(--bg)}
+.gsm-screen iframe{width:100%;height:100%;border:0;display:block}
+.gsm-close{background:var(--bg2);border:1px solid var(--border);color:var(--text);font-family:inherit;font-size:13px;font-weight:700;border-radius:11px;padding:10px 20px;cursor:pointer}
+[data-preview="1"] .gsm-menu-item{display:none}
+@media(max-width:860px){
+  .topbar{flex-wrap:wrap;row-gap:8px;padding-bottom:10px}
+  .tb-left{order:1;flex:1 1 auto}
+  .hdr-icons{order:2;flex:none}
+  .month-pill{order:3;flex:1 1 100%;min-width:0;max-width:100%}
+}
 .topbar-title{font-size:14px;font-weight:800;color:var(--text)}
 .nav-btn{background:var(--btn-edit-bg);border:1.5px solid var(--btn-edit-border);color:var(--btn-edit-text);font-family:inherit;font-size:16px;font-weight:700;border-radius:7px;padding:4px 12px;cursor:pointer;line-height:1;transition:opacity .15s}
 .nav-btn:hover{opacity:.75}
-.month-label{font-size:14px;font-weight:800;color:var(--text);min-width:150px;text-align:center;white-space:nowrap;background:none;border:none;cursor:pointer;font-family:inherit;border-radius:6px;padding:3px 8px;transition:background .15s}
+.month-label{width:100%;height:42px;font-size:15px;font-weight:800;color:var(--text);text-align:center;white-space:nowrap;background:none;border:none;cursor:pointer;font-family:inherit;padding:0 4px;transition:background .15s}
 .month-label:hover{background:var(--bg4)}
-.mpicker-wrap{position:relative;display:inline-flex;align-items:center;justify-content:center}
+.mpicker-wrap{position:relative;display:flex;flex:1;min-width:0;align-items:center;justify-content:center}
 .mpicker{position:absolute;top:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.18);z-index:200;padding:10px;min-width:220px}
 .mpicker-yr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:6px}
 .mpicker-yr-lbl{font-size:14px;font-weight:800;color:var(--text);text-align:center;flex:1}
@@ -45,7 +86,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 .tb-group{display:flex;align-items:center;gap:6px;flex-shrink:0}
 .tb-util{margin-left:auto}
 /* LAYOUT */
-.content{padding:16px 20px;max-width:1800px;margin:0 auto}
+.content{padding:16px 20px 100px;max-width:1800px;margin:0 auto}
 .section-lbl{font-size:9px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
 .quick-row{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
 .cal-col{width:100%}
@@ -150,15 +191,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 .rtbtn:hover{opacity:.85}
 /* ===== MOBIEL: touch-targets agenda ===== */
 @media(max-width:640px){
-  .nav-btn,.btn,.theme-btn,.back-btn{min-height:40px}
-  #notif-btn{min-width:40px;min-height:40px;display:inline-flex;align-items:center;justify-content:center}
+  .btn{min-height:40px}
   .rtbtn{min-height:44px}
   .multi-type-btn{min-height:40px}
   .btn-sm,.btn-sm-red{min-width:40px;min-height:40px;display:inline-flex;align-items:center;justify-content:center;font-size:14px}
   .cal-cell{min-height:64px}
-  .topbar{justify-content:center;row-gap:9px}
-  .tb-group{flex-basis:100%;justify-content:center;flex-wrap:wrap;margin-left:0}
-  .tb-month .month-label{min-width:0}
   .mpicker{min-width:190px}
 }
 </style>
@@ -209,6 +246,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
   </div>
 </div>
 <div id="toast"></div>
+<div id="gsm-ov" class="gsm-ov" onclick="if(event.target===this)closeGsm()">
+  <div class="gsm-phone">
+    <div class="gsm-screen"><iframe id="gsm-iframe" title="Gsm preview" loading="lazy"></iframe></div>
+  </div>
+  <button class="gsm-close" onclick="closeGsm()">&#10005; Sluiten</button>
+</div>
 <div id="multi-bar">
   <span class="multi-bar-lbl" id="multi-bar-lbl">0 dagen geselecteerd</span>
   <div id="multi-type-btns" style="display:flex;gap:6px;flex-wrap:wrap;flex:1"></div>
@@ -264,28 +307,33 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 </div>
 
 <div class="topbar">
-  <div class="tb-group tb-nav">
-    <button class="back-btn" onclick="window.location.href='index.html'">← Dossiers</button>
-    <span class="topbar-title">&#128197; Agenda</span>
+  <div class="tb-left">
+    <button class="hdr-back" onclick="window.location.href='index.html'" title="Terug naar dossiers" aria-label="Terug naar dossiers">&lsaquo;</button>
+    <div class="hdr-title">Agenda</div>
   </div>
-  <div class="tb-group tb-month">
-    <button class="nav-btn" onclick="prevMonth()">‹</button>
+  <div class="month-pill">
+    <button class="mp-nav" onclick="prevMonth()" aria-label="Vorige maand">&lsaquo;</button>
     <div class="mpicker-wrap">
       <button class="month-label" id="month-label" onclick="toggleMonthPicker()"></button>
       <div class="mpicker" id="mpicker" style="display:none" onclick="event.stopPropagation()"></div>
     </div>
-    <button class="nav-btn" onclick="nextMonth()">›</button>
-    <button class="btn btn-white" onclick="goToday()">Vandaag</button>
+    <button class="mp-nav" onclick="nextMonth()" aria-label="Volgende maand">&rsaquo;</button>
+    <div class="mp-sep"></div>
+    <button class="mp-today" onclick="goToday()">Vandaag</button>
   </div>
-  <div class="tb-group tb-actions">
-    <button class="btn btn-multi-toggle" id="multi-toggle-btn" onclick="toggleMultiMode()">☑ Selecteer</button>
-    <button class="btn btn-blue" onclick="openNA(null)">+ Afspraak</button>
-  </div>
-  <div class="tb-group tb-util">
-    <button id="notif-btn" onclick="toggleNotif()" title="Meldingen" style="background:none;border:1.5px solid var(--btn-edit-border);border-radius:6px;cursor:pointer;font-size:16px;padding:4px 8px;line-height:1;color:var(--text3)">🔔</button>
-    <button onclick="openPwChange()" title="Wachtwoord wijzigen" style="background:none;border:1.5px solid var(--btn-edit-border);border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;padding:5px 10px;color:var(--text2);font-family:inherit;white-space:nowrap">🔑</button>
-    <button onclick="doLogout()" title="Afmelden" style="background:none;border:1.5px solid var(--btn-edit-border);border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;padding:5px 10px;color:var(--text2);font-family:inherit;white-space:nowrap">⏻ Afmelden</button>
-    <button class="theme-btn" id="theme-btn" onclick="toggleTheme()"></button>
+  <div class="hdr-icons">
+    <button id="notif-btn" class="hdr-icon" onclick="toggleNotif()" title="Meldingen">&#128276;</button>
+    <button id="theme-btn" class="hdr-icon" onclick="toggleTheme()" title="Thema wisselen"></button>
+    <div class="ovf-wrap">
+      <button class="hdr-icon" onclick="toggleOverflow(event)" title="Meer" aria-label="Meer opties">&#8943;</button>
+      <div class="ovf-menu" id="ovf-menu" style="display:none" onclick="event.stopPropagation()">
+        <button class="ovf-item gsm-menu-item" onclick="closeOverflow();openGsm()">&#128241; <span>Gsm-preview</span></button>
+        <div class="ovf-sep gsm-menu-item"></div>
+        <button class="ovf-item" onclick="closeOverflow();openPwChange()">&#128273; <span>Wachtwoord wijzigen</span></button>
+        <div class="ovf-sep"></div>
+        <button class="ovf-item ovf-danger" onclick="closeOverflow();doLogout()">&#9211; <span>Afmelden</span></button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -306,12 +354,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
   </div>
 </div>
 
+<button id="multi-toggle-btn" class="select-chip" onclick="toggleMultiMode()">&#9745; Selecteer</button>
+<button id="fab-add" class="fab-add" onclick="openNA(null)" title="Nieuwe afspraak" aria-label="Nieuwe afspraak">+</button>
+
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" onerror="window._fbErr=true"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js" onerror="window._fbErr=true"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js" onerror="window._fbErr=true"></script>
 <script>
 // === CONFIG ===
 (function(){try{if(localStorage.getItem('auth_state')==='logged_in')document.getElementById('login-ov').style.display='none';}catch(e){}})();
+try{if(location.hash.indexOf('gsmpreview')>=0||location.search.indexOf('preview=1')>=0)document.documentElement.setAttribute('data-preview','1');}catch(e){}
 var ROSTER_TYPES={
   wacht:       {label:'Wacht',       icon:'📟',color:'#dc2626',multi:true},
   rust:        {label:'Rust',        icon:'😴',color:'#2563eb',multi:true},
@@ -339,7 +391,7 @@ var _dragJustEnded=false;
 
 // === THEME ===
 var THEME=localStorage.getItem('dos_theme')||(window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');
-function applyTheme(t){THEME=t;document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'');localStorage.setItem('dos_theme',t);var b=document.getElementById('theme-btn');if(b)b.textContent=t==='dark'?'☀️ Licht':'☾ Donker';}
+function applyTheme(t){THEME=t;document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'');localStorage.setItem('dos_theme',t);var b=document.getElementById('theme-btn');if(b){b.textContent=t==='dark'?'☀️':'🌙';b.title=t==='dark'?'Licht thema':'Donker thema';}}
 function toggleTheme(){applyTheme(THEME==='dark'?'light':'dark');try{render();}catch(e){}}
 applyTheme(THEME);
 
@@ -589,6 +641,11 @@ document.addEventListener('click',function(e){
   var wrap=document.querySelector('.mpicker-wrap');
   if(wrap&&!wrap.contains(e.target))closeMonthPicker();
 });
+function toggleOverflow(e){if(e)e.stopPropagation();var m=document.getElementById('ovf-menu');if(!m)return;m.style.display=m.style.display==='none'?'block':'none';}
+function closeOverflow(){var m=document.getElementById('ovf-menu');if(m)m.style.display='none';}
+document.addEventListener('click',function(e){var w=document.querySelector('.ovf-wrap');if(w&&!w.contains(e.target))closeOverflow();});
+function openGsm(){var ov=document.getElementById('gsm-ov');var f=document.getElementById('gsm-iframe');if(f&&!f.getAttribute('srcdoc')){var html='<!DOCTYPE html>'+document.documentElement.outerHTML;html=html.replace(/<html(\s|>)/i,'<html data-preview="1"$1');f.setAttribute('srcdoc',html);}ov.classList.add('show');}
+function closeGsm(){var ov=document.getElementById('gsm-ov');if(ov)ov.classList.remove('show');}
 
 
 // === GRID (week-based) ===
@@ -734,6 +791,7 @@ function toggleMultiMode(){
   SEL_MULTI=[];
   var btn=document.getElementById('multi-toggle-btn');
   if(btn){btn.classList.toggle('on',MULTI_SEL_MODE);btn.textContent=MULTI_SEL_MODE?'✓ Selecteren':'☑ Selecteer';}
+  var fab=document.getElementById('fab-add');if(fab)fab.classList.toggle('hidden',MULTI_SEL_MODE);
   updateMultiBar();render();
 }
 function clearMultiSel(){SEL_MULTI=[];updateMultiBar();render();}
