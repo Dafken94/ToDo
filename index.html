@@ -621,6 +621,7 @@ var _priveDOS=[];
 var _gedeeldDOS=[];
 var _sharedRef=null;
 var _srchTimer=null;
+var _renderRAF=null;
 var _srchVal='';
 var _catPickerActive=null;
 function uidColor(uid){var p=['#2563eb','#dc2626','#16a34a','#d97706','#9333ea','#0891b2','#be185d','#ea580c','#65a30d','#0f766e'];var h=0;for(var i=0;i<(uid||'').length;i++){h=(h*31+uid.charCodeAt(i))&0x7fffffff;}return p[h%p.length];}
@@ -1145,13 +1146,14 @@ function render(){
     +'<div class="sb-bottom"><span id="sync-dot" style="font-size:11px;font-weight:600">\u25cf Verbinden...</span>'
     +'<button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()">'+(THEME==='dark'?'\u2600 Licht':'\u263e Donker')+'</button>'
     +'</div>'
-    +'<div style="padding:4px 14px 10px;text-align:right;font-size:9px;font-weight:600;color:var(--sb-text);opacity:.4;letter-spacing:.06em">v23/06 20:00</div>'
+    +'<div style="padding:4px 14px 10px;text-align:right;font-size:9px;font-weight:600;color:var(--sb-text);opacity:.4;letter-spacing:.06em">v23/06 21:30</div>'
     +'</div>';
 
   var tb='<div class="topbar">'
     +'<button class="hamburger" onclick="toggleSB()">\u2630</button>'
     +'<span class="topbar-title">'+(VW==='detail'?(AID==='__werk__'?'Werk':AID==='__prive__'?'Privé':'Dossier'):VW==='dash'?'Dashboard':VW==='taken'?'Openstaande taken':'Mijn Dossiers')+'</span>'
     +(_userName?'<button onclick="openEditUsername()" style="flex-shrink:0;background:none;border:none;cursor:pointer;font-size:12px;font-weight:700;color:var(--text2);padding:3px 8px;border-radius:6px;white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis" title="Gebruikersnaam wijzigen">'+esc(_userName)+' ✎</button>':'')
+    +'<button onclick="openGlobSrch()" title="Globaal zoeken (Ctrl+K)" style="flex-shrink:0;background:none;border:none;cursor:pointer;font-size:16px;padding:4px 7px;border-radius:6px;color:var(--text2);line-height:1" onmouseover="this.style.background=\'var(--bg3)\'" onmouseout="this.style.background=\'none\'">🔍</button>'
     +(function(){var _nc=countNotif();return '<div class="notif-wrap"><button class="notif-flag-btn" onclick="toggleNotifPanel()" title="Meldingen">🚩'+(_nc>0?'<span class="notif-badge">'+(_nc>9?'9+':_nc)+'</span>':'')+'</button></div>';})();
   if(VW==='detail'){
     tb+='<button onclick="goL()" style="'+BW+';font-size:12px;padding:5px 12px">\u2190 Overzicht</button>';
@@ -1249,6 +1251,15 @@ function initDrag(did){
   });
 }
 
+function isInactief(d){
+  if(d.gesloten||d.id==='__werk__'||d.id==='__prive__')return false;
+  if((d.taken||[]).some(function(t){return !t.gedaan;}))return false;
+  var dag30=new Date(Date.now()-30*24*60*60*1000);
+  var lat=new Date(d.datum||'2000-01-01');
+  (d.taken||[]).forEach(function(t){var dt=new Date(t.gedaan_op||t.datum||'2000-01-01');if(dt>lat)lat=dt;});
+  return lat<dag30;
+}
+
 function buildList(srchVal){
   var list=fil(srchVal);
   var regDOS=DOS.filter(function(d){return d.id!=='__werk__'&&d.id!=='__prive__';});
@@ -1297,6 +1308,7 @@ function buildDosResultHtml(list,srchVal){
       +'<span style="font-size:11px;color:var(--text2);font-weight:600;white-space:nowrap">'+fd(d.datum)+'</span>'
       +'<span style="font-size:11px;font-weight:700;white-space:nowrap;color:'+(d.gesloten?'var(--text3)':'#16a34a')+'">'+(d.gesloten?'Gesloten':'Lopend')+'</span>'
       +(d.gedeeld?'<span style="font-size:10px;font-weight:700;color:var(--accent);white-space:nowrap">👥</span>':'')
+      +(isInactief(d)?'<span style="font-size:10px;font-weight:700;color:var(--badge-warn-text);white-space:nowrap">Inactief</span>':'')
       +'<div style="display:flex;align-items:center;gap:4px"><div style="width:60px;background:var(--prog-bg);border-radius:3px;height:4px;overflow:hidden"><div style="height:4px;border-radius:3px;background:'+(pct===100?'#16a34a':'#2563eb')+';width:'+pct+'%"></div></div><span style="font-size:10px;color:var(--text2);font-weight:700">'+pct+'%</span></div>'
       +'</div></div>';
   };
@@ -1395,19 +1407,20 @@ function buildDash(){
       +'</div>'
       +'<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">'
       +'<span style="font-size:11px;font-weight:600;color:var(--text3);white-space:nowrap">'+fd(d.datum)+'</span>'
+      +(isInactief(d)?'<span style="font-size:10px;font-weight:700;color:var(--badge-warn-text);background:var(--badge-warn-bg);border:1px solid var(--badge-warn-border);padding:2px 7px;border-radius:7px;white-space:nowrap">Inactief</span>':'')
       +'<div style="display:flex;align-items:center;gap:8px"><div style="width:84px;height:5px;border-radius:3px;background:var(--prog-bg);overflow:hidden"><div style="height:5px;border-radius:3px;background:'+AC+';width:'+pct+'%"></div></div><span style="font-size:11px;font-weight:700;color:var(--text2);white-space:nowrap;min-width:30px;text-align:right">'+dn+'/'+tk.length+'</span></div>'
       +'<button onclick="event.stopPropagation();openNT(\''+d.id+'\')" style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:6px;border:1.5px solid var(--border);background:var(--bg3);color:var(--text2);cursor:pointer;font-family:inherit;white-space:nowrap;transition:background .12s" onmouseover="this.style.background=\'var(--bg4)\'" onmouseout="this.style.background=\'var(--bg3)\'">+ Taak</button>'
       +'</div>'
       +'</div>';
   };
   var kpiCard=function(lbl,val,sub,col){
-    return '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:13px;padding:15px 17px"><div style="font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text3)">'+lbl+'</div><div style="font-size:27px;font-weight:800;color:'+col+';line-height:1.1;margin-top:5px">'+val+'</div><div style="font-size:11px;font-weight:600;color:var(--text3);margin-top:1px">'+sub+'</div></div>';
+    return '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:13px;padding:15px 17px"><div style="font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+lbl+'</div><div style="font-size:27px;font-weight:800;color:'+col+';line-height:1.1;margin-top:5px">'+val+'</div><div style="font-size:11px;font-weight:600;color:var(--text3);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+sub+'</div></div>';
   };
   var H='<div style="display:flex;flex-direction:column;gap:22px;max-width:1180px">';
   var firstName=_userName?_userName.split(' ')[0]:'';
   H+='<div><div style="font-size:20px;font-weight:800;color:var(--text);line-height:1.2;margin-bottom:3px">'+esc(greet)+(firstName?' <span style="color:var(--accent)">'+esc(firstName)+'</span>':'')+' 👋</div><div style="font-size:13px;font-weight:600;color:var(--text2)">'+dlong+'</div></div>';
   H+='<div class="dash-kpi-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">'
-    +kpiCard('Lopende dossiers',openD.length,closed+' in archief','var(--text)')
+    +kpiCard('Lopend',openD.length,closed+' in archief','var(--text)')
     +kpiCard('Open taken',takenOpen,'over '+openD.length+' dossiers','var(--text)')
     +kpiCard('Wacht extern',wacht.length,'bank · telecom · parket','var(--badge-warn-text)')
     +kpiCard('Vervallen',verv.length,'deadline voorbij','var(--badge-err-text)')
@@ -1429,6 +1442,16 @@ function buildDash(){
   H+='<div style="display:flex;flex-direction:column;gap:9px">'+(dashVisible.length?dashVisible.map(dashRow).join(''):'<div class="empty"><div style="font-size:40px">\ud83d\udcc1</div><p>Nog geen open dossiers.</p></div>')+'</div>';
   if(sorted.length>DASH_LIMIT){H+='<div style="margin-top:10px;text-align:center"><button onclick="setFS(\'open\');setFC(null);goL()" style="background:none;border:1.5px solid var(--border);border-radius:8px;padding:8px 20px;font-family:inherit;font-size:12px;font-weight:700;color:var(--text2);cursor:pointer;transition:background .15s" onmouseover="this.style.background=\'var(--bg3)\'" onmouseout="this.style.background=\'none\'">Toon alle '+sorted.length+' dossiers \u2192</button></div>';}
   H+='</div>';
+  H+='<div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px 18px">'
+    +'<div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:12px">⚡ Snelle taak</div>'
+    +'<div style="display:flex;gap:8px;flex-wrap:wrap">'
+    +'<input id="qt-titel" type="text" placeholder="Taakomschrijving..." style="flex:1;min-width:160px;padding:8px 11px;border:1.5px solid var(--input-border);border-radius:8px;background:var(--input-bg);color:var(--text);font-family:inherit;font-size:13px;outline:none" onkeydown="if(event.key===\'Enter\')quickTask()">'
+    +'<select id="qt-dos" style="flex:1;min-width:130px;padding:8px 11px;border:1.5px solid var(--input-border);border-radius:8px;background:var(--input-bg);color:var(--text);font-family:inherit;font-size:13px">'
+    +openD.map(function(d){return '<option value="'+esc(d.id)+'">'+esc(d.naam||d.id)+'</option>';}).join('')
+    +'</select>'
+    +'<button onclick="quickTask()" style="padding:8px 16px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">+ Taak</button>'
+    +'</div>'
+    +'</div>';
   H+='</div>';
   return H;
 }
@@ -2498,6 +2521,88 @@ function dismissAgendaNotif(id){
   updateNotifBadge();renderNotifPanel();
 }
 
+// RAF-batching: meerdere render()-aanroepen in één frame worden samengevoegd
+(function(){var _orig=render;render=function(){if(_renderRAF)cancelAnimationFrame(_renderRAF);_renderRAF=requestAnimationFrame(function(){_renderRAF=null;_orig();});};})();
+
+// Escape sluit open modals | Ctrl+K opent globale zoek
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){
+    var open=document.querySelector('.ov.show');
+    if(open&&open.id){CM(open.id);return;}
+    closeCatPicker();
+  }
+  if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();openGlobSrch();}
+});
+
+function quickTask(){
+  var inp=document.getElementById('qt-titel');
+  var sel=document.getElementById('qt-dos');
+  if(!inp||!sel)return;
+  var titel=(inp.value||'').trim();
+  if(!titel)return;
+  var did=sel.value;
+  var d=DOS.find(function(x){return x.id===did;});
+  if(!d)return;
+  if(!d.taken)d.taken=[];
+  d.taken.push({id:gId(),titel:titel,gedaan:false,prio:'normaal',datum:td(),notitie:'',npv:'',extern:[]});
+  inp.value='';
+  sv(d,true);
+  render();
+}
+
+function openGlobSrch(){
+  OM('mo-globsrch');
+  setTimeout(function(){
+    var el=document.getElementById('globsrch-inp');
+    if(el){el.value='';el.focus();}
+    document.getElementById('globsrch-res').innerHTML='<div style="padding:24px;text-align:center;font-size:13px;font-weight:600;color:var(--text3)">Begin te typen...</div>';
+  },80);
+}
+
+function onGlobSrch(){
+  var q=(document.getElementById('globsrch-inp').value||'').toLowerCase().trim();
+  var res=document.getElementById('globsrch-res');
+  if(!q){res.innerHTML='<div style="padding:24px;text-align:center;font-size:13px;font-weight:600;color:var(--text3)">Begin te typen...</div>';return;}
+  var hits=[];
+  DOS.forEach(function(d){
+    if(d.id==='__werk__'||d.id==='__prive__')return;
+    var fields=[d.naam,d.id,(d.pv_feiten||[]).map(function(p){return p.pv;}).join(' '),d.notitie,(d.categorieen||[]).join(' ')];
+    if(fields.some(function(f){return (f||'').toLowerCase().indexOf(q)!==-1;})){
+      hits.push({type:'dos',d:d});
+    }
+    (d.taken||[]).forEach(function(t){
+      if((t.titel||'').toLowerCase().indexOf(q)!==-1||(t.notitie||'').toLowerCase().indexOf(q)!==-1||(t.npv||'').toLowerCase().indexOf(q)!==-1){
+        hits.push({type:'taak',d:d,t:t});
+      }
+    });
+  });
+  if(!hits.length){res.innerHTML='<div style="padding:24px;text-align:center;font-size:13px;color:var(--text3)">Geen resultaten gevonden.</div>';return;}
+  var h='';
+  hits.slice(0,30).forEach(function(hit){
+    if(hit.type==='dos'){
+      h+='<div onclick="CM(\'mo-globsrch\');opD(\''+esc(hit.d.id)+'\')" style="padding:11px 16px;cursor:pointer;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px" onmouseover="this.style.background=\'var(--bg3)\'" onmouseout="this.style.background=\'\'">'
+        +'<span style="font-size:15px">📁</span>'
+        +'<div style="flex:1;min-width:0">'
+        +'<div style="font-size:13px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(hit.d.naam||hit.d.id)+'</div>'
+        +'<div style="font-size:11px;color:var(--text3)">'+esc(hit.d.id)+(hit.d.gesloten?' · Gesloten':'')+'</div>'
+        +'</div>'
+        +'<span style="font-size:11px;color:var(--text3);background:var(--bg3);border:1px solid var(--border);padding:2px 7px;border-radius:5px">Dossier</span>'
+        +'</div>';
+    } else {
+      h+='<div onclick="CM(\'mo-globsrch\');opD(\''+esc(hit.d.id)+'\');VW=\'detail\';render()" style="padding:11px 16px;cursor:pointer;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px" onmouseover="this.style.background=\'var(--bg3)\'" onmouseout="this.style.background=\'\'">'
+        +'<span style="font-size:15px">'+(hit.t.gedaan?'✅':'⬜')+'</span>'
+        +'<div style="flex:1;min-width:0">'
+        +'<div style="font-size:13px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(hit.t.titel||'(geen titel)')+'</div>'
+        +'<div style="font-size:11px;color:var(--text3)">'+esc(hit.d.naam||hit.d.id)+'</div>'
+        +'</div>'
+        +'<span style="font-size:11px;color:var(--text3);background:var(--bg3);border:1px solid var(--border);padding:2px 7px;border-radius:5px">Taak</span>'
+        +'</div>';
+    }
+  });
+  if(hits.length>30)h+='<div style="padding:10px 16px;font-size:12px;color:var(--text3);text-align:center">+'+( hits.length-30)+' meer resultaten — typ specifieker</div>';
+  res.innerHTML=h;
+}
+
 // Start app: laad lokale data meteen, Firebase asynchroon
 (function waitForFirebase(tries){
   tries=tries||0;
@@ -2510,6 +2615,18 @@ window.addEventListener('load',function(){
 });
 
 </script>
+<div class="ov" id="mo-globsrch" onclick="if(event.target===this)CM('mo-globsrch')">
+  <div class="ob" style="width:100%;max-width:580px;padding:0;overflow:hidden">
+    <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+      <span style="font-size:16px">🔍</span>
+      <input id="globsrch-inp" type="search" placeholder="Zoek dossiers, taken, PV-nummers, notities..." oninput="onGlobSrch()" style="flex:1;border:none;background:transparent;color:var(--text);font-family:inherit;font-size:14px;outline:none" autocomplete="off">
+      <span style="font-size:11px;color:var(--text3);background:var(--bg3);border:1px solid var(--border);padding:2px 7px;border-radius:5px;cursor:pointer" onclick="CM('mo-globsrch')">Esc</span>
+    </div>
+    <div id="globsrch-res" style="max-height:400px;overflow-y:auto">
+      <div style="padding:24px;text-align:center;font-size:13px;font-weight:600;color:var(--text3)">Begin te typen...</div>
+    </div>
+  </div>
+</div>
 <div id="notif-panel" class="notif-panel" style="display:none"></div>
 <div id="notif-panel-ov" onclick="closeNotifPanel()" style="display:none;position:fixed;inset:0;z-index:499"></div>
 </body>
