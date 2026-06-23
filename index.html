@@ -1271,7 +1271,7 @@ function buildList(srchVal){
   var openDOS=regDOS.filter(function(d){return !d.gesloten;});
   var allT=regDOS.reduce(function(a,d){return a.concat(d.taken||[]);},[]  );
   var openT=openDOS.reduce(function(a,d){return a+(d.taken||[]).filter(function(t){return !t.gedaan;}).length;},0);
-  var dT=allT.filter(function(t){return t.gedaan;}).length;
+  var dT=openDOS.reduce(function(a,d){return a+(d.taken||[]).filter(function(t){return t.gedaan;}).length;},0);
   var open=openDOS.length;
   var closed=regDOS.filter(function(d){return d.gesloten;}).length;
   var dringend=allT.filter(function(t){return t.deadline&&!t.gedaan&&t.deadline<td();});
