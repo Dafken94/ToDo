@@ -241,6 +241,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 <div class="ov" id="mo-t">
   <div class="ob">
     <div class="ob-title" id="mo-t-t">Taak</div>
+    <div class="fr" id="t-dos-row" style="display:none"><label>Dossier *</label><select id="t-dos"></select></div>
     <div class="fr"><label>Titel *</label><input id="t-ti" placeholder="Omschrijving van de taak"></div>
     <div class="fr"><label>Prioriteit</label><select id="t-pr"><option value="hoog">Hoog</option><option value="midden">Midden</option><option value="laag" selected>Laag</option></select></div>
     <div class="fr"><label>Datum taak</label><input id="t-da" type="date"></div>
@@ -1442,15 +1443,9 @@ function buildDash(){
   H+='<div style="display:flex;flex-direction:column;gap:9px">'+(dashVisible.length?dashVisible.map(dashRow).join(''):'<div class="empty"><div style="font-size:40px">\ud83d\udcc1</div><p>Nog geen open dossiers.</p></div>')+'</div>';
   if(sorted.length>DASH_LIMIT){H+='<div style="margin-top:10px;text-align:center"><button onclick="setFS(\'open\');setFC(null);goL()" style="background:none;border:1.5px solid var(--border);border-radius:8px;padding:8px 20px;font-family:inherit;font-size:12px;font-weight:700;color:var(--text2);cursor:pointer;transition:background .15s" onmouseover="this.style.background=\'var(--bg3)\'" onmouseout="this.style.background=\'none\'">Toon alle '+sorted.length+' dossiers \u2192</button></div>';}
   H+='</div>';
-  H+='<div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px 18px">'
-    +'<div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:12px">⚡ Snelle taak</div>'
-    +'<div style="display:flex;gap:8px;flex-wrap:wrap">'
-    +'<input id="qt-titel" type="text" placeholder="Taakomschrijving..." style="flex:1;min-width:160px;padding:8px 11px;border:1.5px solid var(--input-border);border-radius:8px;background:var(--input-bg);color:var(--text);font-family:inherit;font-size:13px;outline:none" onkeydown="if(event.key===\'Enter\')quickTask()">'
-    +'<select id="qt-dos" style="flex:1;min-width:130px;padding:8px 11px;border:1.5px solid var(--input-border);border-radius:8px;background:var(--input-bg);color:var(--text);font-family:inherit;font-size:13px">'
-    +openD.map(function(d){return '<option value="'+esc(d.id)+'">'+esc(d.naam||d.id)+'</option>';}).join('')
-    +'</select>'
-    +'<button onclick="quickTask()" style="padding:8px 16px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">+ Taak</button>'
-    +'</div>'
+  H+='<div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px">'
+    +'<div style="font-size:13px;font-weight:800;color:var(--text)">⚡ Snelle taak</div>'
+    +'<button onclick="openNT(null)" style="padding:8px 16px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">+ Taak toevoegen</button>'
     +'</div>';
   H+='</div>';
   return H;
@@ -2328,9 +2323,33 @@ function showAssignRow(did,selectedUids){
     chips.innerHTML='';row.style.display='none';
   }
 }
-function openNT(did){MTD=did;MTI=null;document.getElementById('mo-t-t').textContent='Taak toevoegen';document.getElementById('t-ti').value='';document.getElementById('t-pr').value='laag';document.getElementById('t-da').value=td();document.getElementById('t-dl').value='';document.getElementById('t-npv').value='';var nh=document.getElementById('npv-hint');if(nh)nh.textContent='';document.getElementById('t-no').value='';document.getElementById('t-gd-row').style.display='none';document.getElementById('t-gd').value='';showAssignRow(did,null);OM('mo-t');}
+function openNT(did){
+  MTD=did||null;MTI=null;
+  document.getElementById('mo-t-t').textContent='Taak toevoegen';
+  document.getElementById('t-ti').value='';
+  document.getElementById('t-pr').value='laag';
+  document.getElementById('t-da').value=td();
+  document.getElementById('t-dl').value='';
+  document.getElementById('t-npv').value='';
+  var nh=document.getElementById('npv-hint');if(nh)nh.textContent='';
+  document.getElementById('t-no').value='';
+  document.getElementById('t-gd-row').style.display='none';
+  document.getElementById('t-gd').value='';
+  var dosRow=document.getElementById('t-dos-row');
+  var dosSel=document.getElementById('t-dos');
+  if(!did){
+    var openD=DOS.filter(function(d){return !d.gesloten&&d.id!=='__werk__'&&d.id!=='__prive__';});
+    dosSel.innerHTML=openD.map(function(d){return '<option value="'+esc(d.id)+'">'+esc(d.naam||d.id)+'</option>';}).join('');
+    dosRow.style.display='';
+    showAssignRow(null,null);
+  }else{
+    dosRow.style.display='none';
+    showAssignRow(did,null);
+  }
+  OM('mo-t');
+}
 function openET(did,ti){var d=DOS.find(function(x){return x.id===did;});if(!d)return;var t=(d.taken||[])[+ti];if(!t)return;MTD=did;MTI=+ti;document.getElementById('mo-t-t').textContent='Taak bewerken';document.getElementById('t-ti').value=t.titel||'';document.getElementById('t-pr').value=t.prioriteit||'laag';document.getElementById('t-da').value=t.datum||td();document.getElementById('t-dl').value=t.deadline||'';document.getElementById('t-npv').value=t.npv||'';var nh=document.getElementById('npv-hint');if(nh)nh.textContent='';document.getElementById('t-no').value=t.notitie||'';var gdRow=document.getElementById('t-gd-row');if(t.gedaan){gdRow.style.display='';document.getElementById('t-gd').value=t.gedaan===true?td():t.gedaan;}else{gdRow.style.display='none';document.getElementById('t-gd').value='';}showAssignRow(did,t.toegewezen||null);OM('mo-t');}
-function saveTaak(){var titel=document.getElementById('t-ti').value.trim(),prio=document.getElementById('t-pr').value,datum=document.getElementById('t-da').value,deadline=document.getElementById('t-dl').value,npv=document.getElementById('t-npv').value.trim(),notitie=document.getElementById('t-no').value.trim(),gdVal=document.getElementById('t-gd').value;if(!titel){document.getElementById('t-ti').focus();return;}if(npv&&!/^[0-9]{6}\/[0-9]{4}$/.test(npv)){toast('NPV-formaat ongeldig — verwacht: 002244/2026');document.getElementById('t-npv').focus();return;}var d=DOS.find(function(x){return x.id===MTD;});if(!d)return;if(!d.taken)d.taken=[];var toegewezen={};document.querySelectorAll('#t-assign-chips [data-uid]').forEach(function(chip){if(chip.getAttribute('data-sel')==='1')toegewezen[chip.getAttribute('data-uid')]=chip.getAttribute('data-naam');});var taak;if(MTI===null){taak={id:gId(),titel:titel,prioriteit:prio,datum:datum,deadline:deadline,npv:npv,notitie:notitie,gedaan:false,extern:[],toegewezen:toegewezen};if(d.gedeeld)Object.assign(taak,metaStamp());d.taken.push(taak);}else{taak=d.taken[MTI];Object.assign(taak,{titel:titel,prioriteit:prio,datum:datum,deadline:deadline,npv:npv,notitie:notitie,toegewezen:toegewezen});if(taak.gedaan&&gdVal)taak.gedaan=gdVal;if(d.gedeeld)Object.assign(taak,metaStamp());}sv();CM('mo-t');render();toast('Taak opgeslagen');}
+function saveTaak(){var titel=document.getElementById('t-ti').value.trim(),prio=document.getElementById('t-pr').value,datum=document.getElementById('t-da').value,deadline=document.getElementById('t-dl').value,npv=document.getElementById('t-npv').value.trim(),notitie=document.getElementById('t-no').value.trim(),gdVal=document.getElementById('t-gd').value;if(!titel){document.getElementById('t-ti').focus();return;}if(npv&&!/^[0-9]{6}\/[0-9]{4}$/.test(npv)){toast('NPV-formaat ongeldig — verwacht: 002244/2026');document.getElementById('t-npv').focus();return;}var dosRow=document.getElementById('t-dos-row');if(dosRow&&dosRow.style.display!=='none'){MTD=document.getElementById('t-dos').value;}var d=DOS.find(function(x){return x.id===MTD;});if(!d)return;if(!d.taken)d.taken=[];var toegewezen={};document.querySelectorAll('#t-assign-chips [data-uid]').forEach(function(chip){if(chip.getAttribute('data-sel')==='1')toegewezen[chip.getAttribute('data-uid')]=chip.getAttribute('data-naam');});var taak;if(MTI===null){taak={id:gId(),titel:titel,prioriteit:prio,datum:datum,deadline:deadline,npv:npv,notitie:notitie,gedaan:false,extern:[],toegewezen:toegewezen};if(d.gedeeld)Object.assign(taak,metaStamp());d.taken.push(taak);}else{taak=d.taken[MTI];Object.assign(taak,{titel:titel,prioriteit:prio,datum:datum,deadline:deadline,npv:npv,notitie:notitie,toegewezen:toegewezen});if(taak.gedaan&&gdVal)taak.gedaan=gdVal;if(d.gedeeld)Object.assign(taak,metaStamp());}sv();CM('mo-t');render();toast('Taak opgeslagen');}
 function chkT(did,ti){var d=DOS.find(function(x){return x.id===did;});if(d&&d.taken[+ti]!=null){var t=d.taken[+ti];var wasGedaan=!!t.gedaan;var gedaanDate=typeof t.gedaan==='string'?t.gedaan:'';t.gedaan=t.gedaan?false:td();if(!wasGedaan&&t.extern){t.extern.forEach(function(e){if(!e.ontvangen)e.ontvangen=td();});}else if(wasGedaan&&t.extern){var refDate=gedaanDate||td();t.extern.forEach(function(e){if(e.ontvangen===refDate)e.ontvangen='';});}if(d.gedeeld&&d.taken[+ti])Object.assign(d.taken[+ti],metaStamp());sv();render();}}
 function delT(did,ti){var d=DOS.find(function(x){return x.id===did;}),t=d&&d.taken&&d.taken[+ti];ask('Taak verwijderen?','"'+(t&&t.titel||'Deze taak')+'" wordt verwijderd.',function(){if(d){d.taken.splice(+ti,1);sv();render();toast('Taak verwijderd');}});}
 
@@ -2534,21 +2553,6 @@ document.addEventListener('keydown',function(e){
   if((e.ctrlKey||e.metaKey)&&e.key==='f'){e.preventDefault();openGlobSrch();}
 });
 
-function quickTask(){
-  var inp=document.getElementById('qt-titel');
-  var sel=document.getElementById('qt-dos');
-  if(!inp||!sel)return;
-  var titel=(inp.value||'').trim();
-  if(!titel)return;
-  var did=sel.value;
-  var d=DOS.find(function(x){return x.id===did;});
-  if(!d)return;
-  if(!d.taken)d.taken=[];
-  d.taken.push({id:gId(),titel:titel,gedaan:false,prio:'normaal',datum:td(),notitie:'',npv:'',extern:[]});
-  inp.value='';
-  sv(d,true);
-  render();
-}
 
 function openGlobSrch(){
   OM('mo-globsrch');
