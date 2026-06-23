@@ -1173,7 +1173,7 @@ function render(){
     +'<button title="'+(BOT_ON?'Bot uitschakelen':'Bot inschakelen')+'" onclick="toggleBot()" style="background:var(--sb-hover);border:1px solid var(--sb-div);border-radius:6px;cursor:pointer;padding:4px 6px;font-size:13px;line-height:1">'+(BOT_ON?'\ud83e\udd16':'\ud83d\udc7e')+'</button>'
     +'<button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()">'+(THEME==='dark'?'\u2600 Licht':'\u263e Donker')+'</button>'
     +'</div></div>'
-    +'<div style="padding:4px 14px 10px;text-align:right;font-size:9px;font-weight:600;color:var(--sb-text);opacity:.4;letter-spacing:.06em">v23/06 22:30</div>'
+    +'<div style="padding:4px 14px 10px;text-align:right;font-size:9px;font-weight:600;color:var(--sb-text);opacity:.4;letter-spacing:.06em">v23/06 23:00</div>'
     +'</div>';
 
   var tb='<div class="topbar">'
@@ -1870,15 +1870,20 @@ function openExtModal(did,ti){
     var isOk=!!e.ontvangen,dagen=ds(e.aanvraag);
     var rappels=e.rappels||[];
     var rappelHTML='';
-    rappels.forEach(function(r,ri){
-      rappelHTML+='<div style="display:flex;align-items:center;gap:5px;margin-top:4px;flex-wrap:wrap">'
-        +'<span style="font-size:10px;font-weight:700;color:var(--text2)">📬 Rappel op</span>'
-        +'<input type="date" value="'+r.datum+'" onchange="setRappelDatum(\''+did+'\','+ti+','+ei+','+ri+',this.value)" style="font-size:10px;font-family:inherit;border:1px solid var(--input-border);border-radius:4px;padding:1px 4px;background:var(--input-bg);color:var(--text);font-weight:600">'
-        +'<button onclick="delRappel(\''+did+'\','+ti+','+ei+','+ri+')" style="'+IR+';font-size:10px;padding:1px 5px">✕</button>'
-        +'</div>';
-    });
+    if(rappels.length>0){
+      rappelHTML='<div style="margin-top:5px;padding-top:5px;border-top:1px dashed var(--border);display:flex;flex-direction:column;gap:3px">';
+      rappels.forEach(function(r,ri){
+        rappelHTML+='<div style="display:flex;align-items:center;gap:4px">'
+          +'<span style="font-size:10px;flex-shrink:0">📬</span>'
+          +'<span style="font-size:10px;font-weight:600;color:var(--text3);white-space:nowrap;flex-shrink:0">Rappel op</span>'
+          +'<input type="date" value="'+r.datum+'" onchange="setRappelDatum(\''+did+'\','+ti+','+ei+','+ri+',this.value)" style="flex:1;min-width:0;font-size:10px;font-family:inherit;border:1px solid var(--input-border);border-radius:4px;padding:1px 4px;background:var(--input-bg);color:var(--text);font-weight:600">'
+          +'<button onclick="delRappel(\''+did+'\','+ti+','+ei+','+ri+')" title="Verwijder rappel" style="flex-shrink:0;background:none;border:none;cursor:pointer;font-size:12px;color:var(--text3);padding:0 2px;line-height:1;font-family:inherit">✕</button>'
+          +'</div>';
+      });
+      rappelHTML+='</div>';
+    }
     if(!isOk){
-      rappelHTML+='<button onclick="addRappel(\''+did+'\','+ti+','+ei+')" style="margin-top:4px;font-family:inherit;font-size:10px;font-weight:700;padding:2px 8px;border-radius:5px;cursor:pointer;background:var(--bg4);border:1px solid var(--border);color:var(--text2)">📬 + Rappel</button>';
+      rappelHTML+='<div style="margin-top:4px"><button onclick="addRappel(\''+did+'\','+ti+','+ei+')" style="font-family:inherit;font-size:10px;font-weight:700;padding:0;border:none;background:none;color:var(--accent);cursor:pointer">📬 + Rappel</button></div>';
     }
     html+='<div class="ext-item '+(isOk?'ok':'wait')+'">'
       +'<div class="ext-bar '+(isOk?'ok':'wait')+'"></div>'
