@@ -1171,9 +1171,10 @@ function render(){
     +'<div class="sb-bottom"><span id="sync-dot" style="font-size:11px;font-weight:600">\u25cf Verbinden...</span>'
     +'<div style="display:flex;gap:4px;align-items:center">'
     +'<button title="'+(BOT_ON?'Bot uitschakelen':'Bot inschakelen')+'" onclick="toggleBot()" style="background:var(--sb-hover);border:1px solid var(--sb-div);border-radius:6px;cursor:pointer;padding:4px 6px;font-size:13px;line-height:1">'+(BOT_ON?'\ud83e\udd16':'\ud83d\udc7e')+'</button>'
+    +(BOT_ON?'<button title="Animatie afspelen" onclick="runBotNow()" style="background:var(--sb-hover);border:1px solid var(--sb-div);border-radius:6px;cursor:pointer;padding:4px 7px;font-size:11px;font-weight:700;color:var(--sb-act);line-height:1;font-family:inherit">\u25b6</button>':'')
     +'<button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()">'+(THEME==='dark'?'\u2600 Licht':'\u263e Donker')+'</button>'
     +'</div></div>'
-    +'<div style="padding:4px 14px 10px;text-align:right;font-size:9px;font-weight:600;color:var(--sb-text);opacity:.4;letter-spacing:.06em">v23/06 23:00</div>'
+    +'<div style="padding:4px 14px 10px;text-align:right;font-size:9px;font-weight:600;color:var(--sb-text);opacity:.4;letter-spacing:.06em">v23/06 23:30</div>'
     +'</div>';
 
   var tb='<div class="topbar">'
@@ -2549,6 +2550,12 @@ function _runBot(){
   _botBusy=true;
   var scenes=[_botPeek,_botSweep,_botNap,_botCoffee];
   scenes[Math.floor(Math.random()*scenes.length)](function(){_botBusy=false;_schedBot();});
+}
+function runBotNow(){
+  if(!BOT_ON)return;
+  clearTimeout(_botT);_botBusy=false;
+  var w=_bw();if(w)w.style.display='none';
+  _runBot();
 }
 function _bw(){return document.getElementById('bot-wrap');}
 function _botPeek(cb){
