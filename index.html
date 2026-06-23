@@ -1272,10 +1272,12 @@ function buildList(srchVal){
   return html;
 }
 function buildDosResultHtml(list,srchVal){
+  var html='';
+  var regDOS=DOS.filter(function(d){return d.id!=='__werk__'&&d.id!=='__prive__';});
   var mkRow=function(d){
     var cat=gcFirst(d),tk=d.taken||[],dn=tk.filter(function(t){return t.gedaan;}).length,pct=tk.length?Math.round(dn/tk.length*100):0;
     var feiten=(d.pv_feiten||[]).slice().sort(function(a,b){return (a.datum_van||a.datum||'').localeCompare(b.datum_van||b.datum||'');});
-    var srch=(document.getElementById('srch')?document.getElementById('srch').value:'').toLowerCase().trim();
+    var srch=(srchVal||'').toLowerCase().trim();
     var pvMatch=null;
     if(srch&&(d.naam||'').toLowerCase().indexOf(srch)===-1){var mf=feiten.find(function(f){return f.pv.toLowerCase().indexOf(srch)!==-1;});if(mf)pvMatch=mf.pv;}
     var fLabel=feiten.length===1?cat.label:feiten.length+' feiten';
