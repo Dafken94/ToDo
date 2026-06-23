@@ -633,7 +633,7 @@ document.addEventListener('click',function(e){var w=document.querySelector('.ovf
 // === GRID (week-based) ===
 function hexRgba(hex,a){var h=hex.replace('#','');return 'rgba('+parseInt(h.substr(0,2),16)+','+parseInt(h.substr(2,2),16)+','+parseInt(h.substr(4,2),16)+','+a+')';}
 function isoWeek(dateStr){var d=new Date(dateStr+'T12:00:00');var day=(d.getDay()+6)%7;d.setDate(d.getDate()-day+3);var ft=new Date(d.getFullYear(),0,4);var f=(ft.getDay()+6)%7;ft.setDate(ft.getDate()-f+3);return 1+Math.round((d-ft)/(7*864e5));}
-var TINT_TYPES=['ziekte','conge','rust','90pct','weekend_werk','feestdag'];
+var TINT_TYPES=['ziekte','conge','rust','90pct','weekend_werk','feestdag','toffice'];
 function renderGrid(){
   var body=document.getElementById('cal-body');if(!body)return;
   var year=CUR.getFullYear(),month=CUR.getMonth();
@@ -691,7 +691,6 @@ function renderGrid(){
       var tintStyle='';
       var tt=TINT_TYPES.filter(function(t){return dayRoster.some(function(r){return r.type===t;});})[0];
       if(tt)tintStyle='background:'+hexRgba(ROSTER_TYPES[tt].color,THEME==='dark'?0.20:0.11)+';';
-      else if(wachtHere)tintStyle='background:'+hexRgba('#dc2626',THEME==='dark'?0.13:0.06)+';';
       else if(isWeekend)tintStyle='background:'+(THEME==='dark'?'rgba(255,255,255,.035)':'rgba(15,23,42,.028)')+';';
       var cls='cal-cell';
       if(!c.cur)cls+=' other-month';
