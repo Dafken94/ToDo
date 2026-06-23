@@ -637,6 +637,8 @@ function initFB(){
   try{
     var raw=localStorage.getItem(lsKey);
     if(raw){_priveDOS=JSON.parse(raw);migrateCats();migratePvFeiten();}
+    var gedeeldRaw=localStorage.getItem(lsKey+'_gedeeld');
+    if(gedeeldRaw)_gedeeldDOS=JSON.parse(gedeeldRaw);
   }catch(e){}
   ensureSystemDossiers();
   render();
@@ -707,6 +709,7 @@ function initFB(){
       _gedeeldDOS=Object.values(data).filter(function(d){
         return d.toegang&&d.toegang[_uid]===true;
       });
+      try{localStorage.setItem((_uid?'dos_data_'+_uid:'dos_data')+'_gedeeld',JSON.stringify(_gedeeldDOS));}catch(e){}
       mergeDOS();
     },function(e){console.warn('gedeeld listener fout:',e);});
     // Uitnodigingen listener
@@ -741,8 +744,8 @@ function sv(){
   });
   try{
     var cacheKey=_uid?'dos_data_'+_uid:'dos_data';
-    var cacheData=DOS.filter(function(d){return !d.gedeeld;});
-    localStorage.setItem(cacheKey,JSON.stringify(cacheData));
+    localStorage.setItem(cacheKey,JSON.stringify(DOS.filter(function(d){return !d.gedeeld;})));
+    if(gedeeldItems.length)localStorage.setItem(cacheKey+'_gedeeld',JSON.stringify(gedeeldItems));
   }catch(e){}
 }
 function initAuth(){
@@ -1046,6 +1049,8 @@ function importJSON(){
         var data=JSON.parse(ev.target.result);
         var arr=data.dossiers||data;
         if(!Array.isArray(arr))throw new Error('Ongeldig formaat');
+        arr=arr.filter(function(d){return d&&typeof d==='object'&&d.id;});
+        if(!arr.length)throw new Error('Geen geldige dossiers gevonden');
         var agArr=Array.isArray(data.agenda)?data.agenda:[];
         var rstArr=Array.isArray(data.rooster)?data.rooster:[];
         var msg=arr.length+' dossier(s)';
@@ -1140,7 +1145,7 @@ function render(){
     +'<div class="sb-bottom"><span id="sync-dot" style="font-size:11px;font-weight:600">\u25cf Verbinden...</span>'
     +'<button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()">'+(THEME==='dark'?'\u2600 Licht':'\u263e Donker')+'</button>'
     +'</div>'
-    +'<div style="padding:4px 14px 10px;text-align:right;font-size:9px;font-weight:600;color:var(--sb-text);opacity:.4;letter-spacing:.06em">v23/06 19:30</div>'
+    +'<div style="padding:4px 14px 10px;text-align:right;font-size:9px;font-weight:600;color:var(--sb-text);opacity:.4;letter-spacing:.06em">v23/06 20:00</div>'
     +'</div>';
 
   var tb='<div class="topbar">'
@@ -1793,7 +1798,7 @@ function setView(v){VIEW=v;render();}
 function goL(){VW='list';AID=null;render();}
 function goDash(){VW='dash';AID=null;render();}
 function goTaken(){VW='taken';AID=null;render();}
-function goSys(){opD(AID==='__prive__'?'__prive__':'__werk__');}
+function goSys(){opD(AID==='__werk__'?'__prive__':'__werk__');}
 function setTF(f){TF=(TF===f?'alles':f);render();}
 function setAlgFP(p){ALG_FP=(ALG_FP===p?'':p);render();}
 function toggleAlgSortDate(){ALG_SORT_DATE=ALG_SORT_DATE===''?'asc':ALG_SORT_DATE==='asc'?'desc':'';render();}
@@ -2113,7 +2118,11 @@ function openShare(did){
 function filterShareList(){
   var srch=(document.getElementById('share-srch')||{value:''}).value.toLowerCase().trim();
   var rows=document.querySelectorAll('#share-user-list .share-user-row');
-  rows.forEach(function(row){row.style.display=(!srch||(row.getAttribute('data-search')||'').indexOf(srch)>=0)?'':'none';});
+  rows.forEach(function(row){
+    var key=(row.getAttribute('data-search')||'').toLowerCase();
+    var naam=(row.getAttribute('data-naam')||'').toLowerCase();
+    row.style.display=(!srch||key.indexOf(srch)>=0||naam.indexOf(srch)>=0)?'':'none';
+  });
 }
 function selectShareUser(collegaUid,collegaNaam){
   window._selectedShareUid=collegaUid;window._selectedShareNaam=collegaNaam;
@@ -2299,7 +2308,7 @@ function showAssignRow(did,selectedUids){
 function openNT(did){MTD=did;MTI=null;document.getElementById('mo-t-t').textContent='Taak toevoegen';document.getElementById('t-ti').value='';document.getElementById('t-pr').value='laag';document.getElementById('t-da').value=td();document.getElementById('t-dl').value='';document.getElementById('t-npv').value='';var nh=document.getElementById('npv-hint');if(nh)nh.textContent='';document.getElementById('t-no').value='';document.getElementById('t-gd-row').style.display='none';document.getElementById('t-gd').value='';showAssignRow(did,null);OM('mo-t');}
 function openET(did,ti){var d=DOS.find(function(x){return x.id===did;});if(!d)return;var t=(d.taken||[])[+ti];if(!t)return;MTD=did;MTI=+ti;document.getElementById('mo-t-t').textContent='Taak bewerken';document.getElementById('t-ti').value=t.titel||'';document.getElementById('t-pr').value=t.prioriteit||'laag';document.getElementById('t-da').value=t.datum||td();document.getElementById('t-dl').value=t.deadline||'';document.getElementById('t-npv').value=t.npv||'';var nh=document.getElementById('npv-hint');if(nh)nh.textContent='';document.getElementById('t-no').value=t.notitie||'';var gdRow=document.getElementById('t-gd-row');if(t.gedaan){gdRow.style.display='';document.getElementById('t-gd').value=t.gedaan===true?td():t.gedaan;}else{gdRow.style.display='none';document.getElementById('t-gd').value='';}showAssignRow(did,t.toegewezen||null);OM('mo-t');}
 function saveTaak(){var titel=document.getElementById('t-ti').value.trim(),prio=document.getElementById('t-pr').value,datum=document.getElementById('t-da').value,deadline=document.getElementById('t-dl').value,npv=document.getElementById('t-npv').value.trim(),notitie=document.getElementById('t-no').value.trim(),gdVal=document.getElementById('t-gd').value;if(!titel){document.getElementById('t-ti').focus();return;}if(npv&&!/^[0-9]{6}\/[0-9]{4}$/.test(npv)){toast('NPV-formaat ongeldig — verwacht: 002244/2026');document.getElementById('t-npv').focus();return;}var d=DOS.find(function(x){return x.id===MTD;});if(!d)return;if(!d.taken)d.taken=[];var toegewezen={};document.querySelectorAll('#t-assign-chips [data-uid]').forEach(function(chip){if(chip.getAttribute('data-sel')==='1')toegewezen[chip.getAttribute('data-uid')]=chip.getAttribute('data-naam');});var taak;if(MTI===null){taak={id:gId(),titel:titel,prioriteit:prio,datum:datum,deadline:deadline,npv:npv,notitie:notitie,gedaan:false,extern:[],toegewezen:toegewezen};if(d.gedeeld)Object.assign(taak,metaStamp());d.taken.push(taak);}else{taak=d.taken[MTI];Object.assign(taak,{titel:titel,prioriteit:prio,datum:datum,deadline:deadline,npv:npv,notitie:notitie,toegewezen:toegewezen});if(taak.gedaan&&gdVal)taak.gedaan=gdVal;if(d.gedeeld)Object.assign(taak,metaStamp());}sv();CM('mo-t');render();toast('Taak opgeslagen');}
-function chkT(did,ti){var d=DOS.find(function(x){return x.id===did;});if(d&&d.taken[+ti]!=null){var t=d.taken[+ti];var wasGedaan=!!t.gedaan;var gedaanDate=typeof t.gedaan==='string'?t.gedaan:'';t.gedaan=t.gedaan?false:td();if(!wasGedaan&&t.extern){t.extern.forEach(function(e){if(!e.ontvangen)e.ontvangen=td();});}else if(wasGedaan&&t.extern&&gedaanDate){t.extern.forEach(function(e){if(e.ontvangen===gedaanDate)e.ontvangen='';}); }if(d.gedeeld&&d.taken[+ti])Object.assign(d.taken[+ti],metaStamp());sv();render();}}
+function chkT(did,ti){var d=DOS.find(function(x){return x.id===did;});if(d&&d.taken[+ti]!=null){var t=d.taken[+ti];var wasGedaan=!!t.gedaan;var gedaanDate=typeof t.gedaan==='string'?t.gedaan:'';t.gedaan=t.gedaan?false:td();if(!wasGedaan&&t.extern){t.extern.forEach(function(e){if(!e.ontvangen)e.ontvangen=td();});}else if(wasGedaan&&t.extern){var refDate=gedaanDate||td();t.extern.forEach(function(e){if(e.ontvangen===refDate)e.ontvangen='';});}if(d.gedeeld&&d.taken[+ti])Object.assign(d.taken[+ti],metaStamp());sv();render();}}
 function delT(did,ti){var d=DOS.find(function(x){return x.id===did;}),t=d&&d.taken&&d.taken[+ti];ask('Taak verwijderen?','"'+(t&&t.titel||'Deze taak')+'" wordt verwijderd.',function(){if(d){d.taken.splice(+ti,1);sv();render();toast('Taak verwijderd');}});}
 
 function addE(did,ti){
@@ -2332,7 +2341,9 @@ function addRappel(did,ti,ei){
   var d=DOS.find(function(x){return x.id===did;});if(!d)return;
   var e=d.taken[+ti]&&d.taken[+ti].extern&&d.taken[+ti].extern[+ei];if(!e)return;
   if(!e.rappels)e.rappels=[];
-  e.rappels.push({datum:td()});
+  var defaultDatum=td();
+  if(e.aanvraag){var r14=new Date(e.aanvraag);r14.setDate(r14.getDate()+14);var ry=r14.getFullYear(),rm=r14.getMonth()+1,rd=r14.getDate();defaultDatum=ry+'-'+(rm<10?'0':'')+rm+'-'+(rd<10?'0':'')+rd;}
+  e.rappels.push({datum:defaultDatum});
   sv();openExtModal(did,+ti);toast('📬 Rappel toegevoegd');
 }
 function delRappel(did,ti,ei,ri){

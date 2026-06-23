@@ -402,7 +402,7 @@ function inRange(dateStr,s,e){return dateStr>=s&&dateStr<=e;}
 // === FIREBASE ===
 var _db=null,_agRef=null,_rstRef=null,_dosRef=null,_fbReady=false,_uid=null;
 function initFB(){
-  if(_agRef){_agRef.off();_agRef=null;}if(_rstRef){_rstRef.off();_rstRef=null;}_fbReady=false;
+  if(_agRef){_agRef.off();_agRef=null;}if(_rstRef){_rstRef.off();_rstRef=null;}if(_dosRef){_dosRef.off();_dosRef=null;}_fbReady=false;
   var agKey=_uid?'agenda_data_'+_uid:'agenda_data';
   var rstKey=_uid?'rooster_data_'+_uid:'rooster_data';
   var dosKey=_uid?'dos_data_'+_uid:'dos_data';
@@ -437,11 +437,11 @@ function initFB(){
       try{localStorage.setItem(rstKey,JSON.stringify(ROOSTER));}catch(e){}
       render();
     });
-    _dosRef.once('value').then(function(snap){
+    _dosRef.on('value',function(snap){
       var data=snap.val();
       if(data){DOS=Object.values(data);try{localStorage.setItem(dosKey,JSON.stringify(DOS));}catch(e){}fillDosDropdown();}
       else{fillDosDropdown();}
-    }).catch(function(e){console.warn('Dossiers ophalen mislukt:',e);fillDosDropdown();});
+    },function(e){console.warn('Dossiers ophalen mislukt:',e);fillDosDropdown();});
   }catch(e){console.warn('Firebase fout:',e);}
 }
 function svAgenda(){
@@ -889,7 +889,7 @@ function openNR(dateStr,typeHint,endDateHint){
   document.getElementById('r-no').value='';
   document.getElementById('r-de').value=endDateHint||ds;
   onTypeChange();
-  OM('mo-r');setTimeout(function(){document.getElementById('r-ty').focus();},80);
+  OM('mo-r');setTimeout(function(){var fb=document.querySelector('#r-type-row button');if(fb)fb.focus();},80);
 }
 function openER(id){
   var r=ROOSTER.find(function(x){return x.id===id;});if(!r)return;

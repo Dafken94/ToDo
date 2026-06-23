@@ -127,13 +127,13 @@ input[type=text],input[type=email],input[type=password]{appearance:none;-webkit-
 
 <div id="toast"></div>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" onerror="window._fbLoadErr=true"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js" onerror="window._fbLoadErr=true"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js" onerror="window._fbLoadErr=true"></script>
 <script>
 var _db=null,_uid=null,_selUid=null,_users=[],_detailUser=null,_detailTab='dossiers',_detailShared=[];
 
-var THEME=(function(){try{return localStorage.getItem('dos_theme')||'dark';}catch(e){return 'dark';}}());
+var THEME=(function(){try{var s=localStorage.getItem('dos_theme');if(s)return s;return window.matchMedia&&window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';}catch(e){return 'light';}}());
 document.documentElement.setAttribute('data-theme',THEME);
 
 function toast(msg){
@@ -274,7 +274,7 @@ function buildTaken(taken,toonGedaan){
   var html='';
   open.forEach(function(t){
     html+='<div style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:1px solid var(--border)">'
-      +'<span style="color:'+prioKleur(t.prio)+';font-size:10px;margin-top:2px;flex-shrink:0">⬤</span>'
+      +'<span style="color:'+prioKleur(t.prioriteit)+';font-size:10px;margin-top:2px;flex-shrink:0">⬤</span>'
       +'<div style="min-width:0">'
       +'<div style="font-size:12px;color:var(--text)">'+esc(t.titel||'')+'</div>'
       +(t.deadline?'<div style="font-size:10px;color:var(--text3)">Deadline: '+esc(t.deadline)+'</div>':'')
