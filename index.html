@@ -2584,7 +2584,7 @@ function onGlobSrch(){
         +'<span style="font-size:15px">📁</span>'
         +'<div style="flex:1;min-width:0">'
         +'<div style="font-size:13px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(hit.d.naam||hit.d.id)+'</div>'
-        +'<div style="font-size:11px;color:var(--text3)">'+esc(hit.d.id)+(hit.d.gesloten?' · Gesloten':'')+'</div>'
+        +'<div style="font-size:11px;color:var(--text3)">'+esc((hit.d.pv_feiten&&hit.d.pv_feiten[0]&&hit.d.pv_feiten[0].pv)||gcFirst(hit.d)||'')+(hit.d.gesloten?' · Gesloten':'')+'</div>'
         +'</div>'
         +'<span style="font-size:11px;color:var(--text3);background:var(--bg3);border:1px solid var(--border);padding:2px 7px;border-radius:5px">Dossier</span>'
         +'</div>';
