@@ -212,6 +212,34 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 .cpick-opt:hover{background:var(--bg3)}
 .cpick-opt.sel{background:rgba(59,130,246,.1);color:var(--accent)}
 .cpick-none{padding:14px;text-align:center;color:var(--text3);font-size:12px}
+/* ===== BOT ===== */
+#bot-wrap{position:fixed;pointer-events:none;z-index:35;display:none}
+@media(max-width:768px){#bot-wrap{display:none!important}}
+.bot{position:relative;width:20px;user-select:none}
+.bot-ant{width:3px;height:6px;background:#fbbf24;margin:0 auto;border-radius:1px 1px 0 0}
+.bot-head{width:20px;height:13px;background:#94a3b8;border-radius:2px;display:flex;align-items:center;justify-content:space-around;padding:0 3px;box-sizing:border-box}
+.bot-eye{width:4px;height:4px;background:#0f172a;border-radius:1px;animation:b-blink 4s ease-in-out infinite}
+@keyframes b-blink{0%,88%,100%{transform:scaleY(1)}94%{transform:scaleY(.1)}}
+.bot-body{width:16px;height:14px;background:#475569;margin:0 auto;display:flex;align-items:center;justify-content:center}
+.bot-screen{width:9px;height:6px;background:#1e3a5f}
+.bot-feet{display:flex;gap:2px;justify-content:center;margin-top:1px}
+.bot-foot{width:7px;height:4px;background:#334155}
+.bot.walk{animation:b-bob .45s ease-in-out infinite}
+@keyframes b-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+.bot.walk .bot-foot:first-child{animation:b-fl .45s ease-in-out infinite}
+.bot.walk .bot-foot:last-child{animation:b-fr .45s ease-in-out infinite}
+@keyframes b-fl{0%,100%{transform:translateX(0)}50%{transform:translateX(-3px)}}
+@keyframes b-fr{0%,100%{transform:translateX(0)}50%{transform:translateX(3px)}}
+.bot.glow .bot-eye{background:#60a5fa;box-shadow:0 0 4px #60a5fa;animation:none}
+.bot-broom{position:absolute;right:-12px;top:6px;width:2px;height:22px;background:#92400e;transform:rotate(15deg)}
+.bot-broom::after{content:'';position:absolute;bottom:0;left:-5px;width:12px;height:5px;background:#78350f;border-radius:0 0 2px 2px}
+.bot-cup{position:absolute;right:-11px;top:13px;width:8px;height:7px;background:#7c3aed;border-radius:0 0 3px 3px;border:1.5px solid #6d28d9;box-sizing:border-box}
+.bot-cup::after{content:'';position:absolute;right:-4px;top:0;width:3px;height:5px;border:1.5px solid #6d28d9;border-left:none;border-radius:0 3px 3px 0}
+.bot-z{position:absolute;font-size:8px;font-weight:800;color:var(--accent);opacity:0;animation:b-z 1.6s ease-in-out infinite}
+.bot-z:nth-child(1){top:-8px;right:-10px;animation-delay:0s}
+.bot-z:nth-child(2){top:-17px;right:-15px;font-size:10px;animation-delay:.55s}
+.bot-z:nth-child(3){top:-28px;right:-20px;font-size:12px;animation-delay:1.1s}
+@keyframes b-z{0%{opacity:0;transform:translate(0,0)}50%{opacity:1}100%{opacity:0;transform:translate(5px,-10px)}}
 </style>
 </head>
 <body>
@@ -368,6 +396,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
   </div>
 </div>
 <div id="root"></div>
+<div id="bot-wrap"></div>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" onerror="window._fbLoadErr=true"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js" onerror="window._fbLoadErr=true"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js" onerror="window._fbLoadErr=true"></script>
@@ -614,6 +643,8 @@ var D_NPV_GRP=false;
 var MDI=null, MTD=null, MTI=null, MED=null, MET=null, MEI=null, CCB=null;
 var MFD=null, MFI=null;
 var SB_OPEN=false, SB_COLLAPSED=false, GROUP_CAT=false, EXT_MODAL={did:null,ti:null};
+var BOT_ON=localStorage.getItem('bot')!=='0';
+var _botT=null,_botBusy=false;
 var _db=null, _ref=null, _fbReady=false, _sync='connecting', _uid=null, _isAdmin=false;
 var _userEmail='';
 var _userName='';
@@ -1138,8 +1169,11 @@ function render(){
     +'<button class="sb-item" onclick="openPwChange()"><span class="sb-ic">\ud83d\udd11</span> Wachtwoord wijzigen</button>'
     +'<button class="sb-item" onclick="doLogout()"><span class="sb-ic">\u23fb</span> Afmelden</button>'
     +'<div class="sb-bottom"><span id="sync-dot" style="font-size:11px;font-weight:600">\u25cf Verbinden...</span>'
-    +'<button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()">'+(THEME==='dark'?'\u2600 Licht':'\u263e Donker')+'</button></div>'
-    +'<div style="padding:4px 14px 10px;text-align:right;font-size:9px;font-weight:600;color:var(--sb-text);opacity:.4;letter-spacing:.06em">v23/06 20:00</div>'
+    +'<div style="display:flex;gap:4px;align-items:center">'
+    +'<button title="'+(BOT_ON?'Bot uitschakelen':'Bot inschakelen')+'" onclick="toggleBot()" style="background:var(--sb-hover);border:1px solid var(--sb-div);border-radius:6px;cursor:pointer;padding:4px 6px;font-size:13px;line-height:1">'+(BOT_ON?'\ud83e\udd16':'\ud83d\udc7e')+'</button>'
+    +'<button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()">'+(THEME==='dark'?'\u2600 Licht':'\u263e Donker')+'</button>'
+    +'</div></div>'
+    +'<div style="padding:4px 14px 10px;text-align:right;font-size:9px;font-weight:600;color:var(--sb-text);opacity:.4;letter-spacing:.06em">v23/06 21:00</div>'
     +'</div>';
 
   var tb='<div class="topbar">'
@@ -2476,6 +2510,97 @@ function dismissAgendaNotif(id){
   updateNotifBadge();renderNotifPanel();
 }
 
+// ===== BOT =====
+function _botHTML(extra){
+  return '<div class="bot">'
+    +'<div class="bot-ant"></div>'
+    +'<div class="bot-head"><div class="bot-eye"></div><div class="bot-eye"></div></div>'
+    +'<div class="bot-body"><div class="bot-screen"></div></div>'
+    +'<div class="bot-feet"><div class="bot-foot"></div><div class="bot-foot"></div></div>'
+    +(extra||'')+'</div>';
+}
+function initBot(){if(BOT_ON)_schedBot();}
+function toggleBot(){
+  BOT_ON=!BOT_ON;
+  try{localStorage.setItem('bot',BOT_ON?'1':'0');}catch(e){}
+  clearTimeout(_botT);_botBusy=false;
+  var w=document.getElementById('bot-wrap');
+  if(w)w.style.display='none';
+  if(BOT_ON)_schedBot();
+  render();
+}
+function _schedBot(){
+  clearTimeout(_botT);
+  if(!BOT_ON)return;
+  _botT=setTimeout(_runBot,(3+Math.random()*5)*60000);
+}
+function _runBot(){
+  if(!BOT_ON||_botBusy)return;
+  _botBusy=true;
+  var scenes=[_botPeek,_botSweep,_botNap,_botCoffee];
+  scenes[Math.floor(Math.random()*scenes.length)](function(){_botBusy=false;_schedBot();});
+}
+function _bw(){return document.getElementById('bot-wrap');}
+function _botPeek(cb){
+  var w=_bw();if(!w)return cb();
+  var th=(document.querySelector('.topbar')||{offsetHeight:52}).offsetHeight;
+  var x=240+Math.floor(Math.random()*(window.innerWidth-360));
+  w.innerHTML=_botHTML();
+  Object.assign(w.style,{display:'block',left:x+'px',top:'-60px',transition:'none'});
+  setTimeout(function(){
+    w.style.transition='top .8s ease-out';
+    w.style.top=(th-8)+'px';
+    setTimeout(function(){
+      var b=w.querySelector('.bot');if(b)b.classList.add('glow');
+      setTimeout(function(){
+        if(b)b.classList.remove('glow');
+        w.style.transition='top .6s ease-in';
+        w.style.top='-60px';
+        setTimeout(function(){w.style.display='none';cb();},700);
+      },2000);
+    },900);
+  },50);
+}
+function _botSweep(cb){
+  var w=_bw();if(!w)return cb();
+  w.innerHTML=_botHTML('<div class="bot-broom"></div>');
+  var b=w.querySelector('.bot');if(b)b.classList.add('walk');
+  Object.assign(w.style,{display:'block',top:(window.innerHeight-52)+'px',left:(window.innerWidth+20)+'px',transition:'none'});
+  setTimeout(function(){
+    w.style.transition='left 8s linear';
+    w.style.left='-50px';
+    setTimeout(function(){w.style.display='none';cb();},8200);
+  },50);
+}
+function _botNap(cb){
+  var w=_bw();if(!w)return cb();
+  w.innerHTML=_botHTML('<span class="bot-z">z</span><span class="bot-z">z</span><span class="bot-z">Z</span>');
+  Object.assign(w.style,{display:'block',top:(window.innerHeight-50)+'px',left:(window.innerWidth-70)+'px',transition:'none'});
+  setTimeout(function(){
+    setTimeout(function(){
+      w.innerHTML=_botHTML();
+      var b=w.querySelector('.bot');if(b)b.classList.add('walk');
+      w.style.transition='left 1.4s ease-in';
+      w.style.left=(window.innerWidth+50)+'px';
+      setTimeout(function(){w.style.display='none';cb();},1600);
+    },3500);
+  },50);
+}
+function _botCoffee(cb){
+  var w=_bw();if(!w)return cb();
+  w.innerHTML=_botHTML('<div class="bot-cup"></div>');
+  Object.assign(w.style,{display:'block',top:(window.innerHeight-52)+'px',left:'240px',transition:'none'});
+  setTimeout(function(){
+    setTimeout(function(){
+      w.innerHTML=_botHTML();
+      var b=w.querySelector('.bot');if(b)b.classList.add('walk');
+      w.style.transition='left 1.4s ease-in';
+      w.style.left='-50px';
+      setTimeout(function(){w.style.display='none';cb();},1600);
+    },3500);
+  },50);
+}
+
 // Start app: laad lokale data meteen, Firebase asynchroon
 (function waitForFirebase(tries){
   tries=tries||0;
@@ -2485,6 +2610,7 @@ function dismissAgendaNotif(id){
 })();
 window.addEventListener('load',function(){
   if(typeof firebase!=='undefined'&&!_uid){initAuth();}
+  initBot();
 });
 
 </script>
