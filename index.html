@@ -1153,7 +1153,7 @@ function render(){
     +'<button class="hamburger" onclick="toggleSB()">\u2630</button>'
     +'<span class="topbar-title">'+(VW==='detail'?(AID==='__werk__'?'Werk':AID==='__prive__'?'Privé':'Dossier'):VW==='dash'?'Dashboard':VW==='taken'?'Openstaande taken':'Mijn Dossiers')+'</span>'
     +(_userName?'<button onclick="openEditUsername()" style="flex-shrink:0;background:none;border:none;cursor:pointer;font-size:12px;font-weight:700;color:var(--text2);padding:3px 8px;border-radius:6px;white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis" title="Gebruikersnaam wijzigen">'+esc(_userName)+' ✎</button>':'')
-    +'<button onclick="openGlobSrch()" title="Globaal zoeken (Ctrl+K)" style="flex-shrink:0;background:none;border:none;cursor:pointer;font-size:16px;padding:4px 7px;border-radius:6px;color:var(--text2);line-height:1" onmouseover="this.style.background=\'var(--bg3)\'" onmouseout="this.style.background=\'none\'">🔍</button>'
+    +'<button onclick="openGlobSrch()" title="Globaal zoeken (Ctrl+F)" style="flex-shrink:0;background:none;border:none;cursor:pointer;font-size:16px;padding:4px 7px;border-radius:6px;color:var(--text2);line-height:1" onmouseover="this.style.background=\'var(--bg3)\'" onmouseout="this.style.background=\'none\'">🔍</button>'
     +(function(){var _nc=countNotif();return '<div class="notif-wrap"><button class="notif-flag-btn" onclick="toggleNotifPanel()" title="Meldingen">🚩'+(_nc>0?'<span class="notif-badge">'+(_nc>9?'9+':_nc)+'</span>':'')+'</button></div>';})();
   if(VW==='detail'){
     tb+='<button onclick="goL()" style="'+BW+';font-size:12px;padding:5px 12px">\u2190 Overzicht</button>';
@@ -2524,14 +2524,14 @@ function dismissAgendaNotif(id){
 // RAF-batching: meerdere render()-aanroepen in één frame worden samengevoegd
 (function(){var _orig=render;render=function(){if(_renderRAF)cancelAnimationFrame(_renderRAF);_renderRAF=requestAnimationFrame(function(){_renderRAF=null;_orig();});};})();
 
-// Escape sluit open modals | Ctrl+K opent globale zoek
+// Escape sluit open modals | Ctrl+F opent globale zoek
 document.addEventListener('keydown',function(e){
   if(e.key==='Escape'){
     var open=document.querySelector('.ov.show');
     if(open&&open.id){CM(open.id);return;}
     closeCatPicker();
   }
-  if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();openGlobSrch();}
+  if((e.ctrlKey||e.metaKey)&&e.key==='f'){e.preventDefault();openGlobSrch();}
 });
 
 function quickTask(){
