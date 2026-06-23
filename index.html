@@ -1173,7 +1173,7 @@ function render(){
     +'<button title="'+(BOT_ON?'Bot uitschakelen':'Bot inschakelen')+'" onclick="toggleBot()" style="background:var(--sb-hover);border:1px solid var(--sb-div);border-radius:6px;cursor:pointer;padding:4px 6px;font-size:13px;line-height:1">'+(BOT_ON?'\ud83e\udd16':'\ud83d\udc7e')+'</button>'
     +'<button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()">'+(THEME==='dark'?'\u2600 Licht':'\u263e Donker')+'</button>'
     +'</div></div>'
-    +'<div style="padding:4px 14px 10px;text-align:right;font-size:9px;font-weight:600;color:var(--sb-text);opacity:.4;letter-spacing:.06em">v23/06 21:00</div>'
+    +'<div style="padding:4px 14px 10px;text-align:right;font-size:9px;font-weight:600;color:var(--sb-text);opacity:.4;letter-spacing:.06em">v23/06 21:30</div>'
     +'</div>';
 
   var tb='<div class="topbar">'
@@ -1662,33 +1662,6 @@ function buildDetail(){
       +'<button onclick="toggleAlgHideDone()" style="font-family:inherit;font-size:11px;font-weight:700;padding:5px 10px;border-radius:7px;cursor:pointer;border:1.5px solid '+(ALG_HIDE_DONE?'var(--border)':'#2563eb')+';background:'+(ALG_HIDE_DONE?'var(--bg2)':'#2563eb')+';color:'+(ALG_HIDE_DONE?'var(--text2)':'#fff')+';white-space:nowrap;transition:all .15s">'+(ALG_HIDE_DONE?'\ud83d\udc41 Toon voltooid'+(doneCount?' ('+doneCount+')':''):'\ud83d\udc41 Verberg voltooid')+'</button>'
       +(doneCount>0?'<button onclick="delVoltooide(\''+d.id+'\')" style="font-family:inherit;font-size:11px;font-weight:700;padding:5px 9px;border-radius:6px;cursor:pointer;border:1.5px solid var(--btn-del-border);background:var(--btn-del-bg);color:var(--btn-del-text);white-space:nowrap">\ud83d\uddd1 Verwijder voltooid</button>':'')
       +'</div>'
-      +'</div>';
-  }
-  if(d.gedeeld&&d.toegang_namen&&Object.keys(d.toegang_namen).length>0){
-    var tzNamen=d.toegang_namen;
-    var openTaken=tk.filter(function(t){return !t.gedaan;});
-    var tvRows='';
-    Object.keys(tzNamen).forEach(function(uid){
-      var naam=tzNamen[uid]||uid;
-      var ini=naam.split(' ').map(function(w){return w[0]||'';}).join('').slice(0,2).toUpperCase();
-      var cnt=openTaken.filter(function(t){return t.toegewezen&&t.toegewezen[uid];}).length;
-      tvRows+='<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);last-child:border:none">'
-        +'<div style="width:28px;height:28px;border-radius:50%;background:'+uidColor(uid)+';color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0">'+ini+'</div>'
-        +'<div style="flex:1;font-size:13px;font-weight:700;color:var(--text)">'+esc(naam)+'</div>'
-        +'<div style="font-size:12px;font-weight:700;color:'+(cnt>0?'var(--accent)':'var(--text3)')+'">'+cnt+' open '+(cnt!==1?'taken':'taak')+'</div>'
-        +'</div>';
-    });
-    var cntNiet=openTaken.filter(function(t){return !t.toegewezen||!Object.keys(t.toegewezen).length;}).length;
-    if(cntNiet>0){
-      tvRows+='<div style="display:flex;align-items:center;gap:8px;padding:5px 0">'
-        +'<div style="width:28px;height:28px;border-radius:50%;background:var(--bg4);color:var(--text3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;border:1px solid var(--border);flex-shrink:0">?</div>'
-        +'<div style="flex:1;font-size:12px;font-weight:600;color:var(--text3);font-style:italic">Niet toegewezen</div>'
-        +'<div style="font-size:12px;font-weight:700;color:var(--text3)">'+cntNiet+' '+(cntNiet!==1?'taken':'taak')+'</div>'
-        +'</div>';
-    }
-    html+='<div style="padding:12px 16px 6px;background:var(--bg3);border-bottom:1px solid var(--border)">'
-      +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:8px">Taakverdeling</div>'
-      +tvRows
       +'</div>';
   }
   if(tk.length===0){html+='<div class="empty"><div style="font-size:32px">\u2713</div><p>Nog geen taken.</p></div>';}
