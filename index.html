@@ -539,6 +539,7 @@ var SBN='cursor:pointer;font-family:inherit;font-size:11px;font-weight:700;borde
 })();
 
 function gId(){if(typeof crypto!=='undefined'&&crypto.randomUUID)return crypto.randomUUID();return Date.now().toString(36)+Math.random().toString(36).slice(2,9);}
+function openEntiteiten(did){var d=DOS.find(function(x){return x.id===did;});var naam=d?encodeURIComponent(d.naam||''):'';window.open('entiteiten.html?did='+encodeURIComponent(did)+'&naam='+naam,'_blank');}
 function td(){return new Date().toISOString().slice(0,10);}
 function fd(d){if(!d)return'--';var p=d.split('-');if(p.length!==3)return d;return p[2]+'/'+p[1]+'/'+p[0];}
 function fdPeriod(f){var van=f.datum_van||f.datum||'';var tot=f.datum_tot||'';if(!van)return '—';return tot?fd(van)+' – '+fd(tot):fd(van);}
@@ -1151,7 +1152,7 @@ function render(){
     +'<div class="sb-bottom"><span id="sync-dot" style="font-size:11px;font-weight:600">\u25cf Verbinden...</span>'
     +'<button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()">'+(THEME==='dark'?'\u2600 Licht':'\u263e Donker')+'</button>'
     +'</div>'
-    +'<div style="padding:4px 14px 10px;text-align:right;font-size:9px;font-weight:600;color:var(--sb-text);opacity:.4;letter-spacing:.06em">v23/06 21:30</div>'
+    +'<div style="padding:4px 14px 10px;text-align:right;font-size:9px;font-weight:600;color:var(--sb-text);opacity:.4;letter-spacing:.06em">v24/06 20:30</div>'
     +'</div>';
 
   var tb='<div class="topbar">'
@@ -1533,6 +1534,7 @@ function cardHTML(d){
     +'<div class="dbody">'
     +'<div class="dacts" onclick="event.stopPropagation()">'
     +'<button onclick="openED(\''+d.id+'\')" style="'+IW+'">\u270e</button>'
+    +'<button onclick="openEntiteiten(\''+d.id+'\')" style="'+IW+'" title="Entiteiten &amp; netwerk">\ud83d\udd78\ufe0f</button>'
     +'<button onclick="delD(\''+d.id+'\')" style="'+IR+'">\u2715</button>'
     +'</div>'
     +'<div class="dcard-naam">'+esc(d.naam||'\u2014')+'</div>'
@@ -1571,6 +1573,7 @@ function buildDetail(){
       :(!isSys&&(!d.gedeeld||(d.eigenaar_uid===_uid))?'<button onclick="openShare(\''+d.id+'\')" style="'+BW+'">'+(d.gedeeld?'\uD83D\uDC65 Beheer delen':'\uD83D\uDC65 Delen')+'</button>':'')
        +(d.gesloten?'<button onclick="togSl(\''+d.id+'\')" style="'+BGN+'">\uD83D\uDD13 Heropenen</button>':'<button onclick="togSl(\''+d.id+'\')" style="'+BW+'">\uD83D\uDD12 Sluiten</button>')
        +'<button onclick="openED(\''+d.id+'\')" style="'+BW+'">\u270e Bewerken</button>'
+       +'<button onclick="openEntiteiten(\''+d.id+'\')" style="'+BW+'" title="Entiteiten &amp; netwerk">\ud83d\udd78\ufe0f Entiteiten</button>'
        +'<button onclick="delD(\''+d.id+'\')" style="'+BR+'">\u2715 Verwijderen</button>')
     +'</div></div>'
     +(d.dossiernummer?'<div style="display:inline-flex;align-items:center;gap:8px;margin-bottom:8px;padding:6px 12px;background:var(--bg3);border-radius:7px;border:1px solid var(--border);border-left:3px solid var(--accent)"><span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2)">⚖️ Dossiernr.</span><span style="font-size:14px;font-weight:800;color:var(--accent);font-family:monospace;letter-spacing:.06em">'+esc(d.dossiernummer)+'</span></div>':'')
