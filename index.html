@@ -1047,9 +1047,10 @@ function inlineVrijCheck(did,ti){
 function filterPZSelect(did,ti,q){
   var sel=document.getElementById('xsub-'+did+'-'+ti);if(!sel)return;
   var lq=(q||'').toLowerCase().trim();
-  Array.prototype.forEach.call(sel.options,function(opt){
-    opt.style.display=(!lq||opt.value==='__vrij__'||opt.value.toLowerCase().indexOf(lq)!==-1)?'':'none';
-  });
+  var prev=sel.value;
+  var list=lq?EXT.pz.filter(function(v){return v.toLowerCase().indexOf(lq)!==-1;}):EXT.pz;
+  sel.innerHTML=list.map(function(v){return '<option value="'+v+'">'+v+'</option>';}).join('')+'<option value="__vrij__">Andere (vrije tekst)...</option>';
+  if(prev&&list.indexOf(prev)!==-1)sel.value=prev;
 }
 function exportJSON(){
   function doDownload(ag,rst){
