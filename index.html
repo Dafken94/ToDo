@@ -212,6 +212,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 .cpick-opt:hover{background:var(--bg3)}
 .cpick-opt.sel{background:rgba(59,130,246,.1);color:var(--accent)}
 .cpick-none{padding:14px;text-align:center;color:var(--text3);font-size:12px}
+.od-toggle{display:flex;border:1.5px solid var(--input-border);border-radius:7px;overflow:hidden}
+.od-btn{flex:1;padding:8px 10px;border:none;background:var(--input-bg);color:var(--text2);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;line-height:1.3}
+.od-btn.on{background:var(--accent);color:#fff}
 </style>
 </head>
 <body>
@@ -219,10 +222,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 <div class="ov" id="mo-d">
   <div class="ob">
     <div class="ob-title" id="mo-d-t">Dossier</div>
+    <div class="fr">
+      <label>Type onderzoek</label>
+      <div class="od-toggle">
+        <button id="od-oo" class="od-btn on" onclick="setOdType('oo')">⚖️ Opsporingsonderzoek</button>
+        <button id="od-go" class="od-btn" onclick="setOdType('go')">🔍 Gerechtelijk onderzoek</button>
+      </div>
+    </div>
     <div class="fr"><label>Naam *</label><input id="f-naam" placeholder="bijv. Zaak Van den Berg" style="text-transform:uppercase"></div>
     <div class="fr"><label>Aanmaakdatum</label><input id="f-datum" type="date"></div>
     <div class="fr"><label>Notitie</label><textarea id="f-not" rows="2" placeholder="Extra informatie..."></textarea></div>
-    <div class="fr"><label>Dossiernummer <span style="font-size:10px;font-weight:600;color:var(--text3)">(optioneel — enkel bij onderzoeksrechter)</span></label><input id="f-dosnr" placeholder="2026/0042" oninput="dosNrInput()" onblur="dosNrBlur()" maxlength="9" inputmode="numeric" autocomplete="off"><span id="dosnr-hint" style="font-size:11px;color:var(--text3);margin-top:3px;display:block"></span></div>
+    <div class="fr" id="f-dosnr-row" style="display:none"><label>Dossiernummer (optioneel)</label><input id="f-dosnr" placeholder="2026/0042" oninput="dosNrInput()" onblur="dosNrBlur()" maxlength="9" inputmode="numeric" autocomplete="off"><span id="dosnr-hint" style="font-size:11px;color:var(--text3);margin-top:3px;display:block"></span></div>
     <div id="f-eerste-feit-blok">
       <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;margin:10px 0 8px;padding-top:10px;border-top:1px solid var(--border)">Eerste feit</div>
       <div class="fr"><label>PV-nummer *</label><input id="f-pv" placeholder="__.__.__.______/____" oninput="pvInput()" style="text-transform:uppercase"><span id="pv-hint" style="font-size:11px;color:var(--text3);margin-top:3px;display:block"></span></div>
@@ -611,7 +621,8 @@ function toast(msg,type){
   setTimeout(function(){t.classList.remove('show');},2200);
 }
 
-var DOS=[], VW='dash', VIEW='grid', AID=null, FS='open', FC=null, SO='desc', EE={}, EAF={}, TF='alles';
+var DOS=[], VW='dash', VIEW='grid', AID=null, FS='open', FC=null, FO=null, SO='desc', EE={}, EAF={}, TF='alles';
+var _odType='oo';
 var ALG_FP='', ALG_SORT_DATE='', ALG_HIDE_DONE=true;
 var D_NPV_GRP=false;
 var MDI=null, MTD=null, MTI=null, MED=null, MET=null, MEI=null, CCB=null;
@@ -1092,6 +1103,7 @@ function fil(q){
   if(FS==='open')l=l.filter(function(d){return !d.gesloten;});
   if(FS==='gesloten')l=l.filter(function(d){return d.gesloten;});
   if(FC)l=l.filter(function(d){return (d.pv_feiten||[]).some(function(f){return f.categorie===FC;});});
+  if(FO)l=l.filter(function(d){return (d.onderzoeksType||'oo')===FO;});
   var query=(q!==undefined?String(q):(document.getElementById('srch')?document.getElementById('srch').value:'')).toLowerCase().trim();
   if(query)l=l.filter(function(d){
     if((d.naam||'').toLowerCase().indexOf(query)!==-1)return true;
@@ -1287,10 +1299,18 @@ function buildList(srchVal){
   if(dringend.length>0){html+='<div class="banner-dringend">\u26a0 '+dringend.length+(dringend.length!==1?' vervallen taken':' vervallen taak')+'</div>';}
 
   var fsbtn=function(val,icon,lbl,cnt){var on=(val===null?FS===null:FS===val);return '<button onclick="setFS('+(val===null?'null':'\''+val+'\'')+');setFC(null)" style="font-family:inherit;font-size:11px;font-weight:700;padding:5px 10px;border-radius:7px;cursor:pointer;border:1.5px solid '+(on?'var(--accent)':'var(--border)')+';background:'+(on?'var(--accent)':'var(--bg2)')+';color:'+(on?'#fff':'var(--text2)')+';transition:all .15s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px">'+icon+' '+lbl+'<span style="opacity:.7;margin-left:2px">'+cnt+'</span></button>';};
-  html+='<div style="display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:10px">'
+  var fobtn=function(val,icon,lbl,cnt){var on=(val===null?FO===null:FO===val);return '<button onclick="setFO('+(val===null?'null':'\''+val+'\'')+');" style="font-family:inherit;font-size:11px;font-weight:700;padding:5px 10px;border-radius:7px;cursor:pointer;border:1.5px solid '+(on?'#7c3aed':'var(--border)')+';background:'+(on?'#7c3aed':'var(--bg2)')+';color:'+(on?'#fff':'var(--text2)')+';transition:all .15s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px">'+icon+' '+lbl+'<span style="opacity:.7;margin-left:2px">'+cnt+'</span></button>';};
+  var ooCount=regDOS.filter(function(d){return (d.onderzoeksType||'oo')==='oo';}).length;
+  var goCount=regDOS.filter(function(d){return d.onderzoeksType==='go';}).length;
+  html+='<div style="display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:6px">'
     +fsbtn(null,'\uD83D\uDCC1','Alle',regDOS.length)
     +fsbtn('open','\uD83D\uDD13','Lopend',open)
     +fsbtn('gesloten','\uD83D\uDD12','Archief',closed)
+    +'</div>'
+    +'<div style="display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:10px">'
+    +fobtn(null,'\uD83D\uDCC4','Alle types',regDOS.length)
+    +fobtn('oo','\u2696\uFE0F','Opsporing',ooCount)
+    +fobtn('go','\uD83D\uDD0D','Gerechtelijk',goCount)
     +'</div>';
   html+='<div class="toolbar"><div class="search-wrap"><span class="si">\uD83D\uDD0D</span><input id="srch" type="search" placeholder="Zoek op PV of naam..." value="'+esc(srchVal)+'" oninput="onSrch()" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></div></div>'
     +'<div id="dos-count" style="font-size:11px;color:var(--text3);font-weight:600;margin-bottom:10px">'+list.length+' dossier'+(list.length!==1?'s':'')+' gevonden</div>';
@@ -1307,6 +1327,10 @@ function buildDosResultHtml(list,srchVal){
     var pvMatch=null;
     if(srch&&(d.naam||'').toLowerCase().indexOf(srch)===-1){var mf=feiten.find(function(f){return f.pv.toLowerCase().indexOf(srch)!==-1;});if(mf)pvMatch=mf.pv;}
     var fLabel=feiten.length===1?cat.label:feiten.length+' feiten';
+    var isGO=d.onderzoeksType==='go';
+    var odBadge=isGO
+      ?'<span style="font-size:10px;font-weight:700;white-space:nowrap;padding:1px 5px;border-radius:4px;background:rgba(124,58,237,.15);color:#7c3aed;border:1px solid rgba(124,58,237,.3)">🔍 GO</span>'
+      :'<span style="font-size:10px;font-weight:700;white-space:nowrap;padding:1px 5px;border-radius:4px;background:rgba(37,99,235,.1);color:#2563eb;border:1px solid rgba(37,99,235,.2)">⚖️ OO</span>';
     return '<div class="dlist-row'+(d.gesloten?' closed':'')+'" style="border-left:3px solid '+cat.color+'" onclick="opD(\''+d.id+'\')">'
       +'<div style="min-width:0;flex:1;overflow:hidden">'
       +'<div style="font-size:13px;font-weight:800;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(d.naam||'—')+'</div>'
@@ -1316,6 +1340,7 @@ function buildDosResultHtml(list,srchVal){
       +'<div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:12px">'
       +'<span style="font-size:11px;color:var(--text2);font-weight:600;white-space:nowrap">'+fd(d.datum)+'</span>'
       +'<span style="font-size:11px;font-weight:700;white-space:nowrap;color:'+(d.gesloten?'var(--text3)':'#16a34a')+'">'+(d.gesloten?'Gesloten':'Lopend')+'</span>'
+      +odBadge
       +(d.gedeeld?'<span style="font-size:10px;font-weight:700;color:var(--accent);white-space:nowrap">👥</span>':'')
       +(isInactief(d)?'<span style="font-size:10px;font-weight:700;color:var(--badge-warn-text);white-space:nowrap">Inactief</span>':'')
       +'<div style="display:flex;align-items:center;gap:4px"><div style="width:60px;background:var(--prog-bg);border-radius:3px;height:4px;overflow:hidden"><div style="height:4px;border-radius:3px;background:'+(pct===100?'#16a34a':'#2563eb')+';width:'+pct+'%"></div></div><span style="font-size:10px;color:var(--text2);font-weight:700">'+pct+'%</span></div>'
@@ -1582,6 +1607,7 @@ function buildDetail(){
     +'<div class="dinfo"><div class="dinfo-lbl">Aanmaakdatum</div><div class="dinfo-val">'+fd(d.datum)+'</div></div>'
     +'<div class="dinfo"><div class="dinfo-lbl">Status</div><div class="dinfo-val" style="color:'+(d.gesloten?'var(--text3)':'#16a34a')+'">'+(d.gesloten?'Gesloten':'Lopend')+'</div></div>'
     +'<div class="dinfo"><div class="dinfo-lbl">Voortgang</div><div class="dinfo-val">'+pct+'%</div></div>'
+    +'<div class="dinfo" style="grid-column:1/-1"><div class="dinfo-lbl">Type onderzoek</div><div class="dinfo-val" style="color:'+(d.onderzoeksType==='go'?'#7c3aed':'var(--accent)')+'">'+(d.onderzoeksType==='go'?'🔍 Gerechtelijk onderzoek (OR)':'⚖️ Opsporingsonderzoek (parket)')+'</div></div>'
     +'</div>'
     +(d.notitie?'<div style="margin-top:10px;font-size:12px;color:var(--text);font-weight:500;background:var(--bg3);border-radius:6px;padding:8px 12px;line-height:1.55;word-break:break-word;overflow-wrap:anywhere;text-wrap:pretty;border-left:3px solid '+(isSys?sysColor:cat.color)+'">'+esc(d.notitie)+'</div>':'')
     +'<div class="mini-stats">'
@@ -1822,6 +1848,8 @@ function onSrch(){
 function toggleSort(){SO=SO==='asc'?'desc':'asc';render();}
 function setFS(s){FS=s;render();}
 function setFC(id){FC=id;render();}
+function setFO(v){FO=v;render();}
+function setOdType(t){_odType=t;document.getElementById('od-oo').classList.toggle('on',t==='oo');document.getElementById('od-go').classList.toggle('on',t==='go');document.getElementById('f-dosnr-row').style.display=t==='go'?'':'none';}
 function setView(v){VIEW=v;render();}
 function goL(){VW='list';AID=null;render();}
 function goDash(){VW='dash';AID=null;render();}
@@ -1926,6 +1954,7 @@ function togEAF(did,ti){var k=did+'-'+ti;EAF[k]=!EAF[k];openExtModal(did,ti);}
 function openND(){
   MDI=null;
   document.getElementById('mo-d-t').textContent='Nieuw dossier';
+  setOdType('oo');
   document.getElementById('f-naam').value='';
   document.getElementById('f-datum').value=td();
   document.getElementById('f-not').value='';
@@ -1944,6 +1973,7 @@ function openED(id){
   var d=DOS.find(function(x){return x.id===id;});if(!d)return;
   MDI=id;
   document.getElementById('mo-d-t').textContent='Dossier bewerken';
+  setOdType(d.onderzoeksType||(d.dossiernummer?'go':'oo'));
   document.getElementById('f-naam').value=d.naam||'';
   document.getElementById('f-datum').value=d.datum||td();
   document.getElementById('f-not').value=d.notitie||'';
@@ -1968,12 +1998,12 @@ function saveDos(){
     if(!pv){document.getElementById('f-pv').focus();return;}
     var allPvs=[];DOS.forEach(function(x){(x.pv_feiten||[]).forEach(function(f){allPvs.push(f.pv);});});
     if(allPvs.indexOf(pv)>=0){toast('PV-nummer bestaat al in een ander dossier');document.getElementById('f-pv').focus();return;}
-    var nieuw={id:gId(),naam:naam,datum:datum,notitie:notitie,pv_feiten:[{id:gId(),pv:pv,categorie:cat,datum_van:fdatVan,datum_tot:fdatTot,notitie:''}],links:[],taken:[],gesloten:false};
-    if(dosnr)nieuw.dossiernummer=dosnr;
+    var nieuw={id:gId(),naam:naam,datum:datum,notitie:notitie,pv_feiten:[{id:gId(),pv:pv,categorie:cat,datum_van:fdatVan,datum_tot:fdatTot,notitie:''}],links:[],taken:[],gesloten:false,onderzoeksType:_odType};
+    if(_odType==='go'&&dosnr)nieuw.dossiernummer=dosnr;
     DOS.unshift(nieuw);
   }else{
     var d=DOS.find(function(x){return x.id===MDI;});
-    if(d){Object.assign(d,{naam:naam,datum:datum,notitie:notitie});if(dosnr)d.dossiernummer=dosnr;else delete d.dossiernummer;}
+    if(d){Object.assign(d,{naam:naam,datum:datum,notitie:notitie,onderzoeksType:_odType});if(_odType==='go'&&dosnr)d.dossiernummer=dosnr;else delete d.dossiernummer;}
   }
   sv();CM('mo-d');render();toast('Dossier opgeslagen');
 }
