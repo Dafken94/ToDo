@@ -152,12 +152,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
       </div>
       <div id="e-nat-fields">
         <div class="fld-row">
-          <div class="fld"><label>Voornaam</label><input id="e-voor" type="text" autocomplete="off"></div>
           <div class="fld"><label>Familienaam</label><input id="e-fam" type="text" autocomplete="off"></div>
+          <div class="fld"><label>Voornaam</label><input id="e-voor" type="text" autocomplete="off"></div>
         </div>
         <div class="fld-row">
           <div class="fld"><label>Geboortedatum</label><input id="e-gb" type="date"></div>
-          <div class="fld"><label>Rijksregister</label><input id="e-rr" type="text" placeholder="85.03.15-001.23" autocomplete="off"></div>
+          <div class="fld"><label>Rijksregister</label><input id="e-rr" type="text" placeholder="85.03.15-001.23" autocomplete="off" maxlength="15" oninput="fmtRR(this)"></div>
         </div>
       </div>
       <div id="e-rp-fields" style="display:none">
@@ -260,12 +260,14 @@ function setPersoonType(t){
   document.getElementById('pt-rp').classList.toggle('on',t==='rechtspersoon');
   document.getElementById('e-nat-fields').style.display=t==='natuurlijk'?'':'none';
   document.getElementById('e-rp-fields').style.display=t==='rechtspersoon'?'':'none';
-  setTimeout(function(){var f=t==='natuurlijk'?document.getElementById('e-voor'):document.getElementById('e-bnaam');if(f)f.focus();},40);
+  setTimeout(function(){var f=t==='natuurlijk'?document.getElementById('e-fam'):document.getElementById('e-bnaam');if(f)f.focus();},40);
 }
 function entColor(e){return TYPES[e.type]||TYPES.andere;}
 function typeLabel(e){if(e.type==='andere'&&e.typeAnders)return e.typeAnders;return TYPE_LABELS[e.type]||'Andere';}
 function fd(s){if(!s)return '—';var p=s.split('-');if(p.length===3)return p[2]+'/'+p[1]+'/'+p[0];return s;}
-function entsArr(){return Object.keys(ENTS).map(function(k){return ENTS[k];}).sort(function(a,b){return entName(a).localeCompare(entName(b));});}
+var TYPE_ORDER={verdachte:0,slachtoffer:1,getuige:2,andere:3,bron:4,informant:5};
+function entsArr(){return Object.keys(ENTS).map(function(k){return ENTS[k];}).sort(function(a,b){var oa=TYPE_ORDER[a.type]!=null?TYPE_ORDER[a.type]:3,ob=TYPE_ORDER[b.type]!=null?TYPE_ORDER[b.type]:3;if(oa!==ob)return oa-ob;return entName(a).localeCompare(entName(b),'nl');});}
+function fmtRR(el){var pos=el.selectionStart,old=el.value,d=old.replace(/\D/g,'').slice(0,11),r='';if(d.length>0)r+=d.slice(0,2);if(d.length>2)r+='.'+d.slice(2,4);if(d.length>4)r+='.'+d.slice(4,6);if(d.length>6)r+='-'+d.slice(6,9);if(d.length>9)r+='.'+d.slice(9,11);el.value=r;var bc=old.slice(0,pos).replace(/\D/g,'').length,np=0,dc=0;for(var i=0;i<r.length;i++){if(dc>=bc)break;if(/\d/.test(r[i]))dc++;np=i+1;}el.setSelectionRange(np,np);}
 function relsArr(){return Object.keys(RELS).map(function(k){return RELS[k];});}
 
 function goBack(){if(window.parent&&window.parent!==window&&typeof window.parent.closeEntiteiten==='function'){window.parent.closeEntiteiten();}else{window.location.href='index-preview.html';}}
@@ -425,7 +427,7 @@ function saveEnt(){
     obj.familienaam=document.getElementById('e-fam').value.trim();
     obj.geboortedatum=document.getElementById('e-gb').value;
     obj.rijksregister=document.getElementById('e-rr').value.trim();
-    if(!obj.voornaam&&!obj.familienaam){markReq('e-voor');toast('❌ Vul minstens een voornaam of familienaam in');return;}
+    if(!obj.voornaam&&!obj.familienaam){markReq('e-fam');toast('❌ Vul minstens een familienaam of voornaam in');return;}
   }
   ENTS[id]=obj;
   try{saveEntData(id);}catch(ex){console.warn('saveEntData',ex);}
