@@ -157,7 +157,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
       </div>
       <div id="e-nat-fields">
         <div class="fld-row">
-          <div class="fld"><label>Familienaam</label><input id="e-fam" type="text" autocomplete="off"></div>
+          <div class="fld"><label>Familienaam</label><input id="e-fam" type="text" autocomplete="off" oninput="this.value=this.value.toUpperCase()"></div>
           <div class="fld"><label>Voornaam</label><input id="e-voor" type="text" autocomplete="off"></div>
         </div>
         <div class="fld-row">
@@ -189,7 +189,60 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
         <div class="fld"><label>Type</label><select id="el-type" onchange="elTypeChange()"></select></div>
         <div class="fld" id="el-anders-wrap" style="display:none"><label>Type (anders)</label><input id="el-anders" type="text" autocomplete="off"></div>
       </div>
-      <div class="fld"><label>Waarde</label><input id="el-waarde" type="text" autocomplete="off"></div>
+      <!-- Generiek waarde (voor adres, email, andere) -->
+      <div id="el-gen-wrap">
+        <div class="fld"><label>Waarde</label><input id="el-waarde" type="text" autocomplete="off"></div>
+      </div>
+      <!-- Voertuig -->
+      <div id="el-vrt-wrap" style="display:none">
+        <div class="fld-row">
+          <div class="fld"><label>Kenteken</label><input id="el-kenteken" type="text" autocomplete="off" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()"></div>
+          <div class="fld"><label>Kleur</label><input id="el-kleur" type="text" autocomplete="off" placeholder="bv. zwart, rood..."></div>
+        </div>
+        <div class="fld-row">
+          <div class="fld"><label>Merk</label><input id="el-merk" type="text" autocomplete="off" placeholder="bv. BMW, Volkswagen..."></div>
+          <div class="fld"><label>Type / model</label><input id="el-model" type="text" autocomplete="off" placeholder="bv. 3-reeks, Golf..."></div>
+        </div>
+      </div>
+      <!-- Telefoon -->
+      <div id="el-tel-wrap" style="display:none">
+        <div class="fld-row">
+          <div class="fld"><label>Telefoonnummer</label><input id="el-telnr" type="tel" autocomplete="off" placeholder="+32 ..."></div>
+          <div class="fld"><label>Land</label><input id="el-telland" type="text" autocomplete="off" placeholder="bv. België, Nederland..."></div>
+        </div>
+      </div>
+      <!-- Bankrekening -->
+      <div id="el-bank-wrap" style="display:none">
+        <div class="fld"><label>Rekeningnummer (IBAN)</label><input id="el-iban" type="text" autocomplete="off" placeholder="BE68 5390 0754 7034"></div>
+        <div class="fld-row">
+          <div class="fld"><label>Bank</label><input id="el-banknaam" type="text" autocomplete="off" placeholder="bv. BNP Paribas Fortis..."></div>
+          <div class="fld"><label>Land</label><input id="el-bankland" type="text" autocomplete="off" placeholder="bv. België..."></div>
+        </div>
+      </div>
+      <!-- Sociale media -->
+      <div id="el-sm-wrap" style="display:none">
+        <div class="fld-row">
+          <div class="fld"><label>Platform</label>
+            <select id="el-smplatform">
+              <option value="">-- Kies platform --</option>
+              <option value="Instagram">Instagram</option>
+              <option value="Facebook">Facebook</option>
+              <option value="Snapchat">Snapchat</option>
+              <option value="WhatsApp">WhatsApp</option>
+              <option value="Telegram">Telegram</option>
+              <option value="Signal">Signal</option>
+              <option value="TikTok">TikTok</option>
+              <option value="Twitter/X">Twitter/X</option>
+              <option value="LinkedIn">LinkedIn</option>
+              <option value="YouTube">YouTube</option>
+              <option value="Discord">Discord</option>
+              <option value="Andere">Andere...</option>
+            </select>
+          </div>
+          <div class="fld"><label>Profiel / account</label><input id="el-smprofiel" type="text" autocomplete="off" placeholder="@gebruikersnaam of URL"></div>
+        </div>
+      </div>
+      <!-- Notitie (altijd zichtbaar) -->
       <div class="fld"><label>Notitie</label><input id="el-not" type="text" autocomplete="off"></div>
     </div>
     <div class="ob-ft"><button class="btnW" onclick="CM('mo-el')">Annuleren</button><button class="btnB" onclick="saveEl()">Opslaan</button></div>
@@ -258,6 +311,15 @@ function OM(id){document.getElementById(id).classList.add('show');}
 function updateSync(){var d=document.getElementById('sync-dot');if(!d)return;d.textContent='● Lokaal';d.style.color='var(--text2)';}
 function entName(e){if(!e)return '?';if(e.persoonType==='rechtspersoon')return (e.bedrijfsnaam||'').trim()||'Naamloos bedrijf';if(e.persoonType==='onbekend')return (e.alias||'').trim()||'Onbekende';var n=((e.voornaam||'')+' '+(e.familienaam||'')).trim();return n||'Naamloos';}
 function entInitials(e){if(!e)return '?';if(e.persoonType==='rechtspersoon'){var b=(e.bedrijfsnaam||'').trim();return b?b[0].toUpperCase():'B';}if(e.persoonType==='onbekend')return '?';var v=(e.voornaam||'').trim(),f=(e.familienaam||'').trim();var i=(v?v[0]:'')+(f?f[0]:'');if(!i)i=(entName(e)[0]||'?');return i.toUpperCase();}
+function elSummary(el){
+  if(!el)return '—';
+  if(el.type==='voertuig'){var p=[el.kenteken,el.merk,el.model].filter(Boolean);return p.length?p.join(' '):(el.waarde||'—');}
+  if(el.type==='telefoon')return [el.telnr||el.waarde,el.telland].filter(Boolean).join(' — ');
+  if(el.type==='bankrekening')return [el.iban||el.waarde,el.banknaam,el.bankland].filter(Boolean).join(' · ');
+  if(el.type==='sociale_media')return [el.smplatform,el.smprofiel||el.waarde].filter(Boolean).join(': ');
+  return el.waarde||'—';
+}
+function elSummaryShort(el){var s=elSummary(el);return s.length>15?s.slice(0,14)+'…':s;}
 var _persType='natuurlijk';
 function setPersoonType(t){
   _persType=t;
@@ -360,7 +422,10 @@ function renderDetail(){
     var lbl=(el.type==='andere'&&el.typeAnders)?el.typeAnders:(EL_LABELS[el.type]||'Andere');
     h+='<div class="el-row"><div class="el-ic">'+ic+'</div><div class="el-bd">'
       +'<div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:capitalize">'+esc(lbl)+'</div>'
-      +'<div style="font-size:14px;font-weight:700;color:var(--text);word-break:break-word">'+esc(el.waarde||'—')+'</div>'
+      +'<div style="font-size:14px;font-weight:700;color:var(--text);word-break:break-word">'+esc(elSummary(el))+'</div>'
+      +(el.type==='voertuig'&&el.kleur?'<div style="font-size:12px;color:var(--text3);margin-top:2px">Kleur: '+esc(el.kleur)+'</div>':'')
+      +(el.type==='telefoon'&&el.telland?'<div style="font-size:12px;color:var(--text3);margin-top:2px">Land: '+esc(el.telland)+'</div>':'')
+      +(el.type==='bankrekening'&&(el.banknaam||el.bankland)?'<div style="font-size:12px;color:var(--text3);margin-top:2px">'+(el.banknaam?esc(el.banknaam):'')+(el.bankland?' ('+esc(el.bankland)+')':'')+'</div>':'')
       +(el.notitie?'<div style="font-size:12px;color:var(--text3);margin-top:2px">'+esc(el.notitie)+'</div>':'')
       +'</div><div class="el-actions"><button class="iW" onclick="openElModal('+i+')">✎</button><button class="iR" onclick="delEl('+i+')">✕</button></div></div>';
   });}
@@ -436,7 +501,7 @@ function saveEnt(){
     obj.alias=document.getElementById('e-alias').value.trim();
   }else{
     obj.voornaam=document.getElementById('e-voor').value.trim();
-    obj.familienaam=document.getElementById('e-fam').value.trim();
+    obj.familienaam=document.getElementById('e-fam').value.trim().toUpperCase();
     obj.geboortedatum=document.getElementById('e-gb').value;
     obj.rijksregister=document.getElementById('e-rr').value.trim();
     if(!obj.voornaam&&!obj.familienaam){markReq('e-fam');toast('❌ Vul minstens een familienaam of voornaam in');return;}
@@ -461,7 +526,15 @@ function delEnt(id){
 
 /* ===== Element modal ===== */
 function elsOf(id){var e=ENTS[id];if(!e)return [];if(!e.elementen)e.elementen=[];if(!Array.isArray(e.elementen))e.elementen=Object.keys(e.elementen).map(function(k){return e.elementen[k];});return e.elementen;}
-function elTypeChange(){document.getElementById('el-anders-wrap').style.display=document.getElementById('el-type').value==='andere'?'':'none';}
+function elTypeChange(){
+  var t=document.getElementById('el-type').value;
+  document.getElementById('el-anders-wrap').style.display=t==='andere'?'':'none';
+  document.getElementById('el-gen-wrap').style.display=(t==='voertuig'||t==='telefoon'||t==='bankrekening'||t==='sociale_media')?'none':'';
+  document.getElementById('el-vrt-wrap').style.display=t==='voertuig'?'':'none';
+  document.getElementById('el-tel-wrap').style.display=t==='telefoon'?'':'none';
+  document.getElementById('el-bank-wrap').style.display=t==='bankrekening'?'':'none';
+  document.getElementById('el-sm-wrap').style.display=t==='sociale_media'?'':'none';
+}
 function openElModal(i){
   if(!SEL)return;
   EDIT_EL=i;
@@ -472,13 +545,48 @@ function openElModal(i){
   document.getElementById('el-anders').value=el?el.typeAnders||'':'';
   document.getElementById('el-waarde').value=el?el.waarde||'':'';
   document.getElementById('el-not').value=el?el.notitie||'':'';
+  // type-specifieke velden laden
+  document.getElementById('el-kenteken').value=el?el.kenteken||'':'';
+  document.getElementById('el-kleur').value=el?el.kleur||'':'';
+  document.getElementById('el-merk').value=el?el.merk||'':'';
+  document.getElementById('el-model').value=el?el.model||'':'';
+  document.getElementById('el-telnr').value=el?el.telnr||el.waarde||'':'';
+  document.getElementById('el-telland').value=el?el.telland||'':'';
+  document.getElementById('el-iban').value=el?el.iban||'':'';
+  document.getElementById('el-banknaam').value=el?el.banknaam||'':'';
+  document.getElementById('el-bankland').value=el?el.bankland||'':'';
+  document.getElementById('el-smplatform').value=el?el.smplatform||'':'';
+  document.getElementById('el-smprofiel').value=el?el.smprofiel||el.waarde||'':'';
   elTypeChange();OM('mo-el');
-  setTimeout(function(){document.getElementById('el-waarde').focus();},60);
+  setTimeout(function(){var t=document.getElementById('el-type').value;var f=t==='voertuig'?'el-kenteken':t==='telefoon'?'el-telnr':t==='bankrekening'?'el-iban':t==='sociale_media'?'el-smplatform':'el-waarde';document.getElementById(f).focus();},60);
 }
 function saveEl(){
   if(!SEL)return;
   var arr=elsOf(SEL);
-  var obj={type:document.getElementById('el-type').value,typeAnders:document.getElementById('el-anders').value.trim(),waarde:document.getElementById('el-waarde').value.trim(),notitie:document.getElementById('el-not').value.trim()};
+  var t=document.getElementById('el-type').value;
+  var obj={type:t,typeAnders:document.getElementById('el-anders').value.trim(),notitie:document.getElementById('el-not').value.trim()};
+  if(t==='voertuig'){
+    obj.kenteken=document.getElementById('el-kenteken').value.trim().toUpperCase();
+    obj.kleur=document.getElementById('el-kleur').value.trim();
+    obj.merk=document.getElementById('el-merk').value.trim();
+    obj.model=document.getElementById('el-model').value.trim();
+    obj.waarde=[obj.kenteken,obj.merk,obj.model].filter(Boolean).join(' ');
+  }else if(t==='telefoon'){
+    obj.telnr=document.getElementById('el-telnr').value.trim();
+    obj.telland=document.getElementById('el-telland').value.trim();
+    obj.waarde=obj.telnr;
+  }else if(t==='bankrekening'){
+    obj.iban=document.getElementById('el-iban').value.trim().replace(/\s/g,'');
+    obj.banknaam=document.getElementById('el-banknaam').value.trim();
+    obj.bankland=document.getElementById('el-bankland').value.trim();
+    obj.waarde=obj.iban;
+  }else if(t==='sociale_media'){
+    obj.smplatform=document.getElementById('el-smplatform').value;
+    obj.smprofiel=document.getElementById('el-smprofiel').value.trim();
+    obj.waarde=[obj.smplatform,obj.smprofiel].filter(Boolean).join(': ');
+  }else{
+    obj.waarde=document.getElementById('el-waarde').value.trim();
+  }
   if(EDIT_EL!=null&&arr[EDIT_EL])arr[EDIT_EL]=obj;else arr.push(obj);
   ENTS[SEL].elementen=arr;
   saveEntData(SEL);CM('mo-el');renderDetail();
@@ -583,6 +691,43 @@ function drawNet(targetCtx,scaleOverride){
     var n=NODES[e.id];if(!n)return;
     drawNode(c,n,e);
   });
+  // Elementen als kleine subnodes
+  entsArr().forEach(function(e){
+    var en=NODES[e.id];if(!en)return;
+    var els=(e.elementen||[]);if(!els.length)return;
+    var R_EL=16,DIST=80;
+    var count=els.length;
+    els.forEach(function(el,i){
+      var angle=(i/Math.max(1,count))*Math.PI*2-Math.PI/2;
+      var ex=en.x+Math.cos(angle)*DIST;
+      var ey=en.y+Math.sin(angle)*DIST;
+      // verbindingslijn
+      c.save();
+      c.setLineDash([4,3]);
+      c.strokeStyle='rgba(148,163,184,.35)';
+      c.lineWidth=1;
+      c.beginPath();
+      c.moveTo(en.x+Math.cos(angle)*38,en.y+Math.sin(angle)*38);
+      c.lineTo(ex-Math.cos(angle)*R_EL,ey-Math.sin(angle)*R_EL);
+      c.stroke();
+      c.setLineDash([]);
+      c.restore();
+      // elementnode
+      c.beginPath();c.arc(ex,ey,R_EL,0,Math.PI*2);
+      c.fillStyle='rgba(15,30,55,0.88)';c.fill();
+      c.lineWidth=1;c.strokeStyle='rgba(148,163,184,.45)';c.stroke();
+      c.textAlign='center';c.textBaseline='middle';
+      c.font='10px sans-serif';
+      c.fillText(EL_ICONS[el.type]||'📎',ex,ey);
+      // naam
+      var nm=elSummaryShort(el);
+      c.font='500 8px -apple-system,Segoe UI,sans-serif';
+      c.fillStyle='rgba(148,163,184,.75)';
+      c.textBaseline='top';
+      c.fillText(nm,ex,ey+R_EL+3);
+    });
+  });
+  c.setLineDash([]);
   c.restore();
 }
 function drawEdge(c,a,b,r){
