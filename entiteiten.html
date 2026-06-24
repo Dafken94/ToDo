@@ -434,6 +434,7 @@ function openEntModal(id){
   document.getElementById('e-not').value=e?e.notities||'':'';
   entTypeChange();OM('mo-ent');
 }
+function markReq(id){var el=document.getElementById(id);if(!el)return;el.style.border='2px solid #dc2626';el.focus();setTimeout(function(){el.style.border='';},1800);}
 function saveEnt(){
   var id=EDIT_ENT||gId();
   var existing=ENTS[id]||{};
@@ -442,13 +443,13 @@ function saveEnt(){
     obj.bedrijfsnaam=document.getElementById('e-bnaam').value.trim();
     obj.kbo=document.getElementById('e-kbo').value.trim();
     obj.adres=document.getElementById('e-adres').value.trim();
-    if(!obj.bedrijfsnaam){toast('❌ Vul een naam in');return;}
+    if(!obj.bedrijfsnaam){markReq('e-bnaam');toast('❌ Vul een naam / handelsnaam in');return;}
   }else{
     obj.voornaam=document.getElementById('e-voor').value.trim();
     obj.familienaam=document.getElementById('e-fam').value.trim();
     obj.geboortedatum=document.getElementById('e-gb').value;
     obj.rijksregister=document.getElementById('e-rr').value.trim();
-    if(!obj.voornaam&&!obj.familienaam){toast('❌ Vul een naam in');return;}
+    if(!obj.voornaam&&!obj.familienaam){markReq('e-voor');toast('❌ Vul minstens een voornaam of familienaam in');return;}
   }
   ENTS[id]=obj;
   saveEntData(id);SEL=id;CM('mo-ent');renderAll();

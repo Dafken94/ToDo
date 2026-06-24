@@ -539,7 +539,7 @@ var SBN='cursor:pointer;font-family:inherit;font-size:11px;font-weight:700;borde
 })();
 
 function gId(){if(typeof crypto!=='undefined'&&crypto.randomUUID)return crypto.randomUUID();return Date.now().toString(36)+Math.random().toString(36).slice(2,9);}
-function openEntiteiten(did){var d=DOS.find(function(x){return x.id===did;});var naam=d?encodeURIComponent(d.naam||''):'';var ov=document.getElementById('ent-ov');var ifr=document.getElementById('ent-ifr');ifr.src='entiteiten.html?did='+encodeURIComponent(did)+'&naam='+naam;ov.style.display='flex';}
+function openEntiteiten(did){var d=DOS.find(function(x){return x.id===did;});var naam=d?encodeURIComponent(d.naam||''):'';var ov=document.getElementById('ent-ov');var ifr=document.getElementById('ent-ifr');ifr.src='entiteiten.html?did='+encodeURIComponent(did)+'&naam='+naam+'&_v='+Date.now();ov.style.display='flex';}
 function closeEntiteiten(){var ov=document.getElementById('ent-ov');ov.style.display='none';document.getElementById('ent-ifr').src='about:blank';}
 function td(){return new Date().toISOString().slice(0,10);}
 function fd(d){if(!d)return'--';var p=d.split('-');if(p.length!==3)return d;return p[2]+'/'+p[1]+'/'+p[0];}
