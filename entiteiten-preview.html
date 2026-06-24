@@ -428,7 +428,9 @@ function saveEnt(){
     if(!obj.voornaam&&!obj.familienaam){markReq('e-voor');toast('❌ Vul minstens een voornaam of familienaam in');return;}
   }
   ENTS[id]=obj;
-  saveEntData(id);SEL=id;CM('mo-ent');renderAll();
+  try{saveEntData(id);}catch(ex){console.warn('saveEntData',ex);}
+  SEL=id;CM('mo-ent');
+  try{renderAll();}catch(ex){console.warn('renderAll',ex);}
   toast(EDIT_ENT?'✓ Entiteit bijgewerkt':'✓ Entiteit toegevoegd');
 }
 function delEnt(id){

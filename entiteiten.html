@@ -272,8 +272,9 @@ function loadLocal(){try{var raw=localStorage.getItem(lsKey());if(raw){var o=JSO
 function saveLocal(){try{localStorage.setItem(lsKey(),JSON.stringify({entiteiten:ENTS,relaties:RELS}));}catch(e){}}
 function basePath(){return 'gebruikers/'+_uid+'/entiteiten/'+DID;}
 
-function saveEntData(id){saveLocal();if(_fbReady&&_db&&_uid){_db.ref(basePath()+'/entiteiten/'+id).set(ENTS[id]||null).catch(function(e){console.warn('fb ent',e);});}}
-function saveRelData(id){saveLocal();if(_fbReady&&_db&&_uid){_db.ref(basePath()+'/relaties/'+id).set(RELS[id]||null).catch(function(e){console.warn('fb rel',e);});}}
+function fbClean(obj){try{return JSON.parse(JSON.stringify(obj));}catch(e){return null;}}
+function saveEntData(id){saveLocal();if(_fbReady&&_db&&_uid){try{_db.ref(basePath()+'/entiteiten/'+id).set(fbClean(ENTS[id])||null).catch(function(e){console.warn('fb ent',e);});}catch(e){console.warn('fb ent sync',e);}}}
+function saveRelData(id){saveLocal();if(_fbReady&&_db&&_uid){try{_db.ref(basePath()+'/relaties/'+id).set(fbClean(RELS[id])||null).catch(function(e){console.warn('fb rel',e);});}catch(e){console.warn('fb rel sync',e);}}}
 
 function initFB(){
   loadLocal();
@@ -457,7 +458,9 @@ function saveEnt(){
     if(!obj.voornaam&&!obj.familienaam){markReq('e-voor');toast('❌ Vul minstens een voornaam of familienaam in');return;}
   }
   ENTS[id]=obj;
-  saveEntData(id);SEL=id;CM('mo-ent');renderAll();
+  try{saveEntData(id);}catch(ex){console.warn('saveEntData',ex);}
+  SEL=id;CM('mo-ent');
+  try{renderAll();}catch(ex){console.warn('renderAll',ex);}
   toast(EDIT_ENT?'✓ Entiteit bijgewerkt':'✓ Entiteit toegevoegd');
 }
 function delEnt(id){
