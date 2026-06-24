@@ -94,6 +94,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
  .legend{position:static;margin:0;border-radius:0}
  .net-wrap{flex-direction:column}
 }
+.pt-toggle{display:flex;border:1.5px solid var(--input-border);border-radius:7px;overflow:hidden}
+.pt-btn{flex:1;padding:8px 10px;border:none;background:var(--input-bg);color:var(--text2);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;line-height:1.3}
+.pt-btn.on{background:var(--accent);color:#fff}
+.rp-tag{display:inline-block;font-size:9px;font-weight:700;background:#2563eb;color:#fff;border-radius:4px;padding:1px 5px;vertical-align:middle;margin-left:4px;text-transform:uppercase;letter-spacing:.04em}
 </style>
 </head>
 <body>
@@ -139,17 +143,31 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
   <div class="ob" onclick="event.stopPropagation()">
     <div class="ob-hd"><span class="ob-ti" id="mo-ent-ti">Entiteit</span><button class="ob-x" onclick="CM('mo-ent')">&times;</button></div>
     <div class="ob-bd">
-      <div class="fld-row">
-        <div class="fld"><label>Voornaam</label><input id="e-voor" type="text" autocomplete="off"></div>
-        <div class="fld"><label>Familienaam</label><input id="e-fam" type="text" autocomplete="off"></div>
+      <div class="fld">
+        <label>Persoontype</label>
+        <div class="pt-toggle">
+          <button id="pt-nat" class="pt-btn on" onclick="setPersoonType('natuurlijk')">&#128100; Natuurlijk persoon</button>
+          <button id="pt-rp" class="pt-btn" onclick="setPersoonType('rechtspersoon')">&#127970; Rechtspersoon</button>
+        </div>
+      </div>
+      <div id="e-nat-fields">
+        <div class="fld-row">
+          <div class="fld"><label>Voornaam</label><input id="e-voor" type="text" autocomplete="off"></div>
+          <div class="fld"><label>Familienaam</label><input id="e-fam" type="text" autocomplete="off"></div>
+        </div>
+        <div class="fld-row">
+          <div class="fld"><label>Geboortedatum</label><input id="e-gb" type="date"></div>
+          <div class="fld"><label>Rijksregister</label><input id="e-rr" type="text" placeholder="85.03.15-001.23" autocomplete="off"></div>
+        </div>
+      </div>
+      <div id="e-rp-fields" style="display:none">
+        <div class="fld"><label>Naam / handelsnaam *</label><input id="e-bnaam" type="text" autocomplete="off"></div>
+        <div class="fld"><label>KBO-nummer</label><input id="e-kbo" type="text" placeholder="0xxx.xxx.xxx" autocomplete="off"></div>
+        <div class="fld"><label>Adres</label><input id="e-adres" type="text" autocomplete="off"></div>
       </div>
       <div class="fld-row">
         <div class="fld"><label>Type</label><select id="e-type" onchange="entTypeChange()"></select></div>
         <div class="fld" id="e-anders-wrap" style="display:none"><label>Type (anders)</label><input id="e-anders" type="text" autocomplete="off"></div>
-      </div>
-      <div class="fld-row">
-        <div class="fld"><label>Geboortedatum</label><input id="e-gb" type="date"></div>
-        <div class="fld"><label>Rijksregister</label><input id="e-rr" type="text" placeholder="85.03.15-001.23" autocomplete="off"></div>
       </div>
       <div class="fld"><label>Notities</label><textarea id="e-not"></textarea></div>
     </div>
@@ -233,15 +251,24 @@ function toast(msg,type){var t=document.getElementById('toast');t.classList.remo
 function CM(id){document.getElementById(id).classList.remove('show');}
 function OM(id){document.getElementById(id).classList.add('show');}
 function updateSync(){var d=document.getElementById('sync-dot');if(!d)return;d.textContent='● Lokaal';d.style.color='var(--text2)';}
-function entName(e){if(!e)return '?';var n=((e.voornaam||'')+' '+(e.familienaam||'')).trim();return n||'Naamloos';}
-function entInitials(e){var v=(e.voornaam||'').trim(),f=(e.familienaam||'').trim();var i=(v?v[0]:'')+(f?f[0]:'');if(!i)i=(entName(e)[0]||'?');return i.toUpperCase();}
+function entName(e){if(!e)return '?';if(e.persoonType==='rechtspersoon')return (e.bedrijfsnaam||'').trim()||'Naamloos bedrijf';var n=((e.voornaam||'')+' '+(e.familienaam||'')).trim();return n||'Naamloos';}
+function entInitials(e){if(!e)return '?';if(e.persoonType==='rechtspersoon'){var b=(e.bedrijfsnaam||'').trim();return b?b[0].toUpperCase():'B';}var v=(e.voornaam||'').trim(),f=(e.familienaam||'').trim();var i=(v?v[0]:'')+(f?f[0]:'');if(!i)i=(entName(e)[0]||'?');return i.toUpperCase();}
+var _persType='natuurlijk';
+function setPersoonType(t){
+  _persType=t;
+  document.getElementById('pt-nat').classList.toggle('on',t==='natuurlijk');
+  document.getElementById('pt-rp').classList.toggle('on',t==='rechtspersoon');
+  document.getElementById('e-nat-fields').style.display=t==='natuurlijk'?'':'none';
+  document.getElementById('e-rp-fields').style.display=t==='rechtspersoon'?'':'none';
+  setTimeout(function(){var f=t==='natuurlijk'?document.getElementById('e-voor'):document.getElementById('e-bnaam');if(f)f.focus();},40);
+}
 function entColor(e){return TYPES[e.type]||TYPES.andere;}
 function typeLabel(e){if(e.type==='andere'&&e.typeAnders)return e.typeAnders;return TYPE_LABELS[e.type]||'Andere';}
 function fd(s){if(!s)return '—';var p=s.split('-');if(p.length===3)return p[2]+'/'+p[1]+'/'+p[0];return s;}
 function entsArr(){return Object.keys(ENTS).map(function(k){return ENTS[k];}).sort(function(a,b){return entName(a).localeCompare(entName(b));});}
 function relsArr(){return Object.keys(RELS).map(function(k){return RELS[k];});}
 
-function goBack(){window.location.href='index.html';}
+function goBack(){if(window.parent&&window.parent!==window&&typeof window.parent.closeEntiteiten==='function'){window.parent.closeEntiteiten();}else{window.location.href='index-preview.html';}}
 
 /* ===== Data laden / opslaan ===== */
 function loadLocal(){try{var raw=localStorage.getItem(lsKey());if(raw){var o=JSON.parse(raw);ENTS=o.entiteiten||{};RELS=o.relaties||{};}}catch(e){}}
@@ -277,9 +304,10 @@ function renderList(){
   var el=document.getElementById('ent-list');
   if(!arr.length){el.innerHTML='<div class="empty">'+(entsArr().length?'Geen entiteiten in dit filter':'Nog geen entiteiten.<br>Klik op + Entiteit')+'</div>';return;}
   el.innerHTML=arr.map(function(e){
+    var isRp=e.persoonType==='rechtspersoon';
     return '<div class="ent-item'+(SEL===e.id?' on':'')+'" onclick="selectEnt(\''+e.id+'\')">'
-      +'<div class="ent-av" style="background:'+entColor(e)+'">'+esc(entInitials(e))+'</div>'
-      +'<div class="ent-nm"><div class="ent-nm-t">'+esc(entName(e))+'</div><div class="ent-nm-s">'+esc(typeLabel(e))+'</div></div>'
+      +'<div class="ent-av" style="background:'+entColor(e)+'">'+(isRp?'&#127970;':esc(entInitials(e)))+'</div>'
+      +'<div class="ent-nm"><div class="ent-nm-t">'+esc(entName(e))+(isRp?'<span class="rp-tag">RP</span>':'')+'</div><div class="ent-nm-s">'+esc(typeLabel(e))+'</div></div>'
       +'</div>';
   }).join('');
 }
@@ -292,19 +320,24 @@ function renderDetail(){
     return;
   }
   var e=ENTS[SEL];
+  var isRp=e.persoonType==='rechtspersoon';
   var els=e.elementen?(Array.isArray(e.elementen)?e.elementen:Object.keys(e.elementen).map(function(k){return e.elementen[k];})):[];
   var h='';
   // Info card
   h+='<div class="card">'
     +'<div class="card-hd"><div style="display:flex;align-items:center;gap:11px;min-width:0">'
-    +'<div class="ent-av" style="width:42px;height:42px;font-size:15px;background:'+entColor(e)+'">'+esc(entInitials(e))+'</div>'
-    +'<div style="min-width:0"><div style="font-size:18px;font-weight:800;color:var(--text)">'+esc(entName(e))+'</div>'
+    +'<div class="ent-av" style="width:42px;height:42px;font-size:'+(isRp?'22':'15')+'px;background:'+entColor(e)+'">'+(isRp?'&#127970;':esc(entInitials(e)))+'</div>'
+    +'<div style="min-width:0"><div style="font-size:18px;font-weight:800;color:var(--text)">'+esc(entName(e))+(isRp?'<span class="rp-tag">Rechtspersoon</span>':'')+'</div>'
     +'<div style="font-size:12px;font-weight:700;color:'+entColor(e)+';text-transform:capitalize">'+esc(typeLabel(e))+'</div></div></div>'
-    +'<div style="display:flex;gap:6px"><button class="btnW" onclick="openEntModal(\''+e.id+'\')">✎ Bewerken</button><button class="btnR" onclick="delEnt(\''+e.id+'\')">✕ Verwijderen</button></div>'
+    +'<div style="display:flex;gap:6px"><button class="btnW" onclick="openEntModal(\''+e.id+'\')">&#9998; Bewerken</button><button class="btnR" onclick="delEnt(\''+e.id+'\')">&#10005; Verwijderen</button></div>'
     +'</div>'
     +'<div class="kv">'
-    +'<div class="kvb"><div class="kvl">Geboortedatum</div><div class="kvv">'+fd(e.geboortedatum)+'</div></div>'
-    +'<div class="kvb"><div class="kvl">Rijksregister</div><div class="kvv" style="font-family:monospace">'+esc(e.rijksregister||'—')+'</div></div>'
+    +(isRp
+      ?'<div class="kvb"><div class="kvl">KBO-nummer</div><div class="kvv" style="font-family:monospace">'+esc(e.kbo||'—')+'</div></div>'
+       +'<div class="kvb" style="grid-column:1/-1"><div class="kvl">Adres</div><div class="kvv">'+esc(e.adres||'—')+'</div></div>'
+      :'<div class="kvb"><div class="kvl">Geboortedatum</div><div class="kvv">'+fd(e.geboortedatum)+'</div></div>'
+       +'<div class="kvb"><div class="kvl">Rijksregister</div><div class="kvv" style="font-family:monospace">'+esc(e.rijksregister||'—')+'</div></div>'
+    )
     +'</div>'
     +(e.notities?'<div style="margin-top:10px;font-size:13px;color:var(--text);background:var(--bg3);border-radius:7px;padding:9px 12px;line-height:1.55;white-space:pre-wrap;word-break:break-word;border-left:3px solid '+entColor(e)+'">'+esc(e.notities)+'</div>':'')
     +'</div>';
@@ -363,23 +396,37 @@ function openEntModal(id){
   EDIT_ENT=id;fillTypeSelect('e-type');
   var e=id?ENTS[id]:null;
   document.getElementById('mo-ent-ti').textContent=id?'Entiteit bewerken':'Nieuwe entiteit';
+  var pt=(e&&e.persoonType==='rechtspersoon')?'rechtspersoon':'natuurlijk';
+  setPersoonType(pt);
   document.getElementById('e-voor').value=e?e.voornaam||'':'';
   document.getElementById('e-fam').value=e?e.familienaam||'':'';
-  document.getElementById('e-type').value=e?e.type||'verdachte':'verdachte';
-  document.getElementById('e-anders').value=e?e.typeAnders||'':'';
   document.getElementById('e-gb').value=e?e.geboortedatum||'':'';
   document.getElementById('e-rr').value=e?e.rijksregister||'':'';
+  document.getElementById('e-bnaam').value=e?e.bedrijfsnaam||'':'';
+  document.getElementById('e-kbo').value=e?e.kbo||'':'';
+  document.getElementById('e-adres').value=e?e.adres||'':'';
+  document.getElementById('e-type').value=e?e.type||'verdachte':'verdachte';
+  document.getElementById('e-anders').value=e?e.typeAnders||'':'';
   document.getElementById('e-not').value=e?e.notities||'':'';
   entTypeChange();OM('mo-ent');
-  setTimeout(function(){document.getElementById('e-voor').focus();},60);
 }
 function saveEnt(){
-  var voor=document.getElementById('e-voor').value.trim();
-  var fam=document.getElementById('e-fam').value.trim();
-  if(!voor&&!fam){toast('❌ Vul een naam in');return;}
   var id=EDIT_ENT||gId();
   var existing=ENTS[id]||{};
-  ENTS[id]={id:id,voornaam:voor,familienaam:fam,type:document.getElementById('e-type').value,typeAnders:document.getElementById('e-anders').value.trim(),geboortedatum:document.getElementById('e-gb').value,rijksregister:document.getElementById('e-rr').value.trim(),notities:document.getElementById('e-not').value,elementen:existing.elementen||[],x:existing.x,y:existing.y};
+  var obj={id:id,persoonType:_persType,type:document.getElementById('e-type').value,typeAnders:document.getElementById('e-anders').value.trim(),notities:document.getElementById('e-not').value,elementen:existing.elementen||[],x:existing.x,y:existing.y};
+  if(_persType==='rechtspersoon'){
+    obj.bedrijfsnaam=document.getElementById('e-bnaam').value.trim();
+    obj.kbo=document.getElementById('e-kbo').value.trim();
+    obj.adres=document.getElementById('e-adres').value.trim();
+    if(!obj.bedrijfsnaam){toast('❌ Vul een naam in');return;}
+  }else{
+    obj.voornaam=document.getElementById('e-voor').value.trim();
+    obj.familienaam=document.getElementById('e-fam').value.trim();
+    obj.geboortedatum=document.getElementById('e-gb').value;
+    obj.rijksregister=document.getElementById('e-rr').value.trim();
+    if(!obj.voornaam&&!obj.familienaam){toast('❌ Vul een naam in');return;}
+  }
+  ENTS[id]=obj;
   saveEntData(id);SEL=id;CM('mo-ent');renderAll();
   toast(EDIT_ENT?'✓ Entiteit bijgewerkt':'✓ Entiteit toegevoegd');
 }
