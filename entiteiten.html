@@ -570,10 +570,13 @@ function syncNodes(){
   // remove gone
   Object.keys(NODES).forEach(function(k){if(ids.indexOf(k)===-1)delete NODES[k];});
   var newOnes=ids.filter(function(id){return !NODES[id];});
-  if(Object.keys(NODES).length===0){circlePositions();return;}
+  if(Object.keys(NODES).length===0){
+    var hasSaved=newOnes.some(function(id){var e=ENTS[id];return e&&typeof e.x==='number';});
+    if(!hasSaved){circlePositions();return;}
+  }
   if(newOnes.length){
     var r=canvas.getBoundingClientRect();var cx=(r.width||600)/2,cy=(r.height||400)/2;
-    newOnes.forEach(function(id,i){var e=ENTS[id];if(e&&typeof e.x==='number'){NODES[id]={x:e.x,y:e.y};}else{NODES[id]={x:cx+(Math.random()-0.5)*200,y:cy+(Math.random()-0.5)*200};}});
+    newOnes.forEach(function(id){var e=ENTS[id];if(e&&typeof e.x==='number'){NODES[id]={x:e.x,y:e.y};}else{NODES[id]={x:cx+(Math.random()-0.5)*200,y:cy+(Math.random()-0.5)*200};}});
   }
 }
 function resetPositions(){circlePositions();NET_SCALE=1;NET_OX=0;NET_OY=0;drawNet();toast('✓ Herpositioneerd');}
