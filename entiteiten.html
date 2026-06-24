@@ -288,16 +288,18 @@ function initFB(){
       if(!user){window.location.href='index.html';return;}
       _uid=user.uid;_db=firebase.database();
       _db.ref('.info/connected').on('value',function(s){_sync=s.val()?'online':'offline';updateSync();});
+      var _fbEntsLoaded=false,_fbRelsLoaded=false;
+      function _checkFbReady(){if(_fbEntsLoaded&&_fbRelsLoaded){_fbReady=true;saveLocal();renderAll();}}
       _db.ref(basePath()+'/entiteiten').once('value').then(function(snap){
         var remote=snap.val()||{};
         Object.keys(remote).forEach(function(k){if(!ENTS[k])ENTS[k]=remote[k];});
-        _fbReady=true;saveLocal();renderAll();
-      }).catch(function(e){console.warn('ent load',e);_fbReady=true;});
+        _fbEntsLoaded=true;_checkFbReady();
+      }).catch(function(e){console.warn('ent load',e);_fbEntsLoaded=true;_checkFbReady();});
       _db.ref(basePath()+'/relaties').once('value').then(function(snap){
         var remote=snap.val()||{};
         Object.keys(remote).forEach(function(k){if(!RELS[k])RELS[k]=remote[k];});
-        saveLocal();renderAll();
-      }).catch(function(e){console.warn('rel load',e);});
+        _fbRelsLoaded=true;_checkFbReady();
+      }).catch(function(e){console.warn('rel load',e);_fbRelsLoaded=true;_checkFbReady();});
     });
   }catch(e){console.warn('Firebase fout',e);_sync='offline';updateSync();}
 }
