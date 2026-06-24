@@ -286,10 +286,14 @@ function initFB(){
       _uid=user.uid;_db=firebase.database();
       _db.ref('.info/connected').on('value',function(s){_sync=s.val()?'online':'offline';updateSync();});
       _db.ref(basePath()+'/entiteiten').once('value').then(function(snap){
-        ENTS=snap.val()||{};_fbReady=true;saveLocal();renderAll();
+        var remote=snap.val()||{};
+        Object.keys(remote).forEach(function(k){if(!ENTS[k])ENTS[k]=remote[k];});
+        _fbReady=true;saveLocal();renderAll();
       }).catch(function(e){console.warn('ent load',e);_fbReady=true;});
       _db.ref(basePath()+'/relaties').once('value').then(function(snap){
-        RELS=snap.val()||{};saveLocal();renderAll();
+        var remote=snap.val()||{};
+        Object.keys(remote).forEach(function(k){if(!RELS[k])RELS[k]=remote[k];});
+        saveLocal();renderAll();
       }).catch(function(e){console.warn('rel load',e);});
     });
   }catch(e){console.warn('Firebase fout',e);_sync='offline';updateSync();}
@@ -399,6 +403,7 @@ function switchTab(t){
   document.getElementById('pane-detail').classList.toggle('on',t==='detail');
   document.getElementById('pane-net').classList.toggle('on',t==='net');
   if(t==='net'){requestAnimationFrame(function(){resizeCanvas();syncNodes();drawNet();});}
+  else{renderDetail();}
 }
 
 /* ===== Entiteit modal ===== */
