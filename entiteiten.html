@@ -223,7 +223,7 @@ var DNAAM=PARAMS.get('naam')?decodeURIComponent(PARAMS.get('naam')):'Dossier';
 var ENTS={}, RELS={};
 var SEL=null, ACTIVE_FILTER='alles', TAB='detail';
 var EDIT_ENT=null, EDIT_EL=null, EDIT_REL=null;
-var _db=null,_ref=null,_relRef=null,_fbReady=false,_uid=null,_sync='connecting';
+var _db=null,_fbReady=false,_uid=null,_sync='connecting';
 
 var THEME=localStorage.getItem('dos_theme')||(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
 
@@ -257,20 +257,22 @@ function saveRelData(id){saveLocal();if(_fbReady&&_db&&_uid){_db.ref(basePath()+
 
 function initFB(){
   loadLocal();
-  if(typeof firebase==='undefined'||window._fbLoadErr){_sync='offline';updateSync();_fbReady=false;renderAll();return;}
+  renderAll();
+  if(typeof firebase==='undefined'||window._fbLoadErr){_sync='offline';updateSync();return;}
   try{
     if(!firebase.apps||!firebase.apps.length)firebase.initializeApp(FB_CONF);
     firebase.auth().onAuthStateChanged(function(user){
       if(!user){window.location.href='index.html';return;}
       _uid=user.uid;_db=firebase.database();
       _db.ref('.info/connected').on('value',function(s){_sync=s.val()?'online':'offline';updateSync();});
-      if(_ref)_ref.off();if(_relRef)_relRef.off();
-      _ref=_db.ref(basePath()+'/entiteiten');
-      _relRef=_db.ref(basePath()+'/relaties');
-      _ref.on('value',function(snap){ENTS=snap.val()||{};_fbReady=true;saveLocal();if(SEL&&!ENTS[SEL])SEL=null;renderAll();},function(e){console.warn('ent listener',e);});
-      _relRef.on('value',function(snap){RELS=snap.val()||{};saveLocal();renderAll();},function(e){console.warn('rel listener',e);});
+      _db.ref(basePath()+'/entiteiten').once('value').then(function(snap){
+        ENTS=snap.val()||{};_fbReady=true;saveLocal();renderAll();
+      }).catch(function(e){console.warn('ent load',e);_fbReady=true;});
+      _db.ref(basePath()+'/relaties').once('value').then(function(snap){
+        RELS=snap.val()||{};saveLocal();renderAll();
+      }).catch(function(e){console.warn('rel load',e);});
     });
-  }catch(e){console.warn('Firebase fout',e);_sync='offline';updateSync();renderAll();}
+  }catch(e){console.warn('Firebase fout',e);_sync='offline';updateSync();}
 }
 
 /* ===== Render ===== */
