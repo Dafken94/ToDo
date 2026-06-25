@@ -628,6 +628,7 @@ function toast(msg,type){
 }
 
 var DOS=[], VW='dash', VIEW='grid', AID=null, FS='open', FC=null, FO=null, SO='desc', EE={}, EAF={}, TF='alles';
+var _FPOPEN=false;
 var _odType='oo';
 var ALG_FP='', ALG_SORT_DATE='', ALG_HIDE_DONE=true;
 var D_NPV_GRP=false;
@@ -1181,7 +1182,7 @@ function render(){
     +'<div class="sb-bottom"><span id="sync-dot" style="font-size:11px;font-weight:600">\u25cf Verbinden...</span>'
     +'<button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()">'+(THEME==='dark'?'\u2600 Licht':'\u263e Donker')+'</button>'
     +'</div>'
-    +'<div style="padding:4px 14px 10px;text-align:right;font-size:9px;font-weight:600;color:var(--sb-text);opacity:.4;letter-spacing:.06em">v24/06 20:30</div>'
+    +''
     +'</div>';
 
   var tb='<div class="topbar">'
@@ -1318,15 +1319,22 @@ function buildList(srchVal){
   var fobtn=function(val,icon,lbl,cnt){var on=(val===null?FO===null:FO===val);return '<button onclick="setFO('+(val===null?'null':'\''+val+'\'')+');" style="font-family:inherit;font-size:11px;font-weight:700;padding:5px 10px;border-radius:7px;cursor:pointer;border:1.5px solid '+(on?'#7c3aed':'var(--border)')+';background:'+(on?'#7c3aed':'var(--bg2)')+';color:'+(on?'#fff':'var(--text2)')+';transition:all .15s;white-space:nowrap;display:flex;flex:1;align-items:center;justify-content:center;gap:5px">'+icon+' '+lbl+'<span style="opacity:.7;margin-left:2px">'+cnt+'</span></button>';};
   var ooCount=regDOS.filter(function(d){return (d.onderzoeksType||'oo')==='oo';}).length;
   var goCount=regDOS.filter(function(d){return d.onderzoeksType==='go';}).length;
-  html+='<div style="display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:6px">'
+  var _af=(FS!=='open'?1:0)+(FO!==null?1:0);
+  var _badge=_af>0?'<span style="background:#f59e0b;color:#fff;font-size:9px;font-weight:800;border-radius:8px;padding:1px 6px;margin-left:4px">'+_af+'</span>':'';
+  html+='<div style="margin-bottom:10px">'
+    +'<button id="filter-toggle-btn" onclick="toggleFilters()" style="font-family:inherit;font-size:12px;font-weight:700;padding:6px 12px;border-radius:7px;cursor:pointer;border:1.5px solid var(--border);background:var(--bg2);color:var(--text2);display:inline-flex;align-items:center;gap:6px;transition:all .15s">\u2699 Filters'+_badge+'<span id="filter-arrow" style="font-size:9px;opacity:.5">'+(_FPOPEN?'\u25B2':'\u25BC')+'</span></button>'
+    +'<div id="filter-panel" style="display:'+(_FPOPEN?'block':'none')+';margin-top:8px">'
+    +'<div style="display:flex;gap:6px;margin-bottom:6px">'
     +fsbtn(null,'\uD83D\uDCC1','Alle',regDOS.length)
     +fsbtn('open','\uD83D\uDD13','Lopend',open)
     +fsbtn('gesloten','\uD83D\uDD12','Archief',closed)
     +'</div>'
-    +'<div style="display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:10px">'
+    +'<div style="display:flex;gap:6px">'
     +fobtn(null,'\uD83D\uDCC4','Alle types',regDOS.length)
     +fobtn('oo','\u2696\uFE0F','Opsporing',ooCount)
     +fobtn('go','\uD83D\uDD0D','Gerechtelijk',goCount)
+    +'</div>'
+    +'</div>'
     +'</div>';
   html+='<div class="toolbar"><div class="search-wrap"><span class="si">\uD83D\uDD0D</span><input id="srch" type="search" placeholder="Zoek op PV of naam..." value="'+esc(srchVal)+'" oninput="onSrch()" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></div></div>'
     +'<div id="dos-count" style="font-size:11px;color:var(--text3);font-weight:600;margin-bottom:10px">'+list.length+' dossier'+(list.length!==1?'s':'')+' gevonden</div>';
@@ -1865,6 +1873,13 @@ function toggleSort(){SO=SO==='asc'?'desc':'asc';render();}
 function setFS(s){FS=s;render();}
 function setFC(id){FC=id;render();}
 function setFO(v){FO=v;render();}
+function toggleFilters(){
+  _FPOPEN=!_FPOPEN;
+  var p=document.getElementById('filter-panel');
+  var a=document.getElementById('filter-arrow');
+  if(p)p.style.display=_FPOPEN?'block':'none';
+  if(a)a.textContent=_FPOPEN?'▲':'▼';
+}
 function setOdType(t){_odType=t;document.getElementById('od-oo').classList.toggle('on',t==='oo');document.getElementById('od-go').classList.toggle('on',t==='go');document.getElementById('f-dosnr-row').style.display=t==='go'?'':'none';}
 function setView(v){VIEW=v;render();}
 function goL(){VW='list';AID=null;render();}
