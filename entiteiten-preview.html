@@ -558,13 +558,13 @@ function uploadFoto(eid){
     reader.onload=function(ev){
       var img=new Image();
       img.onload=function(){
-        var size=150;
-        var oc=document.createElement('canvas');oc.width=size;oc.height=size;
+        var maxW=112,maxH=150;
+        var scale=Math.min(maxW/img.width,maxH/img.height);
+        var dw=Math.round(img.width*scale),dh=Math.round(img.height*scale);
+        var oc=document.createElement('canvas');oc.width=maxW;oc.height=maxH;
         var oc2=oc.getContext('2d');
-        var sw=img.width,sh=img.height,sx=0,sy=0;
-        if(sw>sh){sx=Math.round((sw-sh)*0.5);sw=sh;}else{sy=Math.round((sh-sw)*0.2);sh=sw;}
-        oc2.fillStyle='#ffffff';oc2.fillRect(0,0,size,size);
-        oc2.drawImage(img,sx,sy,sw,sh,0,0,size,size);
+        oc2.fillStyle='#ffffff';oc2.fillRect(0,0,maxW,maxH);
+        oc2.drawImage(img,Math.round((maxW-dw)/2),Math.round((maxH-dh)/2),dw,dh);
         var b64=oc.toDataURL('image/jpeg',0.75);
         ENTS[eid].foto=b64;
         delete IMG_CACHE[eid];
@@ -856,21 +856,36 @@ function arrowHead(c,fromx,fromy,tox,toy){
   c.lineTo(tox-s*Math.cos(ang+Math.PI/6),toy-s*Math.sin(ang+Math.PI/6));
   c.closePath();c.fill();
 }
+var FOTO_RW=36,FOTO_RH=48,FOTO_CR=6;
+function roundRect(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.lineTo(x+w-r,y);c.arcTo(x+w,y,x+w,y+r,r);c.lineTo(x+w,y+h-r);c.arcTo(x+w,y+h,x+w-r,y+h,r);c.lineTo(x+r,y+h);c.arcTo(x,y+h,x,y+h-r,r);c.lineTo(x,y+r);c.arcTo(x,y,x+r,y,r);c.closePath();}
 function drawNode(c,n,e){
   var R=38;
-  c.beginPath();c.arc(n.x,n.y,R,0,Math.PI*2);
-  c.fillStyle=entColor(e);c.fill();
-  c.lineWidth=3;
-  if(e.persoonType==='onbekend'){c.setLineDash([6,4]);c.strokeStyle='rgba(255,255,255,.55)';}
-  else{c.setLineDash([]);c.strokeStyle='rgba(255,255,255,.85)';}
-  c.stroke();c.setLineDash([]);
   var cached=e.foto&&IMG_CACHE[e.id];
-  if(cached&&cached.loaded){
-    c.save();c.beginPath();c.arc(n.x,n.y,R-1,0,Math.PI*2);c.clip();
-    c.drawImage(cached.img,n.x-R+1,n.y-R+1,(R-1)*2,(R-1)*2);
-    c.restore();
+  if(e.foto){
+    var RW=FOTO_RW,RH=FOTO_RH,CR=FOTO_CR;
+    roundRect(c,n.x-RW,n.y-RH,RW*2,RH*2,CR);
+    c.fillStyle=entColor(e);c.fill();
+    c.lineWidth=3;c.strokeStyle='rgba(255,255,255,.85)';c.stroke();
+    if(cached&&cached.loaded){
+      c.save();roundRect(c,n.x-RW+2,n.y-RH+2,RW*2-4,RH*2-4,CR-1);c.clip();
+      c.drawImage(cached.img,n.x-RW+2,n.y-RH+2,RW*2-4,RH*2-4);
+      c.restore();
+    }else{
+      if(!cached)ensureFotoLoaded(e);
+      c.textAlign='center';c.textBaseline='middle';
+      c.fillStyle='rgba(255,255,255,.6)';c.font='800 15px -apple-system,Segoe UI,sans-serif';
+      c.fillText(entInitials(e),n.x,n.y);
+    }
+    var nm=entName(e);if(nm.length>18)nm=nm.slice(0,17)+'…';
+    c.font='600 11px -apple-system,Segoe UI,sans-serif';c.fillStyle='#cfe0f0';c.textBaseline='top';c.textAlign='center';
+    c.fillText(nm,n.x,n.y+RH+5);
   }else{
-    if(e.foto&&!cached)ensureFotoLoaded(e);
+    c.beginPath();c.arc(n.x,n.y,R,0,Math.PI*2);
+    c.fillStyle=entColor(e);c.fill();
+    c.lineWidth=3;
+    if(e.persoonType==='onbekend'){c.setLineDash([6,4]);c.strokeStyle='rgba(255,255,255,.55)';}
+    else{c.setLineDash([]);c.strokeStyle='rgba(255,255,255,.85)';}
+    c.stroke();c.setLineDash([]);
     c.textAlign='center';c.textBaseline='middle';
     if(e.persoonType==='rechtspersoon'){
       c.font='24px sans-serif';c.fillText('🏢',n.x,n.y+1);
@@ -879,10 +894,10 @@ function drawNode(c,n,e){
     }else{
       c.fillStyle='#fff';c.font='800 16px -apple-system,Segoe UI,sans-serif';c.fillText(entInitials(e),n.x,n.y);
     }
+    var nm=entName(e);if(nm.length>18)nm=nm.slice(0,17)+'…';
+    c.font='600 11px -apple-system,Segoe UI,sans-serif';c.fillStyle='#cfe0f0';c.textBaseline='top';
+    c.fillText(nm,n.x,n.y+R+5);
   }
-  var nm=entName(e);if(nm.length>18)nm=nm.slice(0,17)+'…';
-  c.font='600 11px -apple-system,Segoe UI,sans-serif';c.fillStyle='#cfe0f0';c.textBaseline='top';
-  c.fillText(nm,n.x,n.y+R+5);
 }
 function ensureFotoLoaded(e){
   if(IMG_CACHE[e.id]&&IMG_CACHE[e.id].src===e.foto)return;
@@ -895,7 +910,11 @@ function ensureFotoLoaded(e){
 function evtPos(ev){var r=canvas.getBoundingClientRect();var cx=(ev.touches?ev.touches[0].clientX:ev.clientX)-r.left;var cy=(ev.touches?ev.touches[0].clientY:ev.clientY)-r.top;return {x:(cx-NET_OX)/NET_SCALE,y:(cy-NET_OY)/NET_SCALE};}
 function hitNode(p){
   var found=null;
-  entsArr().forEach(function(e){var n=NODES[e.id];if(n&&Math.hypot(p.x-n.x,p.y-n.y)<=38)found=e.id;});
+  entsArr().forEach(function(e){
+    var n=NODES[e.id];if(!n)return;
+    if(e.foto){if(Math.abs(p.x-n.x)<=FOTO_RW&&Math.abs(p.y-n.y)<=FOTO_RH)found=e.id;}
+    else{if(Math.hypot(p.x-n.x,p.y-n.y)<=38)found=e.id;}
+  });
   if(found)return found;
   entsArr().forEach(function(e){
     var types=[];(e.elementen||[]).forEach(function(el){if(types.indexOf(el.type)===-1)types.push(el.type);});
@@ -1016,7 +1035,8 @@ function positionTooltip(eid){
   var tt=document.getElementById('net-tooltip');if(!tt||tt.style.display==='none')return;
   var n=NODES[eid];if(!n)return;
   var wr=canvas.parentElement.getBoundingClientRect();
-  var nodeR=38*NET_SCALE;
+  var e=ENTS[eid];
+  var nodeR=(e&&e.foto?FOTO_RW:38)*NET_SCALE;
   var sx=n.x*NET_SCALE+NET_OX, sy=n.y*NET_SCALE+NET_OY;
   var tw=tt.offsetWidth||300, th=tt.offsetHeight||200;
   var GAP=14;
