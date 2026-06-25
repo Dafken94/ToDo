@@ -144,6 +144,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
       <div class="net-wrap">
         <canvas id="net-canvas"></canvas>
         <div id="net-tooltip"></div>
+        <input type="file" id="foto-input" accept="image/*" style="display:none">
         <div class="net-tools">
           <button class="btnW" onclick="resetPositions()">&#8635; Herpositioneren</button>
           <button class="btnW" onclick="netZoom(1.2)">&#128269; +</button>
@@ -413,9 +414,14 @@ function renderDetail(){
   var els=e.elementen?(Array.isArray(e.elementen)?e.elementen:Object.keys(e.elementen).map(function(k){return e.elementen[k];})):[];
   var h='';
   // Info card
+  var avInner=e.foto
+    ?'<img src="'+e.foto+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block">'
+    :(isRp?'&#127970;':isOnb?'?':esc(entInitials(e)));
+  var avOverlay='<div onclick="uploadFoto(\''+e.id+'\')" title="Foto uploaden" style="position:absolute;inset:0;border-radius:50%;display:flex;align-items:center;justify-content:center;opacity:0;background:rgba(0,0,0,.45);cursor:pointer;transition:opacity .15s;font-size:16px" onmouseenter="this.style.opacity=1" onmouseleave="this.style.opacity=0">📷</div>';
+  var avRemove=e.foto?'<div onclick="removeFoto(\''+e.id+'\')" title="Foto verwijderen" style="position:absolute;top:-4px;right:-4px;width:16px;height:16px;border-radius:50%;background:#ef4444;color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid var(--bg2);z-index:2">✕</div>':'';
   h+='<div class="card">'
     +'<div class="card-hd"><div style="display:flex;align-items:center;gap:11px;min-width:0">'
-    +'<div class="ent-av" style="width:42px;height:42px;font-size:'+(isRp||isOnb?'22':'15')+'px;background:'+entColor(e)+'">'+(isRp?'&#127970;':isOnb?'?':esc(entInitials(e)))+'</div>'
+    +'<div class="ent-av" style="position:relative;width:42px;height:42px;font-size:'+(isRp||isOnb?'22':'15')+'px;background:'+entColor(e)+';flex-shrink:0">'+avInner+avOverlay+avRemove+'</div>'
     +'<div style="min-width:0"><div style="font-size:18px;font-weight:800;color:var(--text)">'+esc(entName(e))+(isRp?'<span class="rp-tag">Rechtspersoon</span>':isOnb?'<span class="rp-tag" style="background:#64748b">Onbekende</span>':'')+'</div>'
     +'<div style="font-size:12px;font-weight:700;color:'+entColor(e)+';text-transform:capitalize">'+esc(typeLabel(e))+'</div></div></div>'
     +'<div style="display:flex;gap:6px"><button class="btnW" onclick="openEntModal(\''+e.id+'\')">&#9998; Bewerken</button><button class="btnR" onclick="delEnt(\''+e.id+'\')">&#10005; Verwijderen</button></div>'
@@ -533,13 +539,50 @@ function saveEnt(){
 function delEnt(id){
   confirmDlg('Entiteit "'+entName(ENTS[id])+'" en alle bijbehorende relaties verwijderen?',function(){
     relsArr().forEach(function(r){if(r.vanEntiteitId===id||r.naarEntiteitId===id){delete RELS[r.id];if(_fbReady&&_db&&_uid)_db.ref(basePath()+'/relaties/'+r.id).remove();}});
-    delete ENTS[id];
+    delete ENTS[id];delete IMG_CACHE[id];
     saveLocal();
     if(_fbReady&&_db&&_uid)_db.ref(basePath()+'/entiteiten/'+id).remove();
     if(SEL===id)SEL=null;
     delete NODES[id];
     renderAll();toast('✓ Verwijderd');
   });
+}
+
+/* ===== Foto upload ===== */
+function uploadFoto(eid){
+  var inp=document.getElementById('foto-input');
+  inp.value='';
+  inp.onchange=function(){
+    var file=inp.files[0];if(!file)return;
+    var reader=new FileReader();
+    reader.onload=function(ev){
+      var img=new Image();
+      img.onload=function(){
+        var size=200;
+        var oc=document.createElement('canvas');oc.width=size;oc.height=size;
+        var oc2=oc.getContext('2d');
+        var sw=img.width,sh=img.height,sx=0,sy=0;
+        if(sw>sh){sx=(sw-sh)/2;sw=sh;}else{sy=(sh-sw)/2;sh=sw;}
+        oc2.drawImage(img,sx,sy,sw,sh,0,0,size,size);
+        var b64=oc.toDataURL('image/jpeg',0.82);
+        ENTS[eid].foto=b64;
+        delete IMG_CACHE[eid];
+        saveEntData(eid);renderDetail();
+        if(TAB==='net')drawNet();
+        toast('✓ Foto opgeslagen');
+      };
+      img.src=ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+  inp.click();
+}
+function removeFoto(eid){
+  delete ENTS[eid].foto;
+  delete IMG_CACHE[eid];
+  saveEntData(eid);renderDetail();
+  if(TAB==='net')drawNet();
+  toast('✓ Foto verwijderd');
 }
 
 /* ===== Element modal ===== */
@@ -664,6 +707,7 @@ var NODES={}, NET_SCALE=1, NET_OX=0, NET_OY=0;
 var canvas=document.getElementById('net-canvas'), ctx=canvas.getContext('2d');
 var dragNode=null,dragDX=0,dragDY=0,dragElOffsets={},panning=false,panSX=0,panSY=0,panOX=0,panOY=0,DPR=window.devicePixelRatio||1;
 var hoverNode=null;
+var IMG_CACHE={};
 
 function resizeCanvas(){
   var r=canvas.getBoundingClientRect();
@@ -819,20 +863,32 @@ function drawNode(c,n,e){
   if(e.persoonType==='onbekend'){c.setLineDash([6,4]);c.strokeStyle='rgba(255,255,255,.55)';}
   else{c.setLineDash([]);c.strokeStyle='rgba(255,255,255,.85)';}
   c.stroke();c.setLineDash([]);
-  c.textAlign='center';c.textBaseline='middle';
-  if(e.persoonType==='rechtspersoon'){
-    c.font='24px sans-serif';
-    c.fillText('🏢',n.x,n.y+1);
-  }else if(e.persoonType==='onbekend'){
-    c.fillStyle='rgba(255,255,255,.65)';c.font='800 22px -apple-system,Segoe UI,sans-serif';
-    c.fillText('?',n.x,n.y);
+  var cached=e.foto&&IMG_CACHE[e.id];
+  if(cached&&cached.loaded){
+    c.save();c.beginPath();c.arc(n.x,n.y,R-1,0,Math.PI*2);c.clip();
+    c.drawImage(cached.img,n.x-R+1,n.y-R+1,(R-1)*2,(R-1)*2);
+    c.restore();
   }else{
-    c.fillStyle='#fff';c.font='800 16px -apple-system,Segoe UI,sans-serif';
-    c.fillText(entInitials(e),n.x,n.y);
+    if(e.foto&&!cached)ensureFotoLoaded(e);
+    c.textAlign='center';c.textBaseline='middle';
+    if(e.persoonType==='rechtspersoon'){
+      c.font='24px sans-serif';c.fillText('🏢',n.x,n.y+1);
+    }else if(e.persoonType==='onbekend'){
+      c.fillStyle='rgba(255,255,255,.65)';c.font='800 22px -apple-system,Segoe UI,sans-serif';c.fillText('?',n.x,n.y);
+    }else{
+      c.fillStyle='#fff';c.font='800 16px -apple-system,Segoe UI,sans-serif';c.fillText(entInitials(e),n.x,n.y);
+    }
   }
   var nm=entName(e);if(nm.length>18)nm=nm.slice(0,17)+'…';
   c.font='600 11px -apple-system,Segoe UI,sans-serif';c.fillStyle='#cfe0f0';c.textBaseline='top';
   c.fillText(nm,n.x,n.y+R+5);
+}
+function ensureFotoLoaded(e){
+  if(IMG_CACHE[e.id]&&IMG_CACHE[e.id].src===e.foto)return;
+  var obj={src:e.foto,loaded:false,img:new Image()};
+  IMG_CACHE[e.id]=obj;
+  obj.img.onload=function(){obj.loaded=true;drawNet();};
+  obj.img.src=e.foto;
 }
 
 function evtPos(ev){var r=canvas.getBoundingClientRect();var cx=(ev.touches?ev.touches[0].clientX:ev.clientX)-r.left;var cy=(ev.touches?ev.touches[0].clientY:ev.clientY)-r.top;return {x:(cx-NET_OX)/NET_SCALE,y:(cy-NET_OY)/NET_SCALE};}
