@@ -93,16 +93,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 .iW{cursor:pointer;font-family:inherit;font-size:11px;font-weight:700;border-radius:5px;padding:4px 8px;border:1.5px solid var(--btn-edit-border);background:var(--btn-edit-bg);color:var(--btn-edit-text);line-height:1}
 .iR{cursor:pointer;font-family:inherit;font-size:11px;font-weight:700;border-radius:5px;padding:4px 8px;border:1.5px solid var(--btn-del-border);background:var(--btn-del-bg);color:var(--btn-del-text);line-height:1}
 @media(max-width:768px){
- /* Panelen: enkel het actieve paneel zichtbaar via body-klasse */
  .wrap{flex-direction:column}
- .sidebar,.main{display:none}
- body.mob-lijst .sidebar{display:flex;width:100%;max-height:none;border-right:none;border-bottom:none;flex:1}
- body.mob-detail .main,body.mob-netwerk .main{display:flex;flex:1;width:100%}
  /* Desktop-tabs verbergen, mobiele nav tonen */
  .tabs{display:none!important}
  .mob-nav{display:flex}
- /* Tegels: meer kolommen op breed scherm */
- .sb-list.tiles{grid-template-columns:repeat(auto-fill,minmax(90px,1fr))}
  /* Topbar */
  .topbar{flex-wrap:wrap}
  .tb-tag{display:none}
@@ -124,20 +118,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 #net-tooltip .tt-val{font-size:11px;font-weight:600;color:var(--text);word-break:break-word}
 #net-tooltip .tt-el{display:flex;gap:7px;align-items:flex-start;background:var(--bg3);border-radius:6px;padding:5px 8px;margin-bottom:4px}
 #net-tooltip .tt-rel{font-size:11px;color:var(--text);background:var(--bg3);border-radius:6px;padding:5px 8px;margin-bottom:4px;display:flex;align-items:center;gap:4px;flex-wrap:wrap}
-/* ===== View-filter rij 2 ===== */
-.sb-filter-row2{width:100%;display:flex;gap:5px;flex-wrap:wrap;padding-top:5px;margin-top:3px;border-top:1px solid var(--border)}
-.vchip{font-size:10px;font-weight:700;padding:4px 9px;border-radius:12px;border:1.5px solid var(--border2);background:var(--bg2);color:var(--text2);cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
-.vchip.on{background:var(--accent);color:#fff;border-color:var(--accent)}
-/* ===== Tegelweergave ===== */
-.sb-list.tiles{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:8px}
-.ent-tile{display:flex;flex-direction:column;align-items:center;padding:10px 6px 8px;border-radius:8px;cursor:pointer;border:1.5px solid transparent;text-align:center;background:var(--bg3);transition:background .12s}
-.ent-tile:hover{background:var(--bg4)}
-.ent-tile.on{background:var(--bg4);border-color:var(--accent)}
-.ent-tile .ent-av{width:38px;height:38px;font-size:14px;margin-bottom:5px;flex-shrink:0}
-.ent-tile .ent-nm-t{font-size:11px;white-space:normal;word-break:break-word;line-height:1.3}
-.ent-tile .ent-nm-s{font-size:9px}
-/* ===== Type-groepkoptekst ===== */
-.type-hdr{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);padding:8px 10px 3px;display:flex;align-items:center;gap:6px;margin-top:4px}
 /* ===== Mobiele navigatiebalk ===== */
 .mob-nav{display:none;background:var(--topbar);border-top:1px solid var(--topbar-border);z-index:50;flex-shrink:0;padding-bottom:env(safe-area-inset-bottom,0px)}
 .mob-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:8px 4px;border:none;background:none;cursor:pointer;font-family:inherit;color:var(--text2);font-size:10px;font-weight:700;min-height:50px;transition:color .15s}
@@ -354,7 +334,6 @@ var DID=PARAMS.get('did')||'';
 var DNAAM=PARAMS.get('naam')?decodeURIComponent(PARAMS.get('naam')):'Dossier';
 var ENTS={}, RELS={};
 var SEL=null, ACTIVE_FILTER='alles', TAB='detail';
-var LIST_VIEW='lijst', LIST_GROUP=false, LIST_SORT='alfabet';
 var MOB_VIEW='lijst';
 var EDIT_ENT=null, EDIT_EL=null, EDIT_REL=null;
 var _db=null,_fbReady=false,_uid=null,_sync='connecting';
@@ -388,17 +367,6 @@ function typeLabel(e){if(e.type==='andere'&&e.typeAnders)return e.typeAnders;ret
 function fd(s){if(!s)return '—';var p=s.split('-');if(p.length===3)return p[2]+'/'+p[1]+'/'+p[0];return s;}
 var TYPE_ORDER={verdachte:0,slachtoffer:1,getuige:2,andere:3,bron:4,informant:5};
 function entsArr(){return Object.keys(ENTS).map(function(k){return ENTS[k];}).sort(function(a,b){var oa=TYPE_ORDER[a.type]!=null?TYPE_ORDER[a.type]:3,ob=TYPE_ORDER[b.type]!=null?TYPE_ORDER[b.type]:3;if(oa!==ob)return oa-ob;return entName(a).localeCompare(entName(b),'nl');});}
-function listEnts(){
-  var arr=Object.keys(ENTS).map(function(k){return ENTS[k];});
-  arr.sort(function(a,b){
-    if(LIST_SORT==='nieuwste'&&!LIST_GROUP)return (b._ts||0)-(a._ts||0);
-    var oa=TYPE_ORDER[a.type]!=null?TYPE_ORDER[a.type]:3,ob=TYPE_ORDER[b.type]!=null?TYPE_ORDER[b.type]:3;
-    if(oa!==ob)return oa-ob;
-    if(LIST_SORT==='nieuwste')return (b._ts||0)-(a._ts||0);
-    return entName(a).localeCompare(entName(b),'nl');
-  });
-  return arr;
-}
 function fmtRR(el){var pos=el.selectionStart,old=el.value,d=old.replace(/\D/g,'').slice(0,11),r='';if(d.length>0)r+=d.slice(0,2);if(d.length>2)r+='.'+d.slice(2,4);if(d.length>4)r+='.'+d.slice(4,6);if(d.length>6)r+='-'+d.slice(6,9);if(d.length>9)r+='.'+d.slice(9,11);el.value=r;var bc=old.slice(0,pos).replace(/\D/g,'').length,np=0,dc=0;for(var i=0;i<r.length;i++){if(dc>=bc)break;if(/\d/.test(r[i]))dc++;np=i+1;}el.setSelectionRange(np,np);}
 function relsArr(){return Object.keys(RELS).map(function(k){return RELS[k];});}
 
@@ -451,52 +419,21 @@ function renderFilters(){
     var on=ACTIVE_FILTER===t;
     h+='<button class="chip'+(on?' on':'')+'" style="'+(on?'background:'+TYPES[t]:'')+'" onclick="setFilter(\''+t+'\')"><span class="cdot" style="background:'+TYPES[t]+'"></span>'+esc(TYPE_LABELS[t])+' ('+(counts[t]||0)+')</button>';
   });
-  h+='<div class="sb-filter-row2">';
-  h+='<button class="vchip'+(LIST_VIEW==='tegels'?' on':'')+'" onclick="setListView(LIST_VIEW===\'tegels\'?\'lijst\':\'tegels\')">&#9783; Tegels</button>';
-  h+='<button class="vchip'+(LIST_GROUP?' on':'')+'" onclick="setListGroup()">&#127991;&#65039; Per type</button>';
-  h+='<button class="vchip'+(LIST_SORT==='nieuwste'?' on':'')+'" onclick="setListSort()">&#128337; Nieuwste</button>';
-  h+='</div>';
   document.getElementById('filters').innerHTML=h;
 }
 function setFilter(t){ACTIVE_FILTER=t;renderFilters();renderList();}
-function setListView(v){LIST_VIEW=v;renderFilters();renderList();}
-function setListGroup(){LIST_GROUP=!LIST_GROUP;renderFilters();renderList();}
-function setListSort(){LIST_SORT=LIST_SORT==='nieuwste'?'alfabet':'nieuwste';renderFilters();renderList();}
 
-function entItemHTML(e){
-  var isRp=e.persoonType==='rechtspersoon',isOnb=e.persoonType==='onbekend';
-  return '<div class="ent-item'+(SEL===e.id?' on':'')+'" onclick="selectEnt(\''+e.id+'\')">'
-    +'<div class="ent-av" style="background:'+entColor(e)+'">'+(isRp?'&#127970;':isOnb?'?':esc(entInitials(e)))+'</div>'
-    +'<div class="ent-nm"><div class="ent-nm-t">'+esc(entName(e))+(isRp?'<span class="rp-tag">RP</span>':isOnb?'<span class="rp-tag" style="background:#64748b">ONB</span>':'')+'</div><div class="ent-nm-s">'+esc(typeLabel(e))+'</div></div>'
-    +'</div>';
-}
 function renderList(){
-  var arr=listEnts().filter(function(e){return ACTIVE_FILTER==='alles'||e.type===ACTIVE_FILTER;});
+  var arr=entsArr().filter(function(e){return ACTIVE_FILTER==='alles'||e.type===ACTIVE_FILTER;});
   var el=document.getElementById('ent-list');
-  if(!arr.length){el.className='sb-list';el.innerHTML='<div class="empty">'+(entsArr().length?'Geen entiteiten in dit filter':'Nog geen entiteiten.<br>Klik op + Entiteit')+'</div>';return;}
-  if(LIST_VIEW==='tegels'){
-    el.className='sb-list tiles';
-    el.innerHTML=arr.map(function(e){
-      var isRp=e.persoonType==='rechtspersoon',isOnb=e.persoonType==='onbekend';
-      var avH=e.foto?'<img src="'+e.foto+'" style="width:100%;height:100%;border-radius:50%;object-fit:cover;position:absolute;inset:0">':(isRp?'&#127970;':isOnb?'?':esc(entInitials(e)));
-      return '<div class="ent-tile'+(SEL===e.id?' on':'')+'" onclick="selectEnt(\''+e.id+'\')">'
-        +'<div class="ent-av" style="background:'+entColor(e)+';position:relative;width:38px;height:38px;font-size:'+(isRp||isOnb?'18':'13')+'px;margin-bottom:5px">'+avH+'</div>'
-        +'<div class="ent-nm"><div class="ent-nm-t" style="white-space:normal;font-size:11px">'+esc(entName(e))+'</div><div class="ent-nm-s">'+esc(typeLabel(e))+'</div></div>'
-        +'</div>';
-    }).join('');
-  }else if(LIST_GROUP){
-    el.className='sb-list';
-    var groups={},groupOrder=[];
-    arr.forEach(function(e){if(!groups[e.type]){groups[e.type]=[];groupOrder.push(e.type);}groups[e.type].push(e);});
-    el.innerHTML=groupOrder.map(function(t){
-      var col=TYPES[t]||TYPES.andere;
-      return '<div class="type-hdr"><span class="cdot" style="background:'+col+'"></span>'+esc(TYPE_LABELS[t]||'Andere')+' ('+groups[t].length+')</div>'
-        +groups[t].map(function(e){return entItemHTML(e);}).join('');
-    }).join('');
-  }else{
-    el.className='sb-list';
-    el.innerHTML=arr.map(function(e){return entItemHTML(e);}).join('');
-  }
+  if(!arr.length){el.innerHTML='<div class="empty">'+(entsArr().length?'Geen entiteiten in dit filter':'Nog geen entiteiten.<br>Klik op + Entiteit')+'</div>';return;}
+  el.innerHTML=arr.map(function(e){
+    var isRp=e.persoonType==='rechtspersoon',isOnb=e.persoonType==='onbekend';
+    return '<div class="ent-item'+(SEL===e.id?' on':'')+'" onclick="selectEnt(\''+e.id+'\')">'
+      +'<div class="ent-av" style="background:'+entColor(e)+'">'+(isRp?'&#127970;':isOnb?'?':esc(entInitials(e)))+'</div>'
+      +'<div class="ent-nm"><div class="ent-nm-t">'+esc(entName(e))+(isRp?'<span class="rp-tag">RP</span>':isOnb?'<span class="rp-tag" style="background:#64748b">ONB</span>':'')+'</div><div class="ent-nm-s">'+esc(typeLabel(e))+'</div></div>'
+      +'</div>';
+  }).join('');
 }
 function selectEnt(id){SEL=id;renderList();renderDetail();if(isMob())mobSwitch('detail');else switchTab('detail');}
 
@@ -592,8 +529,10 @@ function switchTab(t){
 function isMob(){return window.innerWidth<=768;}
 function mobSwitch(v){
   MOB_VIEW=v;
-  document.body.classList.remove('mob-lijst','mob-detail','mob-netwerk');
-  document.body.classList.add('mob-'+v);
+  var sb=document.querySelector('.sidebar');
+  var mn=document.querySelector('.main');
+  if(sb){sb.style.display=(v==='lijst')?'flex':'none';if(v==='lijst'){sb.style.flex='1';sb.style.width='100%';sb.style.maxHeight='none';sb.style.borderRight='none';sb.style.borderBottom='none';}}
+  if(mn){mn.style.display=(v!=='lijst')?'flex':'none';mn.style.flex=(v!=='lijst')?'1':'';}
   document.getElementById('pane-detail').classList.toggle('on',v==='detail');
   document.getElementById('pane-net').classList.toggle('on',v==='netwerk');
   ['lijst','detail','netwerk'].forEach(function(b){var el=document.getElementById('mb-'+b);if(el)el.classList.toggle('on',b===v);});
@@ -602,11 +541,13 @@ function mobSwitch(v){
   else{renderList();}
 }
 function initMob(){
-  if(isMob()){
-    MOB_VIEW='lijst';
-    document.body.classList.add('mob-lijst');
-    var el=document.getElementById('mb-lijst');if(el)el.classList.add('on');
-  }
+  if(!isMob())return;
+  MOB_VIEW='lijst';
+  var sb=document.querySelector('.sidebar');
+  var mn=document.querySelector('.main');
+  if(sb){sb.style.display='flex';sb.style.flex='1';sb.style.width='100%';sb.style.maxHeight='none';sb.style.borderRight='none';sb.style.borderBottom='none';}
+  if(mn) mn.style.display='none';
+  var el=document.getElementById('mb-lijst');if(el)el.classList.add('on');
 }
 
 /* ===== Entiteit modal ===== */
@@ -649,7 +590,7 @@ function markReq(id){var el=document.getElementById(id);if(!el)return;el.style.b
 function saveEnt(){
   var id=EDIT_ENT||gId();
   var existing=ENTS[id]||{};
-  var obj={id:id,persoonType:_persType,type:document.getElementById('e-type').value,typeAnders:document.getElementById('e-anders').value.trim(),notities:document.getElementById('e-not').value,elementen:existing.elementen||[],x:existing.x,y:existing.y,_ts:existing._ts||Date.now()};
+  var obj={id:id,persoonType:_persType,type:document.getElementById('e-type').value,typeAnders:document.getElementById('e-anders').value.trim(),notities:document.getElementById('e-not').value,elementen:existing.elementen||[],x:existing.x,y:existing.y};
   if(_persType==='rechtspersoon'){
     obj.bedrijfsnaam=document.getElementById('e-bnaam').value.trim();
     obj.kbo=document.getElementById('e-kbo').value.trim();
@@ -1215,10 +1156,12 @@ canvas.addEventListener('wheel',function(ev){ev.preventDefault();netZoom(ev.delt
 if(window.ResizeObserver){new ResizeObserver(function(){if(TAB==='net'){resizeCanvas();drawNet();}}).observe(canvas);}
 window.addEventListener('resize',function(){
   if(isMob()){
-    if(!document.body.classList.contains('mob-lijst')&&!document.body.classList.contains('mob-detail')&&!document.body.classList.contains('mob-netwerk'))initMob();
     if(MOB_VIEW==='netwerk'){resizeCanvas();drawNet();}
   }else{
-    document.body.classList.remove('mob-lijst','mob-detail','mob-netwerk');
+    var sb=document.querySelector('.sidebar');
+    var mn=document.querySelector('.main');
+    if(sb){sb.style.display='';sb.style.flex='';sb.style.width='';sb.style.maxHeight='';sb.style.borderRight='';sb.style.borderBottom='';}
+    if(mn){mn.style.display='';mn.style.flex='';}
     if(TAB==='net'){resizeCanvas();drawNet();}
   }
 });
