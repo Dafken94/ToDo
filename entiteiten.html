@@ -329,6 +329,8 @@ var TYPES={verdachte:'#e74c3c',slachtoffer:'#e67e22',getuige:'#3498db',informant
 var TYPE_LABELS={verdachte:'Verdachte',slachtoffer:'Slachtoffer',getuige:'Getuige',informant:'Informant',bron:'Bron',andere:'Andere'};
 var EL_ICONS={voertuig:'🚗',adres:'🏠',telefoon:'📞',email:'📧',bankrekening:'🏦',sociale_media:'💬',andere:'📎'};
 var EL_LABELS={voertuig:'Voertuig',adres:'Adres',telefoon:'Telefoon',email:'E-mail',bankrekening:'Bankrekening',sociale_media:'Sociale media',andere:'Andere'};
+var EL_ORDER=['adres','voertuig','telefoon','email','bankrekening','sociale_media','andere'];
+function sortedEls(arr){return arr.map(function(el,i){return {el:el,i:i};}).sort(function(a,b){var oa=EL_ORDER.indexOf(a.el.type);var ob=EL_ORDER.indexOf(b.el.type);if(oa<0)oa=EL_ORDER.length;if(ob<0)ob=EL_ORDER.length;return oa-ob;});}
 var CANVAS_BG='#131c27';
 
 var PARAMS=new URLSearchParams(location.search);
@@ -477,7 +479,7 @@ function renderDetail(){
   // Elementen
   h+='<div class="card"><div class="card-hd"><span class="card-ti">📎 Elementen</span><button class="btnB" onclick="openElModal(null)">+ Element</button></div>';
   if(!els.length){h+='<div class="empty">— Geen elementen —</div>';}
-  else{els.forEach(function(el,i){
+  else{sortedEls(els).forEach(function(item){var el=item.el,i=item.i;
     var ic=EL_ICONS[el.type]||EL_ICONS.andere;
     var lbl=(el.type==='andere'&&el.typeAnders)?el.typeAnders:(EL_LABELS[el.type]||'Andere');
     h+='<div class="el-row"><div class="el-ic">'+ic+'</div><div class="el-bd">'
@@ -1124,7 +1126,7 @@ function showTooltip(eid){
   // Elementen
   h+='<div class="tt-sec">📎 Elementen ('+els.length+')</div>';
   if(!els.length){h+='<div style="font-size:11px;color:var(--text3)">— Geen elementen —</div>';}
-  else{els.forEach(function(el){
+  else{sortedEls(els).forEach(function(item){var el=item.el;
     var ic=EL_ICONS[el.type]||EL_ICONS.andere;
     var lbl=(el.type==='andere'&&el.typeAnders)?el.typeAnders:(EL_LABELS[el.type]||'Andere');
     h+='<div class="tt-el"><span style="font-size:15px;flex-shrink:0">'+ic+'</span><div style="min-width:0">';
@@ -1245,10 +1247,10 @@ function exportWord(){
       if(!els.length)return;
       children.push(P(entName(e)+' — Elementen',{bold:true,size:22}));
       var rows=[headerRow(['Type','Waarde','Notitie'])];
-      els.forEach(function(el,i){
+      sortedEls(els).forEach(function(item,i){var el=item.el;
         var fill=i%2?'EAF1F8':'FFFFFF';
         var lbl=(el.type==='andere'&&el.typeAnders)?el.typeAnders:(EL_LABELS[el.type]||'Andere');
-        rows.push(new docx.TableRow({children:[cell(lbl,{fill:fill}),cell(el.waarde||'-',{fill:fill}),cell(el.notitie||'-',{fill:fill})]}));
+        rows.push(new docx.TableRow({children:[cell(lbl,{fill:fill}),cell(elSummary(el)||'-',{fill:fill}),cell(el.notitie||'-',{fill:fill})]}));
       });
       children.push(tbl(rows));
       children.push(P(''));
