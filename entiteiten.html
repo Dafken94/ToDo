@@ -901,14 +901,24 @@ function drawNode(c,n,e){
   var R=38;
   var cached=e.foto&&IMG_CACHE[e.id];
   if(e.foto){
-    var RW=FOTO_RW,RH=FOTO_RH,CR=FOTO_CR;
-    // achtergrond rechthoek (entiteitkleur als rand)
+    var RW=FOTO_RW,RH=FOTO_RH,CR=FOTO_CR,pad=4;
+    var col=entColor(e);
+    // gekleurde rand (pad px breed zichtbaar rondom foto)
     roundRect(c,n.x-RW,n.y-RH,RW*2,RH*2,CR);
-    c.fillStyle=entColor(e);c.fill();
-    c.lineWidth=3;c.strokeStyle='rgba(255,255,255,.85)';c.stroke();
+    c.fillStyle=col;c.fill();
+    c.lineWidth=1.5;c.strokeStyle='rgba(255,255,255,.25)';c.stroke();
     if(cached&&cached.loaded){
-      c.save();roundRect(c,n.x-RW+2,n.y-RH+2,RW*2-4,RH*2-4,CR-1);c.clip();
-      c.drawImage(cached.img,n.x-RW+2,n.y-RH+2,RW*2-4,RH*2-4);
+      c.save();
+      roundRect(c,n.x-RW+pad,n.y-RH+pad,RW*2-pad*2,RH*2-pad*2,CR-2);c.clip();
+      c.drawImage(cached.img,n.x-RW+pad,n.y-RH+pad,RW*2-pad*2,RH*2-pad*2);
+      // categorie-tag onderaan foto
+      var lh=14;
+      c.globalAlpha=0.88;c.fillStyle=col;
+      c.fillRect(n.x-RW+pad,n.y+RH-pad-lh,RW*2-pad*2,lh);
+      c.globalAlpha=1;
+      c.fillStyle='#fff';c.font='bold 7px -apple-system,Segoe UI,sans-serif';
+      c.textAlign='center';c.textBaseline='middle';
+      c.fillText(typeLabel(e).toUpperCase(),n.x,n.y+RH-pad-lh/2);
       c.restore();
     }else{
       if(!cached)ensureFotoLoaded(e);
