@@ -102,13 +102,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
  .pt-btn{min-height:44px}
  .pt-btn+.pt-btn{border-top:1px solid var(--input-border)}
 }
-#net-tooltip{position:absolute;pointer-events:none;z-index:10;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:11px 14px;min-width:190px;max-width:250px;box-shadow:0 8px 28px rgba(0,0,0,.28);display:none}
-#net-tooltip .tt-name{font-size:13px;font-weight:800;color:var(--text);margin-bottom:5px}
-#net-tooltip .tt-badge{display:inline-block;font-size:10px;font-weight:700;color:#fff;border-radius:4px;padding:2px 8px;margin-bottom:7px}
+#net-tooltip{position:absolute;pointer-events:none;z-index:10;background:var(--bg2);border:1px solid var(--border);border-radius:11px;padding:14px;width:300px;max-height:72vh;overflow-y:auto;box-shadow:0 10px 32px rgba(0,0,0,.32);display:none}
+#net-tooltip .tt-sec{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin:10px 0 5px}
+#net-tooltip .tt-sec:first-child{margin-top:0}
 #net-tooltip .tt-row{display:flex;gap:6px;margin-bottom:3px;align-items:flex-start}
-#net-tooltip .tt-lbl{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;min-width:68px;flex-shrink:0;padding-top:1px}
+#net-tooltip .tt-lbl{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;min-width:78px;flex-shrink:0;padding-top:1px}
 #net-tooltip .tt-val{font-size:11px;font-weight:600;color:var(--text);word-break:break-word}
-#net-tooltip .tt-sub{font-size:10px;color:var(--text3);margin-top:6px;border-top:1px solid var(--border);padding-top:5px}
+#net-tooltip .tt-el{display:flex;gap:7px;align-items:flex-start;background:var(--bg3);border-radius:6px;padding:5px 8px;margin-bottom:4px}
+#net-tooltip .tt-rel{font-size:11px;color:var(--text);background:var(--bg3);border-radius:6px;padding:5px 8px;margin-bottom:4px;display:flex;align-items:center;gap:4px;flex-wrap:wrap}
 .pt-toggle{display:flex;border:1.5px solid var(--input-border);border-radius:7px;overflow:hidden}
 .pt-btn{flex:1;padding:8px 10px;border:none;background:var(--input-bg);color:var(--text2);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;line-height:1.3}
 .pt-btn.on{background:var(--accent);color:#fff}
@@ -845,8 +846,7 @@ function onMove(ev){
     var hit=hitNode(p);
     var hovEnt=hit&&hit.indexOf('el:')!==0?hit:null;
     canvas.style.cursor=hit?'pointer':'grab';
-    if(hovEnt!==hoverNode){hoverNode=hovEnt;if(hovEnt)showTooltip(hovEnt,ev);else hideTooltip();}
-    else if(hovEnt)moveTooltip(ev);
+    if(hovEnt!==hoverNode){hoverNode=hovEnt;if(hovEnt)showTooltip(hovEnt);else hideTooltip();}
   }
 }
 function onUp(){
@@ -865,39 +865,70 @@ function onUp(){
   }
   dragNode=null;dragElOffsets={};panning=false;canvas.style.cursor='grab';
 }
-function showTooltip(eid,ev){
+function showTooltip(eid){
   var tt=document.getElementById('net-tooltip');
   var e=ENTS[eid];if(!e)return;
-  var nm=entName(e);var rol=typeLabel(e);var color=entColor(e);
+  var isRp=e.persoonType==='rechtspersoon',isOnb=e.persoonType==='onbekend';
+  var color=entColor(e);
   var els=elsOf(eid);
   var rels=relsArr().filter(function(r){return r.vanEntiteitId===eid||r.naarEntiteitId===eid;});
-  var h='<div class="tt-name">'+esc(nm)+'</div>';
-  h+='<div class="tt-badge" style="background:'+color+'">'+esc(rol)+'</div>';
-  if(e.persoonType==='natuurlijk'){
-    if(e.geboortedatum)h+='<div class="tt-row"><span class="tt-lbl">Geboortedatum</span><span class="tt-val">'+esc(fd(e.geboortedatum))+'</span></div>';
-    if(e.rijksregister)h+='<div class="tt-row"><span class="tt-lbl">Rijksregister</span><span class="tt-val">'+esc(e.rijksregister)+'</span></div>';
-  }else if(e.persoonType==='rechtspersoon'){
-    if(e.kbo)h+='<div class="tt-row"><span class="tt-lbl">KBO</span><span class="tt-val">'+esc(e.kbo)+'</span></div>';
-    if(e.adres)h+='<div class="tt-row"><span class="tt-lbl">Adres</span><span class="tt-val">'+esc(e.adres)+'</span></div>';
-  }else if(e.persoonType==='onbekend'){
-    if(e.alias)h+='<div class="tt-row"><span class="tt-lbl">Omschrijving</span><span class="tt-val">'+esc(e.alias)+'</span></div>';
-  }
-  if(e.notities)h+='<div class="tt-row"><span class="tt-lbl">Notities</span><span class="tt-val">'+esc(e.notities.length>70?e.notities.slice(0,69)+'…':e.notities)+'</span></div>';
-  var parts=[];
-  if(els.length)parts.push(els.length+(els.length===1?' element':' elementen'));
-  if(rels.length)parts.push(rels.length+(rels.length===1?' relatie':' relaties'));
-  if(parts.length)h+='<div class="tt-sub">'+parts.join(' · ')+'</div>';
-  tt.innerHTML=h;tt.style.display='block';moveTooltip(ev);
+
+  var h='<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border)">';
+  h+='<div style="width:38px;height:38px;border-radius:50%;background:'+color+';display:flex;align-items:center;justify-content:center;color:#fff;font-size:'+(isRp||isOnb?'19':'14')+'px;font-weight:800;flex-shrink:0">'+(isRp?'🏢':isOnb?'?':esc(entInitials(e)))+'</div>';
+  h+='<div style="min-width:0"><div style="font-size:14px;font-weight:800;color:var(--text);word-break:break-word">'+esc(entName(e))+'</div>';
+  h+='<div style="font-size:11px;font-weight:700;color:'+color+'">'+esc(typeLabel(e))+'</div></div></div>';
+
+  var fields=[];
+  if(!isOnb){
+    if(isRp){if(e.kbo)fields.push(['KBO',e.kbo]);if(e.adres)fields.push(['Adres',e.adres]);}
+    else{if(e.geboortedatum)fields.push(['Geboortedatum',fd(e.geboortedatum)]);if(e.rijksregister)fields.push(['Rijksregister',e.rijksregister]);}
+  }else{if(e.alias)fields.push(['Omschrijving',e.alias]);}
+  if(fields.length){fields.forEach(function(f){h+='<div class="tt-row"><span class="tt-lbl">'+esc(f[0])+'</span><span class="tt-val">'+esc(f[1])+'</span></div>';});}
+  if(e.notities){h+='<div style="font-size:11px;color:var(--text);background:var(--bg3);border-radius:6px;padding:7px 9px;border-left:2px solid '+color+';margin-top:6px;white-space:pre-wrap;word-break:break-word">'+esc(e.notities)+'</div>';}
+
+  h+='<div class="tt-sec">📎 Elementen ('+els.length+')</div>';
+  if(!els.length){h+='<div style="font-size:11px;color:var(--text3)">— Geen elementen —</div>';}
+  else{els.forEach(function(el){
+    var ic=EL_ICONS[el.type]||EL_ICONS.andere;
+    var lbl=(el.type==='andere'&&el.typeAnders)?el.typeAnders:(EL_LABELS[el.type]||'Andere');
+    h+='<div class="tt-el"><span style="font-size:15px;flex-shrink:0">'+ic+'</span><div style="min-width:0">';
+    h+='<div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:capitalize">'+esc(lbl)+'</div>';
+    h+='<div style="font-size:12px;font-weight:700;color:var(--text);word-break:break-word">'+esc(elSummary(el))+'</div>';
+    if(el.type==='voertuig'&&el.kleur)h+='<div style="font-size:11px;color:var(--text3)">Kleur: '+esc(el.kleur)+'</div>';
+    if(el.type==='telefoon'&&el.telland)h+='<div style="font-size:11px;color:var(--text3)">Land: '+esc(el.telland)+'</div>';
+    if(el.type==='bankrekening'&&(el.banknaam||el.bankland))h+='<div style="font-size:11px;color:var(--text3)">'+(el.banknaam?esc(el.banknaam):'')+(el.bankland?' ('+esc(el.bankland)+')':'')+'</div>';
+    if(el.notitie)h+='<div style="font-size:11px;color:var(--text3)">'+esc(el.notitie)+'</div>';
+    h+='</div></div>';
+  });}
+
+  h+='<div class="tt-sec">🔗 Relaties ('+rels.length+')</div>';
+  if(!rels.length){h+='<div style="font-size:11px;color:var(--text3)">— Geen relaties —</div>';}
+  else{rels.forEach(function(r){
+    var a=ENTS[r.vanEntiteitId],b=ENTS[r.naarEntiteitId];
+    var arrow=r.richting==='beide'?'↔':(r.richting==='BA'?'←':'→');
+    h+='<div class="tt-rel"><span style="font-weight:700">'+esc(a?entName(a):'?')+'</span>';
+    h+='<span style="color:var(--text3)">'+arrow+'</span>';
+    if(r.label)h+='<span style="font-size:10px;font-weight:700;color:#fff;background:var(--accent);padding:1px 7px;border-radius:8px">'+esc(r.label)+'</span><span style="color:var(--text3)">'+arrow+'</span>';
+    h+='<span style="font-weight:700">'+esc(b?entName(b):'?')+'</span></div>';
+  });}
+
+  tt.innerHTML=h;tt.style.display='block';
+  positionTooltip(eid);
 }
 function hideTooltip(){var tt=document.getElementById('net-tooltip');if(tt)tt.style.display='none';}
-function moveTooltip(ev){
+function positionTooltip(eid){
   var tt=document.getElementById('net-tooltip');if(!tt||tt.style.display==='none')return;
+  var n=NODES[eid];if(!n)return;
   var wr=canvas.parentElement.getBoundingClientRect();
-  var mx=ev.clientX-wr.left+18,my=ev.clientY-wr.top+18;
-  var tw=tt.offsetWidth||220,th=tt.offsetHeight||100;
-  if(mx+tw>wr.width-8)mx=ev.clientX-wr.left-tw-18;
-  if(my+th>wr.height-8)my=ev.clientY-wr.top-th-18;
-  if(mx<0)mx=4;if(my<0)my=4;
+  var nodeR=38*NET_SCALE;
+  var sx=n.x*NET_SCALE+NET_OX, sy=n.y*NET_SCALE+NET_OY;
+  var tw=tt.offsetWidth||300, th=tt.offsetHeight||200;
+  var GAP=14;
+  var mx=sx+nodeR+GAP, my=sy-th/2;
+  if(mx+tw>wr.width-6){mx=sx-nodeR-tw-GAP;}
+  if(my<6)my=6;
+  if(my+th>wr.height-6)my=wr.height-th-6;
+  if(mx<6)mx=6;
   tt.style.left=mx+'px';tt.style.top=my+'px';
 }
 canvas.addEventListener('mousedown',onDown);
