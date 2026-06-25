@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="nl">
 <head>
 <meta charset="UTF-8">
@@ -47,6 +47,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 #toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:#1e293b;color:#f1f5f9;padding:9px 18px 9px 14px;border-radius:10px;border-left:3px solid transparent;font-size:13px;font-weight:700;z-index:9999;transition:transform .3s,opacity .3s,border-left-color .15s;opacity:0;pointer-events:none;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.3)}
 #toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 .banner-dringend{margin-bottom:10px;padding:9px 14px;background:var(--badge-err-bg);border:1px solid var(--badge-err-border);border-radius:8px;font-size:12px;font-weight:700;color:var(--badge-err-text);display:flex;align-items:center;gap:6px}
+.fdd{width:100%;font-family:inherit;font-size:13px;padding:8px 10px;border-radius:7px;cursor:pointer;border:none;background:transparent;color:var(--text2);display:flex;align-items:center;gap:8px;text-align:left;transition:background .1s}
+.fdd:hover{background:var(--bg3);color:var(--text)}
+.fdd.on{background:var(--bg4);color:var(--text);font-weight:800}
+.fdd-sep{height:1px;background:var(--border);margin:4px 2px}
+.fdd-lbl{font-size:10px;font-weight:700;color:var(--text3);padding:5px 10px 2px;letter-spacing:.06em}
+.fdrop{position:absolute;top:calc(100% + 4px);left:0;min-width:210px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18);z-index:200;padding:5px;display:none}
+.fdrop.open{display:block}
 .content{padding:12px 14px;flex:1;min-width:0;width:100%}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
 .stat{background:var(--bg2);border-radius:8px;border:1px solid var(--border);padding:9px 12px;transition:background .25s;min-width:0}
@@ -1315,25 +1322,24 @@ function buildList(srchVal){
 
   if(dringend.length>0){html+='<div class="banner-dringend">\u26a0 '+dringend.length+(dringend.length!==1?' vervallen taken':' vervallen taak')+'</div>';}
 
-  var fsbtn=function(val,icon,lbl,cnt){var on=(val===null?FS===null:FS===val);return '<button onclick="setFS('+(val===null?'null':'\''+val+'\'')+');setFC(null)" style="font-family:inherit;font-size:11px;font-weight:700;padding:5px 10px;border-radius:7px;cursor:pointer;border:1.5px solid '+(on?'var(--accent)':'var(--border)')+';background:'+(on?'var(--accent)':'var(--bg2)')+';color:'+(on?'#fff':'var(--text2)')+';transition:all .15s;white-space:nowrap;display:flex;flex:1;align-items:center;justify-content:center;gap:5px">'+icon+' '+lbl+'<span style="opacity:.7;margin-left:2px">'+cnt+'</span></button>';};
-  var fobtn=function(val,icon,lbl,cnt){var on=(val===null?FO===null:FO===val);return '<button onclick="setFO('+(val===null?'null':'\''+val+'\'')+');" style="font-family:inherit;font-size:11px;font-weight:700;padding:5px 10px;border-radius:7px;cursor:pointer;border:1.5px solid '+(on?'#7c3aed':'var(--border)')+';background:'+(on?'#7c3aed':'var(--bg2)')+';color:'+(on?'#fff':'var(--text2)')+';transition:all .15s;white-space:nowrap;display:flex;flex:1;align-items:center;justify-content:center;gap:5px">'+icon+' '+lbl+'<span style="opacity:.7;margin-left:2px">'+cnt+'</span></button>';};
+  var fsdrop=function(val,icon,lbl,cnt){var on=(val===null?FS===null:FS===val);return '<button class="fdd'+(on?' on':'')+'" onclick="setFS('+(val===null?'null':'\'''+val+'\''')+')" ><span style="font-size:14px">'+icon+'</span><span style="flex:1">'+lbl+'</span><span style="font-size:11px;font-weight:700;color:var(--text3);background:var(--bg3);border-radius:5px;padding:1px 6px">'+cnt+'</span>'+(on?'<span style="color:var(--accent);font-weight:800;font-size:13px">✓</span>':'')+'</button>';};
+  var fodrop=function(val,icon,lbl,cnt){var on=(val===null?FO===null:FO===val);return '<button class="fdd'+(on?' on':'')+'" onclick="setFO('+(val===null?'null':'\'''+val+'\''')+')" ><span style="font-size:14px">'+icon+'</span><span style="flex:1">'+lbl+'</span><span style="font-size:11px;font-weight:700;color:var(--text3);background:var(--bg3);border-radius:5px;padding:1px 6px">'+cnt+'</span>'+(on?'<span style="color:#7c3aed;font-weight:800;font-size:13px">✓</span>':'')+'</button>';};
   var ooCount=regDOS.filter(function(d){return (d.onderzoeksType||'oo')==='oo';}).length;
   var goCount=regDOS.filter(function(d){return d.onderzoeksType==='go';}).length;
   var _af=(FS!=='open'?1:0)+(FO!==null?1:0);
   var _badge=_af>0?'<span style="background:#f59e0b;color:#fff;font-size:9px;font-weight:800;border-radius:8px;padding:1px 6px;margin-left:4px">'+_af+'</span>':'';
-  html+='<div style="margin-bottom:10px">'
-    +'<button id="filter-toggle-btn" onclick="toggleFilters()" style="font-family:inherit;font-size:12px;font-weight:700;padding:6px 12px;border-radius:7px;cursor:pointer;border:1.5px solid var(--border);background:var(--bg2);color:var(--text2);display:inline-flex;align-items:center;gap:6px;transition:all .15s">\u2699 Filters'+_badge+'<span id="filter-arrow" style="font-size:9px;opacity:.5">'+(_FPOPEN?'\u25B2':'\u25BC')+'</span></button>'
-    +'<div id="filter-panel" style="display:'+(_FPOPEN?'block':'none')+';margin-top:8px">'
-    +'<div style="display:flex;gap:6px;margin-bottom:6px">'
-    +fsbtn(null,'\uD83D\uDCC1','Alle',regDOS.length)
-    +fsbtn('open','\uD83D\uDD13','Lopend',open)
-    +fsbtn('gesloten','\uD83D\uDD12','Archief',closed)
-    +'</div>'
-    +'<div style="display:flex;gap:6px">'
-    +fobtn(null,'\uD83D\uDCC4','Alle types',regDOS.length)
-    +fobtn('oo','\u2696\uFE0F','Opsporing',ooCount)
-    +fobtn('go','\uD83D\uDD0D','Gerechtelijk',goCount)
-    +'</div>'
+  html+='<div style="position:relative;margin-bottom:10px">'
+    +'<button id="filter-toggle-btn" onclick="toggleFilters(event)" style="font-family:inherit;font-size:12px;font-weight:700;padding:6px 12px;border-radius:7px;cursor:pointer;border:1.5px solid '+(_af>0?'var(--accent)':'var(--border)')+';background:'+(_af>0?'var(--bg4)':'var(--bg2)')+';color:'+(_af>0?'var(--accent)':'var(--text2)')+';display:inline-flex;align-items:center;gap:6px;transition:all .15s;user-select:none">⚙ Filters'+_badge+'<span id="filter-arrow" style="font-size:9px;opacity:.5">'+(_FPOPEN?'▲':'▼')+'</span></button>'
+    +'<div id="filter-panel" class="fdrop'+(_FPOPEN?' open':'')+'">'
+    +'<div class="fdd-lbl">STATUS</div>'
+    +fsdrop(null,'📁','Alle',regDOS.length)
+    +fsdrop('open','🔓','Lopend',open)
+    +fsdrop('gesloten','🔒','Archief',closed)
+    +'<div class="fdd-sep"></div>'
+    +'<div class="fdd-lbl">TYPE ONDERZOEK</div>'
+    +fodrop(null,'📄','Alle types',regDOS.length)
+    +fodrop('oo','⚖️','Opsporing',ooCount)
+    +fodrop('go','🔍','Gerechtelijk',goCount)
     +'</div>'
     +'</div>';
   html+='<div class="toolbar"><div class="search-wrap"><span class="si">\uD83D\uDD0D</span><input id="srch" type="search" placeholder="Zoek op PV of naam..." value="'+esc(srchVal)+'" oninput="onSrch()" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></div></div>'
@@ -1870,16 +1876,11 @@ function onSrch(){
   },150);
 }
 function toggleSort(){SO=SO==='asc'?'desc':'asc';render();}
-function setFS(s){FS=s;render();}
+function closeFilters(){_FPOPEN=false;var p=document.getElementById('filter-panel');var a=document.getElementById('filter-arrow');if(p)p.classList.remove('open');if(a)a.textContent='▼';}
+function toggleFilters(e){if(e)e.stopPropagation();_FPOPEN=!_FPOPEN;var p=document.getElementById('filter-panel');var a=document.getElementById('filter-arrow');if(p){if(_FPOPEN)p.classList.add('open');else p.classList.remove('open');}if(a)a.textContent=_FPOPEN?'▲':'▼';}
+function setFS(s){FS=s;FC=null;closeFilters();render();}
 function setFC(id){FC=id;render();}
-function setFO(v){FO=v;render();}
-function toggleFilters(){
-  _FPOPEN=!_FPOPEN;
-  var p=document.getElementById('filter-panel');
-  var a=document.getElementById('filter-arrow');
-  if(p)p.style.display=_FPOPEN?'block':'none';
-  if(a)a.textContent=_FPOPEN?'▲':'▼';
-}
+function setFO(v){FO=v;closeFilters();render();}
 function setOdType(t){_odType=t;document.getElementById('od-oo').classList.toggle('on',t==='oo');document.getElementById('od-go').classList.toggle('on',t==='go');document.getElementById('f-dosnr-row').style.display=t==='go'?'':'none';}
 function setView(v){VIEW=v;render();}
 function goL(){VW='list';AID=null;render();}
@@ -2686,6 +2687,14 @@ function onGlobSrch(){
 })();
 window.addEventListener('load',function(){
   if(typeof firebase!=='undefined'&&!_uid){initAuth();}
+});
+
+// Sluit filterdropdown bij klik buiten
+document.addEventListener('click',function(e){
+  if(!_FPOPEN)return;
+  var btn=document.getElementById('filter-toggle-btn');
+  var panel=document.getElementById('filter-panel');
+  if(btn&&!btn.contains(e.target)&&panel&&!panel.contains(e.target)){closeFilters();}
 });
 
 // Auto-update detectie: vergelijk Last-Modified header met laadmoment
