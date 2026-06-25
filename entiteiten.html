@@ -436,13 +436,13 @@ function renderDetail(){
   var h='';
   // Info card
   var avInner=e.foto
-    ?'<img src="'+e.foto+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block">'
+    ?'<img src="'+e.foto+'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%">'
     :(isRp?'&#127970;':isOnb?'?':esc(entInitials(e)));
-  var avOverlay='<div onclick="uploadFoto(\''+e.id+'\')" title="Foto uploaden" style="position:absolute;inset:0;border-radius:50%;display:flex;align-items:center;justify-content:center;opacity:0;background:rgba(0,0,0,.45);cursor:pointer;transition:opacity .15s;font-size:16px" onmouseenter="this.style.opacity=1" onmouseleave="this.style.opacity=0">📷</div>';
-  var avRemove=e.foto?'<div onclick="removeFoto(\''+e.id+'\')" title="Foto verwijderen" style="position:absolute;top:-4px;right:-4px;width:16px;height:16px;border-radius:50%;background:#ef4444;color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid var(--bg2);z-index:2">✕</div>':'';
+  var avOverlay='<div onclick="uploadFoto(\''+e.id+'\')" title="Foto uploaden" style="position:absolute;inset:0;border-radius:50%;display:flex;align-items:center;justify-content:center;opacity:0;background:rgba(0,0,0,.45);cursor:pointer;transition:opacity .15s;font-size:16px;z-index:1" onmouseenter="this.style.opacity=1" onmouseleave="this.style.opacity=0">📷</div>';
+  var avRemove=e.foto?'<div onclick="removeFoto(\''+e.id+'\')" title="Foto verwijderen" style="position:absolute;top:-4px;right:-4px;width:16px;height:16px;border-radius:50%;background:#ef4444;color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid var(--bg2);z-index:3">✕</div>':'';
   h+='<div class="card">'
     +'<div class="card-hd"><div style="display:flex;align-items:center;gap:11px;min-width:0">'
-    +'<div class="ent-av" style="position:relative;width:42px;height:42px;font-size:'+(isRp||isOnb?'22':'15')+'px;background:'+entColor(e)+';flex-shrink:0">'+avInner+avOverlay+avRemove+'</div>'
+    +'<div class="ent-av" style="position:relative;width:42px;height:42px;font-size:'+(isRp||isOnb?'22':'15')+'px;background:'+entColor(e)+';flex-shrink:0;overflow:hidden">'+avInner+avOverlay+avRemove+'</div>'
     +'<div style="min-width:0"><div style="font-size:18px;font-weight:800;color:var(--text)">'+esc(entName(e))+(isRp?'<span class="rp-tag">Rechtspersoon</span>':isOnb?'<span class="rp-tag" style="background:#64748b">Onbekende</span>':'')+'</div>'
     +'<div style="font-size:12px;font-weight:700;color:'+entColor(e)+';text-transform:capitalize">'+esc(typeLabel(e))+'</div></div></div>'
     +'<div style="display:flex;gap:6px"><button class="btnW" onclick="openEntModal(\''+e.id+'\')">&#9998; Bewerken</button><button class="btnR" onclick="delEnt(\''+e.id+'\')">&#10005; Verwijderen</button></div>'
@@ -599,6 +599,7 @@ function uploadFoto(eid){
         var oc2=oc.getContext('2d');
         var sw=img.width,sh=img.height,sx=0,sy=0;
         if(sw>sh){sx=(sw-sh)/2;sw=sh;}else{sy=(sh-sw)/2;sh=sw;}
+        oc2.fillStyle='#ffffff';oc2.fillRect(0,0,size,size);
         oc2.drawImage(img,sx,sy,sw,sh,0,0,size,size);
         var b64=oc.toDataURL('image/jpeg',0.82);
         ENTS[eid].foto=b64;
