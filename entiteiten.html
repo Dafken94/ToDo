@@ -594,14 +594,14 @@ function uploadFoto(eid){
     reader.onload=function(ev){
       var img=new Image();
       img.onload=function(){
-        var size=200;
+        var size=150;
         var oc=document.createElement('canvas');oc.width=size;oc.height=size;
         var oc2=oc.getContext('2d');
         var sw=img.width,sh=img.height,sx=0,sy=0;
-        if(sw>sh){sx=(sw-sh)/2;sw=sh;}else{sy=(sh-sw)/2;sh=sw;}
+        if(sw>sh){sx=Math.round((sw-sh)*0.5);sw=sh;}else{sy=Math.round((sh-sw)*0.2);sh=sw;}
         oc2.fillStyle='#ffffff';oc2.fillRect(0,0,size,size);
         oc2.drawImage(img,sx,sy,sw,sh,0,0,size,size);
-        var b64=oc.toDataURL('image/jpeg',0.82);
+        var b64=oc.toDataURL('image/jpeg',0.75);
         ENTS[eid].foto=b64;
         delete IMG_CACHE[eid];
         saveEntData(eid);renderDetail();
