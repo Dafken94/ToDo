@@ -782,7 +782,10 @@ function sv(){
   }catch(e){}
 }
 function initAuth(){
-  if(typeof firebase==='undefined'||window._fbLoadErr){initFB();return;}
+  if(typeof firebase==='undefined'||window._fbLoadErr||!firebase.auth){
+    var _lo=document.getElementById('login-ov');if(_lo){_lo.style.display='flex';_lo.style.opacity='1';}
+    initFB();return;
+  }
   if(!firebase.apps||!firebase.apps.length){
     firebase.initializeApp({
       apiKey:'AIzaSyC3pWjrW7I9jP1MIS0HAU9bVhGo4E8vs8Y',
@@ -812,16 +815,23 @@ function doLogin(){
   var err=document.getElementById('l-err');
   var btn=document.getElementById('l-btn');
   if(!em||!pw){err.textContent='Vul e-mail en wachtwoord in.';return;}
+  if(typeof firebase==='undefined'||!firebase.auth){
+    err.textContent='Verbinding niet beschikbaar. Herlaad de pagina.';return;
+  }
   err.textContent='';btn.textContent='Bezig...';btn.disabled=true;
-  var pers=rem?firebase.auth.Auth.Persistence.LOCAL:firebase.auth.Auth.Persistence.SESSION;
-  firebase.auth().setPersistence(pers).then(function(){
-    return firebase.auth().signInWithEmailAndPassword(em,pw);
-  }).then(function(){
-    try{localStorage.setItem('last_login_email',em);localStorage.setItem('auth_state','logged_in');}catch(e){}
-  }).catch(function(e){
-    var m=e.code==='auth/invalid-credential'||e.code==='auth/user-not-found'||e.code==='auth/wrong-password'?'Ongeldig e-mailadres of wachtwoord.':e.code==='auth/too-many-requests'?'Te veel pogingen. Probeer later opnieuw.':e.code==='auth/invalid-email'?'Ongeldig e-mailadres.':'Aanmelden mislukt.';
-    err.textContent=m;btn.textContent='Aanmelden';btn.disabled=false;
-  });
+  try{
+    var pers=rem?'local':'session';
+    firebase.auth().setPersistence(pers).then(function(){
+      return firebase.auth().signInWithEmailAndPassword(em,pw);
+    }).then(function(){
+      try{localStorage.setItem('last_login_email',em);localStorage.setItem('auth_state','logged_in');}catch(e){}
+    }).catch(function(e){
+      var m=e.code==='auth/invalid-credential'||e.code==='auth/user-not-found'||e.code==='auth/wrong-password'?'Ongeldig e-mailadres of wachtwoord.':e.code==='auth/too-many-requests'?'Te veel pogingen. Probeer later opnieuw.':e.code==='auth/invalid-email'?'Ongeldig e-mailadres.':'Aanmelden mislukt ('+e.code+').';
+      err.textContent=m;btn.textContent='Aanmelden';btn.disabled=false;
+    });
+  }catch(ex){
+    err.textContent='Fout bij aanmelden: '+ex.message;btn.textContent='Aanmelden';btn.disabled=false;
+  }
 }
 function doLogout(){
   if(_ref){_ref.off();_ref=null;}
