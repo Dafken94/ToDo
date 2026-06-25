@@ -9,8 +9,8 @@
 :root{--bg:#f0f2f5;--bg2:#fff;--bg3:#f8fafc;--bg4:#f1f5f9;--border:#e2e8f0;--border2:#cbd5e1;--text:#0f172a;--text2:#475569;--text3:#94a3b8;--topbar:#fff;--topbar-border:#e2e8f0;--modal-bg:#fff;--overlay:rgba(10,20,40,.6);--input-bg:#fff;--input-border:#cbd5e1;--shadow:rgba(0,0,0,.08);--accent:#3b82f6;--btn-edit-bg:#fff;--btn-edit-border:#cbd5e1;--btn-edit-text:#374151;--btn-del-bg:#fee2e2;--btn-del-border:#fca5a5;--btn-del-text:#7f1d1d;--badge-ok-bg:#dcfce7;--badge-ok-text:#14532d;--badge-ok-border:#86efac;--badge-err-bg:#fee2e2;--badge-err-text:#7f1d1d;--badge-err-border:#fca5a5;--badge-warn-bg:#fff7ed;--badge-warn-text:#7c2d12;--badge-warn-border:#fed7aa;--sb-bg:#0c1e35;--sb-text:#a8c8e0}
 [data-theme="dark"]{--bg:#131c27;--bg2:#1c2839;--bg3:#1e2d3d;--bg4:#243347;--border:#2a3a4f;--border2:#2e4058;--text:#f1f5f9;--text2:#b8c8d8;--text3:#8aaac4;--topbar:#1c2839;--topbar-border:#2a3a4f;--modal-bg:#1c2839;--overlay:rgba(0,5,15,.75);--input-bg:#1e2d3d;--input-border:#2e4058;--shadow:rgba(0,0,0,.4);--accent:#60a5fa;--btn-edit-bg:#1e2d3d;--btn-edit-border:#2e4058;--btn-edit-text:#cbd5e1;--btn-del-bg:#2a1515;--btn-del-border:#7f1d1d;--btn-del-text:#fca5a5;--badge-ok-bg:#0d2e1a;--badge-ok-text:#86efac;--badge-ok-border:#166534;--badge-err-bg:#2d0f0f;--badge-err-text:#fca5a5;--badge-err-border:#7f1d1d;--badge-warn-bg:#2a1500;--badge-warn-text:#fdba74;--badge-warn-border:#92400e;--sb-bg:#0a1520;--sb-text:#7aaac8}
 *{box-sizing:border-box;margin:0;padding:0}
-html{overflow-x:hidden}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);transition:background .25s,color .25s;overflow-x:hidden;max-width:100vw;height:100vh;display:flex;flex-direction:column}
+html{overflow:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);transition:background .25s,color .25s;overflow:hidden;max-width:100vw;height:100vh;display:flex;flex-direction:column}
 .topbar{background:var(--topbar);border-bottom:1px solid var(--topbar-border);padding:9px 14px;padding-top:calc(9px + env(safe-area-inset-top));display:flex;align-items:center;gap:8px;flex-shrink:0;min-width:0;width:100%;z-index:40}
 .tb-back{background:none;border:none;cursor:pointer;font-size:13px;font-weight:700;color:var(--text2);padding:5px 10px;border-radius:6px;font-family:inherit;white-space:nowrap;flex-shrink:0}
 .tb-back:hover{background:var(--bg3)}
@@ -94,24 +94,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 .iR{cursor:pointer;font-family:inherit;font-size:11px;font-weight:700;border-radius:5px;padding:4px 8px;border:1.5px solid var(--btn-del-border);background:var(--btn-del-bg);color:var(--btn-del-text);line-height:1}
 @media(max-width:768px){
  .wrap{flex-direction:column}
- /* Desktop-tabs verbergen, mobiele nav tonen */
  .tabs{display:none!important}
  .mob-nav{display:flex}
- /* Ruimte voor vaste bottom-nav */
  .sb-list{padding-bottom:72px}
  .detail-scroll{padding-bottom:72px}
- /* Topbar */
  .topbar{flex-wrap:wrap}
  .tb-tag{display:none}
- .topbar .btnW,.topbar .btnB{order:10;flex-basis:100%;justify-content:center;margin-top:2px}
- /* iOS zoom: formuliervelden min 16px */
+ .topbar .btnW{display:none}
+ .topbar .btnB{order:10;flex-basis:100%;justify-content:center;margin-top:2px}
  .fld input,.fld select,.fld textarea{font-size:16px!important;min-height:44px}
- /* Touch targets */
  .btnW,.btnB,.btnR{min-height:44px}
- /* Persoontype toggle */
  .pt-toggle{flex-direction:column}
  .pt-btn{min-height:44px}
  .pt-btn+.pt-btn{border-top:1px solid var(--input-border)}
+ .legend{bottom:calc(60px + env(safe-area-inset-bottom,0px))!important}
 }
 #net-tooltip{position:absolute;pointer-events:none;z-index:10;background:var(--bg2);border:1px solid var(--border);border-radius:11px;padding:14px;width:300px;max-height:72vh;overflow-y:auto;box-shadow:0 10px 32px rgba(0,0,0,.32);display:none}
 #net-tooltip .tt-sec{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin:10px 0 5px}
@@ -126,6 +122,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 .mob-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:10px 4px;border:none;background:none;cursor:pointer;font-family:inherit;color:var(--text2);font-size:10px;font-weight:700;min-height:54px;transition:color .15s}
 .mob-btn .mb-ic{font-size:20px;line-height:1}
 .mob-btn.on{color:var(--accent)}
+/* ===== Mobiele FAB (+ Entiteit) ===== */
+.mob-fab{display:none;position:fixed;right:16px;bottom:calc(64px + env(safe-area-inset-bottom,0px));width:52px;height:52px;border-radius:50%;background:#2563eb;color:#fff;border:none;font-size:26px;cursor:pointer;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(37,99,235,.45);z-index:90;line-height:1;font-weight:400}
 </style>
 </head>
 <body>
@@ -159,8 +157,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
         <input type="file" id="foto-input" accept="image/*" style="display:none">
         <div class="net-tools">
           <button class="btnW" onclick="resetPositions()">&#8635; Herpositioneren</button>
-          <button class="btnW" onclick="netZoom(1.2)">&#128269; +</button>
-          <button class="btnW" onclick="netZoom(0.8)">&#128269; &#8722;</button>
         </div>
         <div class="legend" id="legend"></div>
       </div>
@@ -174,6 +170,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
   <button class="mob-btn" id="mb-detail" onclick="mobSwitch('detail')"><span class="mb-ic">&#128203;</span>Detail</button>
   <button class="mob-btn" id="mb-netwerk" onclick="mobSwitch('netwerk')"><span class="mb-ic">&#128376;&#65039;</span>Netwerk</button>
 </div>
+
+<!-- Mobiele FAB -->
+<button class="mob-fab" id="mob-fab" onclick="openEntModal(null)" title="Entiteit toevoegen">+</button>
 
 <!-- Entiteit modal -->
 <div class="ov" id="mo-ent">
@@ -539,6 +538,7 @@ function mobSwitch(v){
   document.getElementById('pane-detail').classList.toggle('on',v==='detail');
   document.getElementById('pane-net').classList.toggle('on',v==='netwerk');
   ['lijst','detail','netwerk'].forEach(function(b){var el=document.getElementById('mb-'+b);if(el)el.classList.toggle('on',b===v);});
+  var fab=document.getElementById('mob-fab');if(fab)fab.style.display=(v==='lijst')?'none':'flex';
   if(v==='netwerk'){requestAnimationFrame(function(){resizeCanvas();syncNodes();drawNet();});}
   else if(v==='detail'){renderDetail();}
   else{renderList();}
@@ -788,7 +788,7 @@ document.getElementById('confirm-ok').onclick=function(){CM('mo-confirm');if(_co
 var NODES={}, NET_SCALE=1, NET_OX=0, NET_OY=0;
 var canvas=document.getElementById('net-canvas'), ctx=canvas.getContext('2d');
 var dragNode=null,dragDX=0,dragDY=0,dragElOffsets={},panning=false,panSX=0,panSY=0,panOX=0,panOY=0,DPR=window.devicePixelRatio||1;
-var hoverNode=null;
+var hoverNode=null,_pinchDist=null;
 var IMG_CACHE={};
 
 function resizeCanvas(){
@@ -1018,6 +1018,11 @@ function hitNode(p){
   return found;
 }
 function onDown(ev){
+  if(ev.touches&&ev.touches.length===2){
+    dragNode=null;panning=false;
+    _pinchDist=Math.hypot(ev.touches[0].clientX-ev.touches[1].clientX,ev.touches[0].clientY-ev.touches[1].clientY);
+    ev.preventDefault();return;
+  }
   var p=evtPos(ev);var id=hitNode(p);
   hideTooltip();hoverNode=null;
   if(id){
@@ -1034,6 +1039,19 @@ function onDown(ev){
   if(ev.touches)ev.preventDefault();
 }
 function onMove(ev){
+  if(ev.touches&&ev.touches.length===2&&_pinchDist!==null){
+    var newDist=Math.hypot(ev.touches[0].clientX-ev.touches[1].clientX,ev.touches[0].clientY-ev.touches[1].clientY);
+    var r=canvas.getBoundingClientRect();
+    var mx=(ev.touches[0].clientX+ev.touches[1].clientX)/2-r.left;
+    var my=(ev.touches[0].clientY+ev.touches[1].clientY)/2-r.top;
+    var factor=newDist/_pinchDist;
+    var newScale=Math.max(0.2,Math.min(4,NET_SCALE*factor));
+    NET_OX=mx-(mx-NET_OX)*(newScale/NET_SCALE);
+    NET_OY=my-(my-NET_OY)*(newScale/NET_SCALE);
+    NET_SCALE=newScale;
+    _pinchDist=newDist;
+    drawNet();ev.preventDefault();return;
+  }
   if(dragNode){
     var p=evtPos(ev);
     var nx=p.x-dragDX,ny=p.y-dragDY;
@@ -1073,7 +1091,7 @@ function onUp(){
       }
     }
   }
-  dragNode=null;dragElOffsets={};panning=false;canvas.style.cursor='grab';
+  dragNode=null;dragElOffsets={};panning=false;_pinchDist=null;canvas.style.cursor='grab';
 }
 
 function showTooltip(eid){
@@ -1158,7 +1176,17 @@ canvas.addEventListener('mouseleave',function(){hideTooltip();hoverNode=null;if(
 canvas.addEventListener('touchstart',onDown,{passive:false});
 canvas.addEventListener('touchmove',onMove,{passive:false});
 canvas.addEventListener('touchend',onUp);
-canvas.addEventListener('wheel',function(ev){ev.preventDefault();netZoom(ev.deltaY<0?1.1:0.9);},{passive:false});
+canvas.addEventListener('wheel',function(ev){
+  ev.preventDefault();
+  var r=canvas.getBoundingClientRect();
+  var mx=ev.clientX-r.left,my=ev.clientY-r.top;
+  var factor=ev.deltaY<0?1.1:0.9;
+  var newScale=Math.max(0.2,Math.min(4,NET_SCALE*factor));
+  NET_OX=mx-(mx-NET_OX)*(newScale/NET_SCALE);
+  NET_OY=my-(my-NET_OY)*(newScale/NET_SCALE);
+  NET_SCALE=newScale;
+  drawNet();
+},{passive:false});
 if(window.ResizeObserver){new ResizeObserver(function(){if(TAB==='net'){resizeCanvas();drawNet();}}).observe(canvas);}
 window.addEventListener('resize',function(){
   if(isMob()){
