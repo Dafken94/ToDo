@@ -108,6 +108,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
  .pt-btn{min-height:44px}
  .pt-btn+.pt-btn{border-top:1px solid var(--input-border)}
  .legend{bottom:calc(60px + env(safe-area-inset-bottom,0px))!important}
+ .fld-row{flex-direction:column;gap:0}
 }
 #net-tooltip{position:absolute;pointer-events:none;z-index:10;background:var(--bg2);border:1px solid var(--border);border-radius:11px;padding:14px;width:300px;max-height:72vh;overflow-y:auto;box-shadow:0 10px 32px rgba(0,0,0,.32);display:none}
 #net-tooltip .tt-sec{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin:10px 0 5px}
@@ -525,7 +526,7 @@ function switchTab(t){
   document.getElementById('tab-net').classList.toggle('on',t==='net');
   document.getElementById('pane-detail').classList.toggle('on',t==='detail');
   document.getElementById('pane-net').classList.toggle('on',t==='net');
-  if(t==='net'){requestAnimationFrame(function(){resizeCanvas();syncNodes();drawNet();});}
+  if(t==='net'){requestAnimationFrame(function(){resizeCanvas();syncNodes();fitView();drawNet();});}
   else{renderDetail();}
 }
 
@@ -540,8 +541,8 @@ function mobSwitch(v){
   document.getElementById('pane-detail').classList.toggle('on',v==='detail');
   document.getElementById('pane-net').classList.toggle('on',v==='netwerk');
   ['lijst','detail','netwerk'].forEach(function(b){var el=document.getElementById('mb-'+b);if(el)el.classList.toggle('on',b===v);});
-  var fab=document.getElementById('mob-fab');if(fab)fab.style.display=(v==='lijst')?'none':'flex';
-  if(v==='netwerk'){requestAnimationFrame(function(){resizeCanvas();syncNodes();drawNet();});}
+  var fab=document.getElementById('mob-fab');if(fab)fab.style.display='flex';
+  if(v==='netwerk'){requestAnimationFrame(function(){resizeCanvas();syncNodes();fitView();drawNet();});}
   else if(v==='detail'){renderDetail();}
   else{renderList();}
 }
@@ -556,6 +557,7 @@ function initMob(){
   if(sb){sb.style.display='flex';sb.style.flex='1';sb.style.width='100%';sb.style.maxHeight='none';sb.style.borderRight='none';sb.style.borderBottom='none';}
   if(mn) mn.style.display='none';
   var el=document.getElementById('mb-lijst');if(el)el.classList.add('on');
+  var fab=document.getElementById('mob-fab');if(fab)fab.style.display='flex';
 }
 
 /* ===== Entiteit modal ===== */
@@ -799,6 +801,15 @@ function resizeCanvas(){
   DPR=window.devicePixelRatio||1;
   canvas.width=r.width*DPR;canvas.height=r.height*DPR;
 }
+function fitView(){
+  var keys=Object.keys(NODES);if(!keys.length)return;
+  var r=canvas.getBoundingClientRect();var cw=r.width,ch=r.height;if(cw<2||ch<2)return;
+  var minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
+  keys.forEach(function(k){var n=NODES[k];if(n.x<minX)minX=n.x;if(n.x>maxX)maxX=n.x;if(n.y<minY)minY=n.y;if(n.y>maxY)maxY=n.y;});
+  var pad=90;var bw=Math.max(1,maxX-minX)+pad*2,bh=Math.max(1,maxY-minY)+pad*2;
+  var sc=Math.min(cw/bw,ch/bh,1.5);
+  NET_SCALE=sc;NET_OX=cw/2-(minX+maxX)/2*sc;NET_OY=ch/2-(minY+maxY)/2*sc;
+}
 function circlePositions(){
   var ids=entsArr().map(function(e){return e.id;});
   var r=canvas.getBoundingClientRect();
@@ -844,7 +855,7 @@ function syncNodes(){
     });
   });
 }
-function resetPositions(){circlePositions();NET_SCALE=1;NET_OX=0;NET_OY=0;drawNet();toast('✓ Herpositioneerd');}
+function resetPositions(){circlePositions();fitView();drawNet();toast('✓ Herpositioneerd');}
 function netZoom(f){NET_SCALE=Math.max(0.3,Math.min(3,NET_SCALE*f));drawNet();}
 
 function drawNet(targetCtx,scaleOverride){
@@ -1041,8 +1052,10 @@ function onDown(ev){
   if(ev.touches)ev.preventDefault();
 }
 function onMove(ev){
-  if(ev.touches&&ev.touches.length===2&&_pinchDist!==null){
+  if(ev.touches&&ev.touches.length===2){
+    panning=false;dragNode=null;
     var newDist=Math.hypot(ev.touches[0].clientX-ev.touches[1].clientX,ev.touches[0].clientY-ev.touches[1].clientY);
+    if(_pinchDist===null){_pinchDist=newDist;ev.preventDefault();return;}
     var r=canvas.getBoundingClientRect();
     var mx=(ev.touches[0].clientX+ev.touches[1].clientX)/2-r.left;
     var my=(ev.touches[0].clientY+ev.touches[1].clientY)/2-r.top;
