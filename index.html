@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="nl">
 <head>
 <meta charset="UTF-8">
@@ -13,14 +13,14 @@
 <meta name="apple-mobile-web-app-title" content="Dossiers">
 <title>Mijn Dossiers</title>
 <style>
-:root{--bg:#f0f2f5;--bg2:#fff;--bg3:#f8fafc;--bg4:#f1f5f9;--border:#e2e8f0;--border2:#cbd5e1;--text:#0f172a;--text2:#475569;--text3:#94a3b8;--sb-bg:#0c1e35;--sb-text:#a8c8e0;--sb-act:#93c5fd;--sb-hover:rgba(255,255,255,.07);--sb-on:rgba(59,130,246,.18);--sb-sec:#2d5a7a;--sb-div:rgba(255,255,255,.08);--sb-badge-bg:rgba(255,255,255,.08);--sb-badge-on:rgba(59,130,246,.3);--topbar:#fff;--topbar-border:#e2e8f0;--stat-val:#0c1e35;--prog-bg:#e2e8f0;--tchk-border:#cbd5e1;--tchk-bg:#fff;--modal-bg:#fff;--overlay:rgba(10,20,40,.6);--vbtn-bg:#fff;--vbtn-on:#0c1e35;--vbtn-on-text:#fff;--input-bg:#fff;--input-border:#cbd5e1;--done-bg:#f0fdf4;--over-bg:#fff5f5;--ext-ok-bg:#f0fdf4;--ext-wait-bg:#fffbeb;--shadow:rgba(0,0,0,.08);--accent:#3b82f6;--btn-edit-bg:#fff;--btn-edit-border:#cbd5e1;--btn-edit-text:#374151;--btn-del-bg:#fee2e2;--btn-del-border:#fca5a5;--btn-del-text:#7f1d1d;--badge-ok-bg:#dcfce7;--badge-ok-text:#14532d;--badge-ok-border:#86efac;--badge-err-bg:#fee2e2;--badge-err-text:#7f1d1d;--badge-err-border:#fca5a5;--badge-warn-bg:#fff7ed;--badge-warn-text:#7c2d12;--badge-warn-border:#fed7aa}
+:root{--bg:#f0f2f5;--bg2:#fff;--bg3:#f8fafc;--bg4:#f1f5f9;--border:#e2e8f0;--border2:#cbd5e1;--text:#0f172a;--text2:#475569;--text3:#64748b;--sb-bg:#0c1e35;--sb-text:#a8c8e0;--sb-act:#93c5fd;--sb-hover:rgba(255,255,255,.07);--sb-on:rgba(59,130,246,.18);--sb-sec:#2d5a7a;--sb-div:rgba(255,255,255,.08);--sb-badge-bg:rgba(255,255,255,.08);--sb-badge-on:rgba(59,130,246,.3);--topbar:#fff;--topbar-border:#e2e8f0;--stat-val:#0c1e35;--prog-bg:#e2e8f0;--tchk-border:#cbd5e1;--tchk-bg:#fff;--modal-bg:#fff;--overlay:rgba(10,20,40,.6);--vbtn-bg:#fff;--vbtn-on:#0c1e35;--vbtn-on-text:#fff;--input-bg:#fff;--input-border:#cbd5e1;--done-bg:#f0fdf4;--over-bg:#fff5f5;--ext-ok-bg:#f0fdf4;--ext-wait-bg:#fffbeb;--shadow:rgba(0,0,0,.08);--accent:#3b82f6;--btn-edit-bg:#fff;--btn-edit-border:#cbd5e1;--btn-edit-text:#374151;--btn-del-bg:#fee2e2;--btn-del-border:#fca5a5;--btn-del-text:#7f1d1d;--badge-ok-bg:#dcfce7;--badge-ok-text:#14532d;--badge-ok-border:#86efac;--badge-err-bg:#fee2e2;--badge-err-text:#7f1d1d;--badge-err-border:#fca5a5;--badge-warn-bg:#fff7ed;--badge-warn-text:#7c2d12;--badge-warn-border:#fed7aa}
 [data-theme="dark"]{--bg:#131c27;--bg2:#1c2839;--bg3:#1e2d3d;--bg4:#243347;--border:#2a3a4f;--border2:#2e4058;--text:#f1f5f9;--text2:#b8c8d8;--text3:#8aaac4;--sb-bg:#0a1520;--sb-text:#7aaac8;--sb-act:#60a5fa;--sb-hover:rgba(255,255,255,.05);--sb-on:rgba(59,130,246,.15);--sb-sec:#1e4060;--sb-div:rgba(255,255,255,.06);--sb-badge-bg:rgba(255,255,255,.06);--sb-badge-on:rgba(59,130,246,.25);--topbar:#1c2839;--topbar-border:#2a3a4f;--stat-val:#93c5fd;--prog-bg:#2a3a4f;--tchk-border:#2e4058;--tchk-bg:#1e2d3d;--modal-bg:#1c2839;--overlay:rgba(0,5,15,.75);--vbtn-bg:#1e2d3d;--vbtn-on:#93c5fd;--vbtn-on-text:#0a1520;--input-bg:#1e2d3d;--input-border:#2e4058;--done-bg:#0d2418;--over-bg:#2a1515;--ext-ok-bg:#0d2418;--ext-wait-bg:#1c1a00;--shadow:rgba(0,0,0,.4);--accent:#60a5fa;--btn-edit-bg:#1e2d3d;--btn-edit-border:#2e4058;--btn-edit-text:#cbd5e1;--btn-del-bg:#2a1515;--btn-del-border:#7f1d1d;--btn-del-text:#fca5a5;--badge-ok-bg:#0d2e1a;--badge-ok-text:#86efac;--badge-ok-border:#166534;--badge-err-bg:#2d0f0f;--badge-err-text:#fca5a5;--badge-err-border:#7f1d1d;--badge-warn-bg:#2a1500;--badge-warn-text:#fdba74;--badge-warn-border:#92400e}
 *{box-sizing:border-box;margin:0;padding:0}
 html{overflow-x:hidden}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);transition:background .25s,color .25s;overflow-x:hidden;max-width:100vw}
-.wrap{display:flex;min-height:100vh;max-width:100vw;overflow-x:hidden}
+.wrap{display:flex;min-height:100vh;min-height:100dvh;max-width:100vw;overflow-x:hidden}
 .main{flex:1;display:flex;flex-direction:column;min-width:0;max-width:100%;overflow-x:hidden;margin-left:220px;transition:margin-left .3s}
-.sidebar{width:220px;flex-shrink:0;background:var(--sb-bg);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;overflow-y:auto;overflow-x:hidden;transition:background .25s,transform .3s,width .3s;z-index:60;padding-top:env(safe-area-inset-top)}
+.sidebar{width:220px;flex-shrink:0;background:var(--sb-bg);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;height:100dvh;overflow-y:auto;overflow-x:hidden;transition:background .25s,transform .3s,width .3s;z-index:60;padding-top:env(safe-area-inset-top)}
 .sidebar.collapsed{width:0;overflow:hidden}
 .main.sb-collapsed{margin-left:0}
 .sb-logo{padding:14px 14px 10px;display:flex;align-items:center;gap:10px;flex-shrink:0}
@@ -37,7 +37,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 .sb-div{height:1px;background:var(--sb-div);margin:6px 14px;flex-shrink:0}
 .sb-cats{overflow-y:auto;overflow-x:hidden;flex:1}
 .sb-ic{flex:0 0 20px;display:flex;align-items:center;justify-content:center;font-size:12px;overflow:hidden}
-.sb-bottom{flex-shrink:0;padding:12px 14px;border-top:1px solid var(--sb-div);display:flex;align-items:center;justify-content:space-between;gap:8px}
+.sb-bottom{flex-shrink:0;padding:12px 14px;padding-bottom:calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--sb-div);display:flex;align-items:center;justify-content:space-between;gap:8px}
 .sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:55}
 .theme-toggle{background:var(--sb-hover);border:1px solid var(--sb-div);border-radius:6px;cursor:pointer;padding:4px 10px;font-size:11px;font-weight:700;color:var(--sb-text);font-family:inherit;transition:all .15s;white-space:nowrap}
 .theme-toggle:hover{background:rgba(255,255,255,.12);color:#c8dff0}
@@ -155,7 +155,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 .fr textarea{resize:none}
 #mo-e.ov{z-index:150}
 #bg-deco{display:none}
-@media(max-width:768px){.sidebar{transform:translateX(-100%);position:fixed;height:100vh}.sidebar.open{transform:translateX(0)}.sb-overlay.open{display:block}.main{margin-left:0;max-width:100vw}.dgrid{grid-template-columns:1fr}.dinfo-grid{grid-template-columns:repeat(3,1fr)}.stats{grid-template-columns:repeat(3,1fr)}.content{padding:10px 12px}.fr input,.fr select{font-size:16px!important;height:48px;box-sizing:border-box}.fr textarea{font-size:16px!important}.fr input[type=date]{-webkit-appearance:none;appearance:none;text-align:left;padding:0 10px;line-height:48px}.dtop-hdr{flex-direction:column;align-items:flex-start;gap:8px}.dtop-hdr>div:last-child{display:grid!important;grid-template-columns:1fr 1fr;gap:6px;width:100%}.dtop-hdr>div:last-child button{flex:none;min-width:0;width:100%;justify-content:center;min-height:40px}.dtop-hdr>div:last-child button:only-child{grid-column:1/-1}.ob{padding:14px;border-radius:10px}.ov{padding:10px}.trow-actions{flex-wrap:wrap}.topbar{flex-wrap:wrap;gap:6px}.ext-add-row{flex-wrap:wrap}.ext-add-row input[type=date]{width:100%;flex:1}.dlist-row{flex-wrap:wrap}.mini-stats{gap:4px}.mini-stat{min-width:0;padding:5px 8px}.ext-naam{white-space:normal;word-break:break-word}.dcard-naam{white-space:normal;word-break:break-word}.tmeta{gap:3px}.dash-action-grid{grid-template-columns:1fr!important}.dash-kpi-grid{grid-template-columns:repeat(2,1fr)!important}.dcard:hover{box-shadow:none;border-color:var(--border)}.dacts{opacity:1}.dcard:hover .dacts{opacity:1}}
+@media(max-width:768px){.sidebar{transform:translateX(-100%);position:fixed;height:100vh;height:100dvh}.sidebar.open{transform:translateX(0)}.sb-overlay.open{display:block}.main{margin-left:0;max-width:100vw}.dgrid{grid-template-columns:1fr}.dinfo-grid{grid-template-columns:repeat(3,1fr)}.stats{grid-template-columns:repeat(3,1fr)}.content{padding:10px 12px}.fr input,.fr select{font-size:16px!important;height:48px;box-sizing:border-box}.fr textarea{font-size:16px!important}.fr input[type=date]{-webkit-appearance:none;appearance:none;text-align:left;padding:0 10px;line-height:48px}.dtop-hdr{flex-direction:column;align-items:flex-start;gap:8px}.dtop-hdr>div:last-child{display:grid!important;grid-template-columns:1fr 1fr;gap:6px;width:100%}.dtop-hdr>div:last-child button{flex:none;min-width:0;width:100%;justify-content:center;min-height:40px}.dtop-hdr>div:last-child button:only-child{grid-column:1/-1}.ob{padding:14px;border-radius:10px}.ov{padding:10px}.trow-actions{flex-wrap:wrap}.topbar{flex-wrap:wrap;gap:6px}.ext-add-row{flex-wrap:wrap}.ext-add-row input[type=date]{width:100%;flex:1}.dlist-row{flex-wrap:wrap}.mini-stats{gap:4px}.mini-stat{min-width:0;padding:5px 8px}.ext-naam{white-space:normal;word-break:break-word}.dcard-naam{white-space:normal;word-break:break-word}.tmeta{gap:3px}.dash-action-grid{grid-template-columns:1fr!important}.dash-kpi-grid{grid-template-columns:repeat(2,1fr)!important}.dcard:hover{box-shadow:none;border-color:var(--border)}.dacts{opacity:1}.dcard:hover .dacts{opacity:1}}
 @media(max-width:360px){.stat-val{font-size:17px}.dinfo-grid{grid-template-columns:1fr 1fr}#toast{max-width:calc(100vw - 40px);white-space:normal;text-align:center}}
 /* ===== MOBIEL: touch-targets, leesbaarheid, iOS-zoom ===== */
 @media(max-width:768px){
@@ -175,6 +175,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
   .dtools{width:100%;display:grid!important;grid-template-columns:repeat(3,1fr);gap:6px}
   .dtools>button{width:100%;min-height:40px;font-size:12px!important;padding:6px 4px!important}
   .notif-flag-btn{min-width:44px;min-height:44px;font-size:22px}
+  .dacts button,.ext-actions button,.ico-acts button,.ico-acts-btn{min-width:42px;min-height:42px;font-size:14px}
 }
 /* ===== NOTIFICATIES ===== */
 .notif-wrap{position:relative;flex-shrink:0}
@@ -227,7 +228,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 </head>
 <body>
 <div id="toast"></div>
-<div id="update-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9998;background:#1d4ed8;color:#fff;font-size:13px;font-weight:700;padding:9px 16px;display:none;align-items:center;justify-content:center;gap:10px;box-shadow:0 2px 8px rgba(0,0,0,.3)">
+<div id="update-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9998;background:#1d4ed8;color:#fff;font-size:13px;font-weight:700;padding:9px 16px;align-items:center;justify-content:center;gap:10px;box-shadow:0 2px 8px rgba(0,0,0,.3)">
   <span>🔄 Nieuwe versie beschikbaar</span>
   <button onclick="location.reload()" style="background:#fff;color:#1d4ed8;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit">Herladen</button>
   <button onclick="document.getElementById('update-banner').style.display='none'" style="background:rgba(255,255,255,.2);color:#fff;border:none;border-radius:6px;padding:5px 8px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit">✕</button>
@@ -328,7 +329,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
     <div id="mo-share-body"></div>
   </div>
 </div>
-<div class="ov" id="mo-username" style="display:none">
+<div class="ov" id="mo-username">
   <div class="ob" style="max-width:400px">
     <div class="ob-title" id="mo-username-t">Gebruikersnaam instellen</div>
     <div style="font-size:13px;color:var(--text2);margin-bottom:14px">Kies een naam die zichtbaar is voor collega's bij het delen van dossiers.</div>
@@ -702,7 +703,7 @@ function initFB(){
           document.getElementById('mo-username-t').textContent='Gebruikersnaam instellen';
           document.getElementById('inp-username').value='';
           document.getElementById('username-hint').textContent='';
-          document.getElementById('mo-username').style.display='flex';
+          OM('mo-username');
           setTimeout(function(){var el=document.getElementById('inp-username');if(el)el.focus();},80);
         }
       }).catch(function(e){});
@@ -876,7 +877,7 @@ function openEditUsername(){
   document.getElementById('mo-username-t').textContent='Gebruikersnaam wijzigen';
   document.getElementById('inp-username').value=_userName;
   document.getElementById('username-hint').textContent='';
-  document.getElementById('mo-username').style.display='flex';
+  OM('mo-username');
   setTimeout(function(){var el=document.getElementById('inp-username');if(el)el.focus();},80);
 }
 function saveUsername(){
@@ -893,7 +894,7 @@ function saveUsername(){
     _db.ref('gebruikernamen/'+key).set({uid:_uid,naam:nm}).catch(function(e){});
     _db.ref('gebruikers/'+_uid+'/profiel/gebruikersnaam').set(nm).catch(function(e){});
     _userName=nm;
-    document.getElementById('mo-username').style.display='none';
+    CM('mo-username');
     render();toast('✓ Gebruikersnaam opgeslagen');
   }).catch(function(e){hint.textContent='❌ Fout. Probeer opnieuw.';hint.style.color='#dc2626';});
 }
@@ -1680,7 +1681,7 @@ function buildDetail(){
           +(f.notitie?'<span style="font-size:10px;color:var(--text2);font-style:italic">'+esc(f.notitie)+'</span>':'')
           +(d.gedeeld&&f.gewijzigd_door?'<span style="font-size:10px;color:var(--text3);font-style:italic">✎ '+esc(f.gewijzigd_door)+'</span>':'')
           +'</div></div>'
-          +'<div style="display:flex;flex-direction:column;gap:3px;padding:7px 8px;justify-content:center;flex-shrink:0">'
+          +'<div class="ico-acts" style="display:flex;flex-direction:column;gap:3px;padding:7px 8px;justify-content:center;flex-shrink:0">'
           +'<button onclick="openEF(\''+d.id+'\','+fi+')" style="'+IW+'">✎</button>'
           +(feiten.length>1?'<button onclick="delF(\''+d.id+'\','+fi+')" style="'+IR+'">✕</button>':'<button style="'+IR+';opacity:.25;cursor:default" disabled>✕</button>')
           +'</div></div>';
@@ -1810,7 +1811,7 @@ function buildDetail(){
           +'<div style="font-size:13px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(ld.naam||'\u2014')+'</div>'
           +'<div style="font-size:11px;color:var(--text3);font-weight:600;margin-top:2px">'+lpf.length+' feit'+(lpf.length!==1?'en':'')+' \u00b7 '+lok+' open '+(lok!==1?'taken':'taak')+'</div>'
           +'</div>'
-          +'<button onclick="event.stopPropagation();doUnlink(\''+d.id+'\',\''+lid+'\')" style="'+IR+';flex-shrink:0">\u2715</button>'
+          +'<button class="ico-acts-btn" onclick="event.stopPropagation();doUnlink(\''+d.id+'\',\''+lid+'\')" style="'+IR+';flex-shrink:0">\u2715</button>'
           +'</div>';
       });
     }

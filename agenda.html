@@ -10,11 +10,11 @@
 <meta name="apple-mobile-web-app-title" content="Agenda">
 <title>Agenda — Mijn Dossiers</title>
 <style>
-:root{--bg:#f0f2f5;--bg2:#fff;--bg3:#f8fafc;--bg4:#f1f5f9;--border:#e2e8f0;--border2:#cbd5e1;--text:#0f172a;--text2:#475569;--text3:#94a3b8;--topbar:#fff;--topbar-border:#e2e8f0;--modal-bg:#fff;--overlay:rgba(10,20,40,.6);--input-bg:#fff;--input-border:#cbd5e1;--shadow:rgba(0,0,0,.08);--accent:#3b82f6;--btn-edit-bg:#fff;--btn-edit-border:#cbd5e1;--btn-edit-text:#374151;--btn-del-bg:#fee2e2;--btn-del-border:#fca5a5;--btn-del-text:#7f1d1d}
+:root{--bg:#f0f2f5;--bg2:#fff;--bg3:#f8fafc;--bg4:#f1f5f9;--border:#e2e8f0;--border2:#cbd5e1;--text:#0f172a;--text2:#475569;--text3:#64748b;--topbar:#fff;--topbar-border:#e2e8f0;--modal-bg:#fff;--overlay:rgba(10,20,40,.6);--input-bg:#fff;--input-border:#cbd5e1;--shadow:rgba(0,0,0,.08);--accent:#3b82f6;--btn-edit-bg:#fff;--btn-edit-border:#cbd5e1;--btn-edit-text:#374151;--btn-del-bg:#fee2e2;--btn-del-border:#fca5a5;--btn-del-text:#7f1d1d}
 [data-theme="dark"]{--bg:#131c27;--bg2:#1c2839;--bg3:#1e2d3d;--bg4:#243347;--border:#2a3a4f;--border2:#2e4058;--text:#f1f5f9;--text2:#b8c8d8;--text3:#8aaac4;--topbar:#1c2839;--topbar-border:#2a3a4f;--modal-bg:#1c2839;--overlay:rgba(0,5,15,.75);--input-bg:#1e2d3d;--input-border:#2e4058;--shadow:rgba(0,0,0,.4);--accent:#60a5fa;--btn-edit-bg:#1e2d3d;--btn-edit-border:#2e4058;--btn-edit-text:#cbd5e1;--btn-del-bg:#2a1515;--btn-del-border:#7f1d1d;--btn-del-text:#fca5a5}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);transition:background .25s,color .25s;min-height:100vh}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);transition:background .25s,color .25s;min-height:100vh;min-height:100dvh}
 /* TOPBAR */
 /* ===== HEADER (voorstel B) ===== */
 .topbar{background:var(--topbar);border-bottom:1px solid var(--topbar-border);position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:12px;padding:9px calc(16px + env(safe-area-inset-right)) 9px calc(16px + env(safe-area-inset-left));padding-top:calc(9px + env(safe-area-inset-top))}
@@ -116,7 +116,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 .cal-day-num{font-size:13px;font-weight:700;color:var(--text);width:26px;height:26px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .r-badge{font-size:11px;font-weight:700;color:#fff;border-radius:4px;padding:3px 6px;display:flex;align-items:center;gap:3px;white-space:nowrap;overflow:hidden;flex-shrink:0;max-width:100%}
 .r-label{overflow:hidden;text-overflow:ellipsis}
-.cal-chip{font-size:10px;font-weight:600;color:var(--text2);background:var(--bg4);border-radius:3px;padding:2px 5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-left:2px solid #94a3b8;display:block;max-width:100%;font-style:italic}
+.cal-chip{font-size:10px;font-weight:600;color:var(--text2);background:var(--bg4);border-radius:3px;padding:2px 5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-left:2px solid var(--text3);display:block;max-width:100%;font-style:italic}
 /* DAY PANEL */
 .day-panel{background:var(--bg2);border:1px solid var(--border);border-radius:12px;margin-top:12px;overflow:hidden}
 .day-panel-hdr{padding:12px 16px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
