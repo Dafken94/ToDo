@@ -158,7 +158,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
         <input type="file" id="foto-input" accept="image/*" style="display:none">
         <div class="net-tools">
           <button class="btnW" onclick="resetPositions()">&#8635; Herpositioneren</button>
-          <button class="btnW" onclick="resizeCanvas();drawNet();fitView();drawNet()">&#10697; Centreren</button>
+          <button class="btnW" onclick="resizeCanvas();syncNodes();fitView();drawNet()">&#10697; Centreren</button>
         </div>
         <div class="legend" id="legend"></div>
       </div>
@@ -810,11 +810,21 @@ function visibleCanvasSize(){
   return {w:cw,h:ch};
 }
 function fitView(){
-  var keys=Object.keys(NODES);if(!keys.length)return;
   var vc=visibleCanvasSize();var cw=vc.w,ch=vc.h;if(cw<2||ch<2)return;
   var minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
-  keys.forEach(function(k){var n=NODES[k];if(n.x<minX)minX=n.x;if(n.x>maxX)maxX=n.x;if(n.y<minY)minY=n.y;if(n.y>maxY)maxY=n.y;});
-  var pad=80;var bw=Math.max(1,maxX-minX)+pad*2,bh=Math.max(1,maxY-minY)+pad*2;
+  function ext(x,y){if(!isFinite(x)||!isFinite(y))return;if(x<minX)minX=x;if(x>maxX)maxX=x;if(y<minY)minY=y;if(y>maxY)maxY=y;}
+  // Primair: huidige posities uit NODES (inclusief gesleepte posities)
+  Object.keys(NODES).forEach(function(k){var n=NODES[k];ext(n.x,n.y);});
+  // Fallback: gebruik ENTS voor entiteiten die nog niet in NODES staan
+  entsArr().forEach(function(e){
+    if(!NODES[e.id]){
+      if(typeof e.x==='number')ext(e.x,e.y);
+      (e.elementen||[]).forEach(function(el){if(typeof el.netX==='number')ext(el.netX,el.netY);});
+    }
+  });
+  if(!isFinite(minX))return;
+  var pad=100;
+  var bw=Math.max(1,maxX-minX)+pad*2,bh=Math.max(1,maxY-minY)+pad*2;
   var sc=Math.min(cw/bw,ch/bh,1.5);
   NET_SCALE=sc;NET_OX=cw/2-(minX+maxX)/2*sc;NET_OY=ch/2-(minY+maxY)/2*sc;
 }
