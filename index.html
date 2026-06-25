@@ -220,6 +220,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 </head>
 <body>
 <div id="toast"></div>
+<div id="update-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9998;background:#1d4ed8;color:#fff;font-size:13px;font-weight:700;padding:9px 16px;display:none;align-items:center;justify-content:center;gap:10px;box-shadow:0 2px 8px rgba(0,0,0,.3)">
+  <span>🔄 Nieuwe versie beschikbaar</span>
+  <button onclick="location.reload(true)" style="background:#fff;color:#1d4ed8;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit">Herladen</button>
+  <button onclick="document.getElementById('update-banner').style.display='none'" style="background:rgba(255,255,255,.2);color:#fff;border:none;border-radius:6px;padding:5px 8px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit">✕</button>
+</div>
 <div class="ov" id="mo-d">
   <div class="ob">
     <div class="ob-title" id="mo-d-t">Dossier</div>
@@ -1309,8 +1314,8 @@ function buildList(srchVal){
 
   if(dringend.length>0){html+='<div class="banner-dringend">\u26a0 '+dringend.length+(dringend.length!==1?' vervallen taken':' vervallen taak')+'</div>';}
 
-  var fsbtn=function(val,icon,lbl,cnt){var on=(val===null?FS===null:FS===val);return '<button onclick="setFS('+(val===null?'null':'\''+val+'\'')+');setFC(null)" style="font-family:inherit;font-size:11px;font-weight:700;padding:5px 10px;border-radius:7px;cursor:pointer;border:1.5px solid '+(on?'var(--accent)':'var(--border)')+';background:'+(on?'var(--accent)':'var(--bg2)')+';color:'+(on?'#fff':'var(--text2)')+';transition:all .15s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px">'+icon+' '+lbl+'<span style="opacity:.7;margin-left:2px">'+cnt+'</span></button>';};
-  var fobtn=function(val,icon,lbl,cnt){var on=(val===null?FO===null:FO===val);return '<button onclick="setFO('+(val===null?'null':'\''+val+'\'')+');" style="font-family:inherit;font-size:11px;font-weight:700;padding:5px 10px;border-radius:7px;cursor:pointer;border:1.5px solid '+(on?'#7c3aed':'var(--border)')+';background:'+(on?'#7c3aed':'var(--bg2)')+';color:'+(on?'#fff':'var(--text2)')+';transition:all .15s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px">'+icon+' '+lbl+'<span style="opacity:.7;margin-left:2px">'+cnt+'</span></button>';};
+  var fsbtn=function(val,icon,lbl,cnt){var on=(val===null?FS===null:FS===val);return '<button onclick="setFS('+(val===null?'null':'\''+val+'\'')+');setFC(null)" style="font-family:inherit;font-size:11px;font-weight:700;padding:5px 10px;border-radius:7px;cursor:pointer;border:1.5px solid '+(on?'var(--accent)':'var(--border)')+';background:'+(on?'var(--accent)':'var(--bg2)')+';color:'+(on?'#fff':'var(--text2)')+';transition:all .15s;white-space:nowrap;display:flex;flex:1;align-items:center;justify-content:center;gap:5px">'+icon+' '+lbl+'<span style="opacity:.7;margin-left:2px">'+cnt+'</span></button>';};
+  var fobtn=function(val,icon,lbl,cnt){var on=(val===null?FO===null:FO===val);return '<button onclick="setFO('+(val===null?'null':'\''+val+'\'')+');" style="font-family:inherit;font-size:11px;font-weight:700;padding:5px 10px;border-radius:7px;cursor:pointer;border:1.5px solid '+(on?'#7c3aed':'var(--border)')+';background:'+(on?'#7c3aed':'var(--bg2)')+';color:'+(on?'#fff':'var(--text2)')+';transition:all .15s;white-space:nowrap;display:flex;flex:1;align-items:center;justify-content:center;gap:5px">'+icon+' '+lbl+'<span style="opacity:.7;margin-left:2px">'+cnt+'</span></button>';};
   var ooCount=regDOS.filter(function(d){return (d.onderzoeksType||'oo')==='oo';}).length;
   var goCount=regDOS.filter(function(d){return d.onderzoeksType==='go';}).length;
   html+='<div style="display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:6px">'
@@ -2667,6 +2672,28 @@ function onGlobSrch(){
 window.addEventListener('load',function(){
   if(typeof firebase!=='undefined'&&!_uid){initAuth();}
 });
+
+// Auto-update detectie: vergelijk Last-Modified header met laadmoment
+(function(){
+  var _loadTime=new Date();
+  var _banner=null;
+  var _shown=false;
+  function checkUpdate(){
+    if(_shown)return;
+    fetch(window.location.href,{method:'HEAD',cache:'no-store'})
+      .then(function(r){
+        var lm=r.headers.get('last-modified');
+        if(!lm)return;
+        if(new Date(lm)>_loadTime){
+          _shown=true;
+          _banner=document.getElementById('update-banner');
+          if(_banner){_banner.style.display='flex';}
+        }
+      })
+      .catch(function(){});
+  }
+  setInterval(checkUpdate,90000);
+})();
 
 </script>
 <div class="ov" id="mo-globsrch" onclick="if(event.target===this)CM('mo-globsrch')">
