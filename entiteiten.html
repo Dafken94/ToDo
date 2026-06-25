@@ -648,8 +648,13 @@ function saveEl(){
 }
 function delEl(i){
   confirmDlg('Dit element verwijderen?',function(){
-    var arr=elsOf(SEL);arr.splice(i,1);ENTS[SEL].elementen=arr;
-    Object.keys(NODES).forEach(function(k){if(k.indexOf('el:'+SEL+':')===0)delete NODES[k];});
+    var arr=elsOf(SEL);
+    var removedType=arr[i]&&arr[i].type;
+    arr.splice(i,1);ENTS[SEL].elementen=arr;
+    if(removedType){
+      var stillHas=arr.some(function(el){return el.type===removedType;});
+      if(!stillHas)delete NODES['el:'+SEL+':'+removedType];
+    }
     saveEntData(SEL);renderDetail();toast('✓ Verwijderd');
   });
 }
@@ -719,10 +724,12 @@ function syncNodes(){
     if(k.indexOf('el:')===0){var eid=k.split(':')[1];if(ids.indexOf(eid)===-1)delete NODES[k];}
     else{if(ids.indexOf(k)===-1)delete NODES[k];}
   });
-  // verwijder element-nodes met verouderde index (na verwijdering element)
+  // verwijder element-nodes waarvan het type niet meer bestaat in de entiteit
   entsArr().forEach(function(e){
-    var cnt=(e.elementen||[]).length;
-    Object.keys(NODES).forEach(function(k){if(k.indexOf('el:'+e.id+':')===0&&parseInt(k.split(':')[2])>=cnt)delete NODES[k];});
+    var typeSet={};(e.elementen||[]).forEach(function(el){typeSet[el.type]=true;});
+    Object.keys(NODES).forEach(function(k){
+      if(k.indexOf('el:'+e.id+':')===0&&!typeSet[k.split(':')[2]])delete NODES[k];
+    });
   });
   var entKeys=Object.keys(NODES).filter(function(k){return k.indexOf('el:')!==0;});
   var newOnes=ids.filter(function(id){return !NODES[id];});
@@ -734,11 +741,14 @@ function syncNodes(){
     var r=canvas.getBoundingClientRect();var cx=(r.width||600)/2,cy=(r.height||400)/2;
     newOnes.forEach(function(id){var e=ENTS[id];if(e&&typeof e.x==='number'){NODES[id]={x:e.x,y:e.y};}else{NODES[id]={x:cx+(Math.random()-0.5)*200,y:cy+(Math.random()-0.5)*200};}});
   }
-  // laad opgeslagen elementposities
+  // laad opgeslagen type-groepposities (eerste element van elk type met opgeslagen positie)
   entsArr().forEach(function(e){
-    (e.elementen||[]).forEach(function(el,i){
-      var key='el:'+e.id+':'+i;
-      if(!NODES[key]&&typeof el.netX==='number')NODES[key]={x:el.netX,y:el.netY};
+    var typeFirst={};
+    (e.elementen||[]).forEach(function(el){if(!typeFirst[el.type])typeFirst[el.type]=el;});
+    Object.keys(typeFirst).forEach(function(t){
+      var key='el:'+e.id+':'+t;
+      var first=typeFirst[t];
+      if(!NODES[key]&&typeof first.netX==='number')NODES[key]={x:first.netX,y:first.netY};
     });
   });
 }
@@ -764,15 +774,21 @@ function drawNet(targetCtx,scaleOverride){
     var n=NODES[e.id];if(!n)return;
     drawNode(c,n,e);
   });
-  // Elementen als verplaatsbare subnodes
+  // Elementen als verplaatsbare subnodes — gegroepeerd per type
   var R_EL=16,EL_DIST=80;
   entsArr().forEach(function(e){
     var en=NODES[e.id];if(!en)return;
     var els=(e.elementen||[]);if(!els.length)return;
-    var count=els.length;
-    els.forEach(function(el,i){
-      var key='el:'+e.id+':'+i;
-      if(!NODES[key]){var angle=(i/Math.max(1,count))*Math.PI*2-Math.PI/2;NODES[key]={x:en.x+Math.cos(angle)*EL_DIST,y:en.y+Math.sin(angle)*EL_DIST};}
+    var typeGroups={},typeOrder=[];
+    els.forEach(function(el){
+      if(!typeGroups[el.type]){typeGroups[el.type]=[];typeOrder.push(el.type);}
+      typeGroups[el.type].push(el);
+    });
+    var count=typeOrder.length;
+    typeOrder.forEach(function(t,gi){
+      var key='el:'+e.id+':'+t;
+      if(!NODES[key]){var angle=(gi/Math.max(1,count))*Math.PI*2-Math.PI/2;NODES[key]={x:en.x+Math.cos(angle)*EL_DIST,y:en.y+Math.sin(angle)*EL_DIST};}
+      var group=typeGroups[t];
       var ex=NODES[key].x,ey=NODES[key].y;
       var dx=ex-en.x,dy=ey-en.y,len=Math.hypot(dx,dy)||1,ux=dx/len,uy=dy/len;
       c.save();c.setLineDash([4,3]);c.strokeStyle='rgba(148,163,184,.35)';c.lineWidth=1;
@@ -780,13 +796,28 @@ function drawNet(targetCtx,scaleOverride){
       c.setLineDash([]);c.restore();
       c.beginPath();c.arc(ex,ey,R_EL,0,Math.PI*2);
       c.fillStyle='rgba(15,30,55,0.88)';c.fill();
-      c.lineWidth=1;c.strokeStyle='rgba(148,163,184,.45)';c.setLineDash([]);c.stroke();
+      c.lineWidth=1;c.strokeStyle='rgba(148,163,184,.45)';c.stroke();
       c.textAlign='center';c.textBaseline='middle';
       c.font='10px sans-serif';c.fillStyle='rgba(203,213,225,.9)';
-      c.fillText(EL_ICONS[el.type]||'📎',ex,ey);
-      var nm=elNetLabel(el);
-      c.font='500 8px -apple-system,Segoe UI,sans-serif';c.fillStyle='rgba(148,163,184,.75)';
-      c.textBaseline='top';c.fillText(nm,ex,ey+R_EL+3);
+      c.fillText(EL_ICONS[t]||'📎',ex,ey);
+      if(group.length>1){
+        c.save();
+        c.beginPath();c.arc(ex+R_EL-4,ey-R_EL+4,7,0,Math.PI*2);
+        c.fillStyle='#3b82f6';c.fill();
+        c.font='bold 7px sans-serif';c.fillStyle='#fff';c.textAlign='center';c.textBaseline='middle';
+        c.fillText(group.length,ex+R_EL-4,ey-R_EL+4);
+        c.restore();
+      }
+      c.font='500 7.5px -apple-system,Segoe UI,sans-serif';c.fillStyle='rgba(148,163,184,.80)';
+      c.textAlign='center';c.textBaseline='top';
+      var maxShow=3;
+      group.slice(0,maxShow).forEach(function(el,li){
+        c.fillText(elNetLabel(el),ex,ey+R_EL+3+li*10);
+      });
+      if(group.length>maxShow){
+        c.fillStyle='rgba(148,163,184,.50)';
+        c.fillText('+'+(group.length-maxShow)+' meer',ex,ey+R_EL+3+maxShow*10);
+      }
     });
   });
   c.setLineDash([]);
@@ -848,7 +879,10 @@ function hitNode(p){
   var found=null;
   entsArr().forEach(function(e){var n=NODES[e.id];if(n&&Math.hypot(p.x-n.x,p.y-n.y)<=38)found=e.id;});
   if(found)return found;
-  entsArr().forEach(function(e){(e.elementen||[]).forEach(function(el,i){var key='el:'+e.id+':'+i;var n=NODES[key];if(n&&Math.hypot(p.x-n.x,p.y-n.y)<=16)found=key;});});
+  entsArr().forEach(function(e){
+    var types=[];(e.elementen||[]).forEach(function(el){if(types.indexOf(el.type)===-1)types.push(el.type);});
+    types.forEach(function(t){var key='el:'+e.id+':'+t;var n=NODES[key];if(n&&Math.hypot(p.x-n.x,p.y-n.y)<=16)found=key;});
+  });
   return found;
 }
 function onDown(ev){
@@ -859,10 +893,8 @@ function onDown(ev){
     dragElOffsets={};
     if(id.indexOf('el:')!==0){
       var eid=id;
-      ((ENTS[eid]&&ENTS[eid].elementen)||[]).forEach(function(el,i){
-        var key='el:'+eid+':'+i;
-        if(NODES[key])dragElOffsets[key]={dx:NODES[key].x-NODES[eid].x,dy:NODES[key].y-NODES[eid].y};
-      });
+      var types=[];((ENTS[eid]&&ENTS[eid].elementen)||[]).forEach(function(el){if(types.indexOf(el.type)===-1)types.push(el.type);});
+      types.forEach(function(t){var key='el:'+eid+':'+t;if(NODES[key])dragElOffsets[key]={dx:NODES[key].x-NODES[eid].x,dy:NODES[key].y-NODES[eid].y};});
     }
   }else{
     panning=true;var r=canvas.getBoundingClientRect();panSX=(ev.touches?ev.touches[0].clientX:ev.clientX)-r.left;panSY=(ev.touches?ev.touches[0].clientY:ev.clientY)-r.top;panOX=NET_OX;panOY=NET_OY;
@@ -891,13 +923,20 @@ function onMove(ev){
 function onUp(){
   if(dragNode){
     if(dragNode.indexOf('el:')===0){
-      var parts=dragNode.split(':'),eid=parts[1],idx=parseInt(parts[2]);
-      var e=ENTS[eid];if(e&&e.elementen&&e.elementen[idx]){e.elementen[idx].netX=NODES[dragNode].x;e.elementen[idx].netY=NODES[dragNode].y;saveEntData(eid);}
+      var parts=dragNode.split(':'),eid=parts[1],typ=parts[2];
+      var e=ENTS[eid];
+      if(e&&e.elementen){
+        e.elementen.forEach(function(el){if(el.type===typ){el.netX=NODES[dragNode].x;el.netY=NODES[dragNode].y;}});
+        saveEntData(eid);
+      }
     }else{
       if(ENTS[dragNode]){
         ENTS[dragNode].x=NODES[dragNode].x;ENTS[dragNode].y=NODES[dragNode].y;
         var e=ENTS[dragNode];
-        if(e.elementen)e.elementen.forEach(function(el,i){var k='el:'+dragNode+':'+i;if(NODES[k]){el.netX=NODES[k].x;el.netY=NODES[k].y;}});
+        if(e.elementen){
+          var types=[];e.elementen.forEach(function(el){if(types.indexOf(el.type)===-1)types.push(el.type);});
+          types.forEach(function(t){var k='el:'+dragNode+':'+t;if(NODES[k])e.elementen.forEach(function(el){if(el.type===t){el.netX=NODES[k].x;el.netY=NODES[k].y;}});});
+        }
         saveEntData(dragNode);
       }
     }
