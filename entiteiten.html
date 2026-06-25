@@ -110,6 +110,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
  .pt-btn{min-height:44px}
  .pt-btn+.pt-btn{border-top:1px solid var(--input-border)}
 }
+#net-tooltip{position:absolute;pointer-events:none;z-index:10;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:11px 14px;min-width:190px;max-width:250px;box-shadow:0 8px 28px rgba(0,0,0,.28);display:none}
+#net-tooltip .tt-name{font-size:13px;font-weight:800;color:var(--text);margin-bottom:5px}
+#net-tooltip .tt-badge{display:inline-block;font-size:10px;font-weight:700;color:#fff;border-radius:4px;padding:2px 8px;margin-bottom:7px}
+#net-tooltip .tt-row{display:flex;gap:6px;margin-bottom:3px;align-items:flex-start}
+#net-tooltip .tt-lbl{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;min-width:68px;flex-shrink:0;padding-top:1px}
+#net-tooltip .tt-val{font-size:11px;font-weight:600;color:var(--text);word-break:break-word}
+#net-tooltip .tt-sub{font-size:10px;color:var(--text3);margin-top:6px;border-top:1px solid var(--border);padding-top:5px}
 </style>
 </head>
 <body>
@@ -139,6 +146,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
     <div class="pane" id="pane-net">
       <div class="net-wrap">
         <canvas id="net-canvas"></canvas>
+        <div id="net-tooltip"></div>
         <div class="net-tools">
           <button class="btnW" onclick="resetPositions()">&#8635; Herpositioneren</button>
           <button class="btnW" onclick="netZoom(1.2)">&#128269; +</button>
@@ -684,7 +692,8 @@ document.getElementById('confirm-ok').onclick=function(){CM('mo-confirm');if(_co
 /* ===== Netwerk canvas ===== */
 var NODES={}, NET_SCALE=1, NET_OX=0, NET_OY=0;
 var canvas=document.getElementById('net-canvas'), ctx=canvas.getContext('2d');
-var dragNode=null,dragDX=0,dragDY=0,panning=false,panSX=0,panSY=0,panOX=0,panOY=0,DPR=window.devicePixelRatio||1;
+var dragNode=null,dragDX=0,dragDY=0,dragElOffsets={},panning=false,panSX=0,panSY=0,panOX=0,panOY=0,DPR=window.devicePixelRatio||1;
+var hoverNode=null;
 
 function resizeCanvas(){
   var r=canvas.getBoundingClientRect();
@@ -843,13 +852,41 @@ function hitNode(p){
 }
 function onDown(ev){
   var p=evtPos(ev);var id=hitNode(p);
-  if(id){dragNode=id;dragDX=p.x-NODES[id].x;dragDY=p.y-NODES[id].y;canvas.style.cursor='grabbing';}
-  else{panning=true;var r=canvas.getBoundingClientRect();panSX=(ev.touches?ev.touches[0].clientX:ev.clientX)-r.left;panSY=(ev.touches?ev.touches[0].clientY:ev.clientY)-r.top;panOX=NET_OX;panOY=NET_OY;}
+  hideTooltip();hoverNode=null;
+  if(id){
+    dragNode=id;dragDX=p.x-NODES[id].x;dragDY=p.y-NODES[id].y;canvas.style.cursor='grabbing';
+    dragElOffsets={};
+    if(id.indexOf('el:')!==0){
+      var eid=id;
+      ((ENTS[eid]&&ENTS[eid].elementen)||[]).forEach(function(el,i){
+        var key='el:'+eid+':'+i;
+        if(NODES[key])dragElOffsets[key]={dx:NODES[key].x-NODES[eid].x,dy:NODES[key].y-NODES[eid].y};
+      });
+    }
+  }else{
+    panning=true;var r=canvas.getBoundingClientRect();panSX=(ev.touches?ev.touches[0].clientX:ev.clientX)-r.left;panSY=(ev.touches?ev.touches[0].clientY:ev.clientY)-r.top;panOX=NET_OX;panOY=NET_OY;
+  }
   if(ev.touches)ev.preventDefault();
 }
 function onMove(ev){
-  if(dragNode){var p=evtPos(ev);NODES[dragNode]={x:p.x-dragDX,y:p.y-dragDY};drawNet();if(ev.touches)ev.preventDefault();}
-  else if(panning){var r=canvas.getBoundingClientRect();var mx=(ev.touches?ev.touches[0].clientX:ev.clientX)-r.left,my=(ev.touches?ev.touches[0].clientY:ev.clientY)-r.top;NET_OX=panOX+(mx-panSX);NET_OY=panOY+(my-panSY);drawNet();if(ev.touches)ev.preventDefault();}
+  if(dragNode){
+    var p=evtPos(ev);
+    var nx=p.x-dragDX,ny=p.y-dragDY;
+    NODES[dragNode]={x:nx,y:ny};
+    if(dragNode.indexOf('el:')!==0){
+      Object.keys(dragElOffsets).forEach(function(k){NODES[k]={x:nx+dragElOffsets[k].dx,y:ny+dragElOffsets[k].dy};});
+    }
+    drawNet();if(ev.touches)ev.preventDefault();
+  }else if(panning){
+    var r=canvas.getBoundingClientRect();var mx=(ev.touches?ev.touches[0].clientX:ev.clientX)-r.left,my=(ev.touches?ev.touches[0].clientY:ev.clientY)-r.top;NET_OX=panOX+(mx-panSX);NET_OY=panOY+(my-panSY);drawNet();if(ev.touches)ev.preventDefault();
+  }else if(!ev.touches){
+    var p=evtPos(ev);
+    var hit=hitNode(p);
+    var hovEnt=hit&&hit.indexOf('el:')!==0?hit:null;
+    canvas.style.cursor=hit?'pointer':'grab';
+    if(hovEnt!==hoverNode){hoverNode=hovEnt;if(hovEnt)showTooltip(hovEnt,ev);else hideTooltip();}
+    else if(hovEnt)moveTooltip(ev);
+  }
 }
 function onUp(){
   if(dragNode){
@@ -857,14 +894,59 @@ function onUp(){
       var parts=dragNode.split(':'),eid=parts[1],idx=parseInt(parts[2]);
       var e=ENTS[eid];if(e&&e.elementen&&e.elementen[idx]){e.elementen[idx].netX=NODES[dragNode].x;e.elementen[idx].netY=NODES[dragNode].y;saveEntData(eid);}
     }else{
-      if(ENTS[dragNode]){ENTS[dragNode].x=NODES[dragNode].x;ENTS[dragNode].y=NODES[dragNode].y;saveEntData(dragNode);}
+      if(ENTS[dragNode]){
+        ENTS[dragNode].x=NODES[dragNode].x;ENTS[dragNode].y=NODES[dragNode].y;
+        var e=ENTS[dragNode];
+        if(e.elementen)e.elementen.forEach(function(el,i){var k='el:'+dragNode+':'+i;if(NODES[k]){el.netX=NODES[k].x;el.netY=NODES[k].y;}});
+        saveEntData(dragNode);
+      }
     }
   }
-  dragNode=null;panning=false;canvas.style.cursor='grab';
+  dragNode=null;dragElOffsets={};panning=false;canvas.style.cursor='grab';
+}
+
+function showTooltip(eid,ev){
+  var tt=document.getElementById('net-tooltip');
+  var e=ENTS[eid];if(!e)return;
+  var nm=entName(e);
+  var rol=typeLabel(e);
+  var color=entColor(e);
+  var els=elsOf(eid);
+  var rels=relsArr().filter(function(r){return r.vanEntiteitId===eid||r.naarEntiteitId===eid;});
+  var h='<div class="tt-name">'+esc(nm)+'</div>';
+  h+='<div class="tt-badge" style="background:'+color+'">'+esc(rol)+'</div>';
+  if(e.persoonType==='natuurlijk'){
+    if(e.geboortedatum)h+='<div class="tt-row"><span class="tt-lbl">Geboortedatum</span><span class="tt-val">'+esc(fd(e.geboortedatum))+'</span></div>';
+    if(e.rijksregister)h+='<div class="tt-row"><span class="tt-lbl">Rijksregister</span><span class="tt-val">'+esc(e.rijksregister)+'</span></div>';
+  }else if(e.persoonType==='rechtspersoon'){
+    if(e.kbo)h+='<div class="tt-row"><span class="tt-lbl">KBO</span><span class="tt-val">'+esc(e.kbo)+'</span></div>';
+    if(e.adres)h+='<div class="tt-row"><span class="tt-lbl">Adres</span><span class="tt-val">'+esc(e.adres)+'</span></div>';
+  }else if(e.persoonType==='onbekend'){
+    if(e.alias)h+='<div class="tt-row"><span class="tt-lbl">Omschrijving</span><span class="tt-val">'+esc(e.alias)+'</span></div>';
+  }
+  if(e.notities)h+='<div class="tt-row"><span class="tt-lbl">Notities</span><span class="tt-val">'+esc(e.notities.length>70?e.notities.slice(0,69)+'…':e.notities)+'</span></div>';
+  var parts=[];
+  if(els.length)parts.push(els.length+(els.length===1?' element':' elementen'));
+  if(rels.length)parts.push(rels.length+(rels.length===1?' relatie':' relaties'));
+  if(parts.length)h+='<div class="tt-sub">'+parts.join(' · ')+'</div>';
+  tt.innerHTML=h;tt.style.display='block';
+  moveTooltip(ev);
+}
+function hideTooltip(){var tt=document.getElementById('net-tooltip');if(tt)tt.style.display='none';}
+function moveTooltip(ev){
+  var tt=document.getElementById('net-tooltip');if(!tt||tt.style.display==='none')return;
+  var wr=canvas.parentElement.getBoundingClientRect();
+  var mx=ev.clientX-wr.left+18,my=ev.clientY-wr.top+18;
+  var tw=tt.offsetWidth||220,th=tt.offsetHeight||100;
+  if(mx+tw>wr.width-8)mx=ev.clientX-wr.left-tw-18;
+  if(my+th>wr.height-8)my=ev.clientY-wr.top-th-18;
+  if(mx<0)mx=4;if(my<0)my=4;
+  tt.style.left=mx+'px';tt.style.top=my+'px';
 }
 canvas.addEventListener('mousedown',onDown);
 window.addEventListener('mousemove',onMove);
 window.addEventListener('mouseup',onUp);
+canvas.addEventListener('mouseleave',function(){hideTooltip();hoverNode=null;if(!dragNode)canvas.style.cursor='grab';});
 canvas.addEventListener('touchstart',onDown,{passive:false});
 canvas.addEventListener('touchmove',onMove,{passive:false});
 canvas.addEventListener('touchend',onUp);
