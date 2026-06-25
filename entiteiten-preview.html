@@ -421,7 +421,7 @@ function renderDetail(){
   var avRemove=e.foto?'<div onclick="removeFoto(\''+e.id+'\')" title="Foto verwijderen" style="position:absolute;top:-4px;right:-4px;width:16px;height:16px;border-radius:50%;background:#ef4444;color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid var(--bg2);z-index:3">✕</div>':'';
   h+='<div class="card">'
     +'<div class="card-hd"><div style="display:flex;align-items:center;gap:11px;min-width:0">'
-    +'<div class="ent-av" style="position:relative;width:42px;height:42px;font-size:'+(isRp||isOnb?'22':'15')+'px;background:'+entColor(e)+';flex-shrink:0;overflow:hidden">'+avInner+avOverlay+avRemove+'</div>'
+    +'<div class="ent-av" style="position:relative;width:42px;height:42px;font-size:'+(isRp||isOnb?'22':'15')+'px;background:'+entColor(e)+';flex-shrink:0">'+avInner+avOverlay+avRemove+'</div>'
     +'<div style="min-width:0"><div style="font-size:18px;font-weight:800;color:var(--text)">'+esc(entName(e))+(isRp?'<span class="rp-tag">Rechtspersoon</span>':isOnb?'<span class="rp-tag" style="background:#64748b">Onbekende</span>':'')+'</div>'
     +'<div style="font-size:12px;font-weight:700;color:'+entColor(e)+';text-transform:capitalize">'+esc(typeLabel(e))+'</div></div></div>'
     +'<div style="display:flex;gap:6px"><button class="btnW" onclick="openEntModal(\''+e.id+'\')">&#9998; Bewerken</button><button class="btnR" onclick="delEnt(\''+e.id+'\')">&#10005; Verwijderen</button></div>'
