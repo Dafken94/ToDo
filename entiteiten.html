@@ -527,7 +527,7 @@ function switchTab(t){
   document.getElementById('tab-net').classList.toggle('on',t==='net');
   document.getElementById('pane-detail').classList.toggle('on',t==='detail');
   document.getElementById('pane-net').classList.toggle('on',t==='net');
-  if(t==='net'){requestAnimationFrame(function(){resizeCanvas();syncNodes();fitView();drawNet();});}
+  if(t==='net'){requestAnimationFrame(function(){requestAnimationFrame(function(){resizeCanvas();syncNodes();fitView();drawNet();});});}
   else{renderDetail();}
 }
 
@@ -543,7 +543,7 @@ function mobSwitch(v){
   document.getElementById('pane-net').classList.toggle('on',v==='netwerk');
   ['lijst','detail','netwerk'].forEach(function(b){var el=document.getElementById('mb-'+b);if(el)el.classList.toggle('on',b===v);});
   var fab=document.getElementById('mob-fab');if(fab)fab.style.display='flex';
-  if(v==='netwerk'){requestAnimationFrame(function(){resizeCanvas();syncNodes();fitView();drawNet();});}
+  if(v==='netwerk'){requestAnimationFrame(function(){requestAnimationFrame(function(){resizeCanvas();syncNodes();fitView();drawNet();});});}
   else if(v==='detail'){renderDetail();}
   else{renderList();}
 }
@@ -802,20 +802,27 @@ function resizeCanvas(){
   DPR=window.devicePixelRatio||1;
   canvas.width=r.width*DPR;canvas.height=r.height*DPR;
 }
+function visibleCanvasSize(){
+  var r=canvas.getBoundingClientRect();
+  var cw=r.width,ch=r.height;
+  var nav=document.getElementById('mob-nav');
+  if(isMob()&&nav&&nav.offsetHeight)ch=Math.max(100,ch-nav.offsetHeight);
+  return {w:cw,h:ch};
+}
 function fitView(){
   var keys=Object.keys(NODES);if(!keys.length)return;
-  var r=canvas.getBoundingClientRect();var cw=r.width,ch=r.height;if(cw<2||ch<2)return;
+  var vc=visibleCanvasSize();var cw=vc.w,ch=vc.h;if(cw<2||ch<2)return;
   var minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
   keys.forEach(function(k){var n=NODES[k];if(n.x<minX)minX=n.x;if(n.x>maxX)maxX=n.x;if(n.y<minY)minY=n.y;if(n.y>maxY)maxY=n.y;});
-  var pad=90;var bw=Math.max(1,maxX-minX)+pad*2,bh=Math.max(1,maxY-minY)+pad*2;
+  var pad=80;var bw=Math.max(1,maxX-minX)+pad*2,bh=Math.max(1,maxY-minY)+pad*2;
   var sc=Math.min(cw/bw,ch/bh,1.5);
   NET_SCALE=sc;NET_OX=cw/2-(minX+maxX)/2*sc;NET_OY=ch/2-(minY+maxY)/2*sc;
 }
 function circlePositions(){
   var ids=entsArr().map(function(e){return e.id;});
-  var r=canvas.getBoundingClientRect();
-  var cx=(r.width||600)/2,cy=(r.height||400)/2;
-  var rad=Math.max(120,Math.min(cx,cy)-90);
+  var vc=visibleCanvasSize();
+  var cx=(vc.w||300)/2,cy=(vc.h||300)/2;
+  var rad=Math.max(80,Math.min(cx,cy)-70);
   ids.forEach(function(id,i){
     var ang=(i/Math.max(1,ids.length))*Math.PI*2-Math.PI/2;
     NODES[id]={x:cx+Math.cos(ang)*rad,y:cy+Math.sin(ang)*rad};
