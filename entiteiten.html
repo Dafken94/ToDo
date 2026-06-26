@@ -915,7 +915,7 @@ function drawNet(targetCtx,scaleOverride){
       var ex=NODES[key].x,ey=NODES[key].y;
       var dx=ex-en.x,dy=ey-en.y,len=Math.hypot(dx,dy)||1,ux=dx/len,uy=dy/len;
       c.save();c.setLineDash([4,3]);c.strokeStyle='rgba(148,163,184,.35)';c.lineWidth=1;
-      c.beginPath();c.moveTo(en.x+ux*38,en.y+uy*38);c.lineTo(ex-ux*R_EL,ey-uy*R_EL);c.stroke();
+      c.beginPath();c.moveTo(en.x+ux*FOTO_RW,en.y+uy*FOTO_RW);c.lineTo(ex-ux*R_EL,ey-uy*R_EL);c.stroke();
       c.setLineDash([]);c.restore();
       c.beginPath();c.arc(ex,ey,R_EL,0,Math.PI*2);
       c.fillStyle='rgba(15,30,55,0.88)';c.fill();
@@ -947,7 +947,7 @@ function drawNet(targetCtx,scaleOverride){
   c.restore();
 }
 function drawEdge(c,a,b,r){
-  var R=38;
+  var R=FOTO_RW;
   var dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy)||1;
   var ux=dx/len,uy=dy/len;
   var ax=a.x+ux*R,ay=a.y+uy*R,bx=b.x-ux*R,by=b.y-uy*R;
@@ -1008,23 +1008,38 @@ function drawNode(c,n,e){
     c.font='600 11px -apple-system,Segoe UI,sans-serif';c.fillStyle='#cfe0f0';c.textBaseline='top';c.textAlign='center';
     c.fillText(nm,n.x,n.y+RH+5);
   }else{
-    c.beginPath();c.arc(n.x,n.y,R,0,Math.PI*2);
-    c.fillStyle=entColor(e);c.fill();
-    c.lineWidth=3;
-    if(e.persoonType==='onbekend'){c.setLineDash([6,4]);c.strokeStyle='rgba(255,255,255,.55)';}
-    else{c.setLineDash([]);c.strokeStyle='rgba(255,255,255,.85)';}
+    var RW=FOTO_RW,RH=FOTO_RH,CR=FOTO_CR,pad=4;
+    var col=entColor(e);
+    roundRect(c,n.x-RW,n.y-RH,RW*2,RH*2,CR);
+    c.fillStyle=col;c.fill();
+    c.lineWidth=1.5;
+    if(e.persoonType==='onbekend'){c.setLineDash([4,3]);c.strokeStyle='rgba(255,255,255,.4)';}
+    else{c.setLineDash([]);c.strokeStyle='rgba(255,255,255,.25)';}
     c.stroke();c.setLineDash([]);
+    c.save();
+    roundRect(c,n.x-RW+pad,n.y-RH+pad,RW*2-pad*2,RH*2-pad*2,CR-2);c.clip();
+    c.fillStyle='#0c1e35';c.fill();
+    var lh=14;
     c.textAlign='center';c.textBaseline='middle';
     if(e.persoonType==='rechtspersoon'){
-      c.font='24px sans-serif';c.fillText('🏢',n.x,n.y+1);
+      c.font='22px sans-serif';c.fillText('🏢',n.x,n.y-(lh/2)+1);
     }else if(e.persoonType==='onbekend'){
-      c.fillStyle='rgba(255,255,255,.65)';c.font='800 22px -apple-system,Segoe UI,sans-serif';c.fillText('?',n.x,n.y);
+      c.fillStyle='rgba(255,255,255,.65)';c.font='800 20px -apple-system,Segoe UI,sans-serif';
+      c.fillText('?',n.x,n.y-(lh/2));
     }else{
-      c.fillStyle='#fff';c.font='800 16px -apple-system,Segoe UI,sans-serif';c.fillText(entInitials(e),n.x,n.y);
+      c.fillStyle='#fff';c.font='800 15px -apple-system,Segoe UI,sans-serif';
+      c.fillText(entInitials(e),n.x,n.y-(lh/2));
     }
+    c.globalAlpha=0.88;c.fillStyle=col;
+    c.fillRect(n.x-RW+pad,n.y+RH-pad-lh,RW*2-pad*2,lh);
+    c.globalAlpha=1;
+    c.fillStyle='#fff';c.font='bold 7px -apple-system,Segoe UI,sans-serif';
+    c.textAlign='center';c.textBaseline='middle';
+    c.fillText(typeLabel(e).toUpperCase(),n.x,n.y+RH-pad-lh/2);
+    c.restore();
     var nm=entName(e);if(nm.length>18)nm=nm.slice(0,17)+'…';
-    c.font='600 11px -apple-system,Segoe UI,sans-serif';c.fillStyle='#cfe0f0';c.textBaseline='top';
-    c.fillText(nm,n.x,n.y+R+5);
+    c.font='600 11px -apple-system,Segoe UI,sans-serif';c.fillStyle='#cfe0f0';c.textBaseline='top';c.textAlign='center';
+    c.fillText(nm,n.x,n.y+RH+5);
   }
 }
 function ensureFotoLoaded(e){
@@ -1043,8 +1058,8 @@ function hitNode(p){
   var tRel=mob?Math.max(16,26/NET_SCALE):16;
   entsArr().forEach(function(e){
     var n=NODES[e.id];if(!n)return;
-    if(e.foto){var fw=mob?Math.max(FOTO_RW,tR*FOTO_RW/38):FOTO_RW,fh=mob?Math.max(FOTO_RH,tR*FOTO_RH/38):FOTO_RH;if(Math.abs(p.x-n.x)<=fw&&Math.abs(p.y-n.y)<=fh)found=e.id;}
-    else{if(Math.hypot(p.x-n.x,p.y-n.y)<=tR)found=e.id;}
+    var fw=mob?Math.max(FOTO_RW,tR*FOTO_RW/38):FOTO_RW,fh=mob?Math.max(FOTO_RH,tR*FOTO_RH/38):FOTO_RH;
+    if(Math.abs(p.x-n.x)<=fw&&Math.abs(p.y-n.y)<=fh)found=e.id;
   });
   if(found)return found;
   entsArr().forEach(function(e){
@@ -1200,7 +1215,7 @@ function positionTooltip(eid){
   var n=NODES[eid];if(!n)return;
   var wr=canvas.parentElement.getBoundingClientRect();
   var e=ENTS[eid];
-  var nodeR=(e&&e.foto?FOTO_RW:38)*NET_SCALE;
+  var nodeR=FOTO_RW*NET_SCALE;
   var sx=n.x*NET_SCALE+NET_OX, sy=n.y*NET_SCALE+NET_OY;
   var tw=tt.offsetWidth||300, th=tt.offsetHeight||200;
   var GAP=14;
