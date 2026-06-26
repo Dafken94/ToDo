@@ -325,6 +325,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" onerror="window._fbLoadErr=true"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js" onerror="window._fbLoadErr=true"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js" onerror="window._fbLoadErr=true"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js" onerror="window._fbLoadErr=true"></script>
 <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js" onerror="(function(){var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/docx/8.5.0/docx.min.js';document.head.appendChild(s);})()"></script>
 <script>
 /* ===== Config / state ===== */
@@ -344,7 +345,7 @@ var ENTS={}, RELS={};
 var SEL=null, ACTIVE_FILTER='alles', TAB='detail';
 var MOB_VIEW='lijst';
 var EDIT_ENT=null, EDIT_EL=null, EDIT_REL=null;
-var _db=null,_fbReady=false,_uid=null,_sync='connecting';
+var _db=null,_storage=null,_fbReady=false,_uid=null,_sync='connecting';
 
 var THEME=localStorage.getItem('dos_theme')||(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
 
@@ -382,7 +383,7 @@ function goBack(){if(window.parent&&window.parent!==window&&typeof window.parent
 
 /* ===== Data laden / opslaan ===== */
 function loadLocal(){try{var raw=localStorage.getItem(lsKey());if(raw){var o=JSON.parse(raw);ENTS=o.entiteiten||{};RELS=o.relaties||{};}}catch(e){}}
-function saveLocal(){try{var entsForStorage={};Object.keys(ENTS).forEach(function(k){var e=Object.assign({},ENTS[k]);delete e.foto;entsForStorage[k]=e;});localStorage.setItem(lsKey(),JSON.stringify({entiteiten:entsForStorage,relaties:RELS}));}catch(e){}}
+function saveLocal(){try{var entsForStorage={};Object.keys(ENTS).forEach(function(k){var e=Object.assign({},ENTS[k]);if(e.foto&&e.foto.startsWith('data:'))delete e.foto;entsForStorage[k]=e;});localStorage.setItem(lsKey(),JSON.stringify({entiteiten:entsForStorage,relaties:RELS}));}catch(e){}}
 function basePath(){return 'gebruikers/'+_uid+'/entiteiten/'+DID;}
 
 function fbClean(obj){try{return JSON.parse(JSON.stringify(obj));}catch(e){return null;}}
@@ -397,7 +398,7 @@ function initFB(){
     if(!firebase.apps||!firebase.apps.length)firebase.initializeApp(FB_CONF);
     firebase.auth().onAuthStateChanged(function(user){
       if(!user){window.location.href='index.html';return;}
-      _uid=user.uid;_db=firebase.database();
+      _uid=user.uid;_db=firebase.database();if(typeof firebase.storage==='function')_storage=firebase.storage();
       _db.ref('.info/connected').on('value',function(s){_sync=s.val()?'online':'offline';updateSync();});
       var _fbEntsLoaded=false,_fbRelsLoaded=false;
       function _checkFbReady(){if(_fbEntsLoaded&&_fbRelsLoaded){_fbReady=true;saveLocal();renderAll();}}
@@ -472,7 +473,7 @@ function renderDetail(){
       :'<div class="kv">'
       +(isRp
         ?'<div class="kvb"><div class="kvl">KBO-nummer</div><div class="kvv" style="font-family:monospace">'+esc(e.kbo||'—')+'</div></div>'
-         +'<div class="kvb" style="grid-column:1/-1"><div class="kvl">Adres</div><div class="kvv">'+esc(e.adres||'—')+'</div></div>'
+         +'<div class="kvb" style="grid-column:1/-1"><div class="kvl">Adres</div><div class="kvv" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+(e.adres?esc(e.adres):'—')+(e.adres?'<a href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(e.adres)+'" target="_blank" rel="noopener" style="font-size:12px;color:var(--accent);text-decoration:none;flex-shrink:0" title="Toon op Google Maps">🗺️ Maps</a>':'')+'</div></div>'
         :'<div class="kvb"><div class="kvl">Geboortedatum</div><div class="kvv">'+fd(e.geboortedatum)+'</div></div>'
          +'<div class="kvb"><div class="kvl">Rijksregister</div><div class="kvv" style="font-family:monospace">'+esc(e.rijksregister||'—')+'</div></div>'
       )
@@ -488,7 +489,7 @@ function renderDetail(){
     var lbl=(el.type==='andere'&&el.typeAnders)?el.typeAnders:(EL_LABELS[el.type]||'Andere');
     h+='<div class="el-row"><div class="el-ic">'+ic+'</div><div class="el-bd">'
       +'<div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:capitalize">'+esc(lbl)+'</div>'
-      +'<div style="font-size:14px;font-weight:700;color:var(--text);word-break:break-word">'+esc(elSummary(el))+'</div>'
+      +'<div style="font-size:14px;font-weight:700;color:var(--text);word-break:break-word;display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+esc(elSummary(el))+(el.type==='adres'&&el.waarde?'<a href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(el.waarde)+'" target="_blank" rel="noopener" style="font-size:12px;color:var(--accent);text-decoration:none;flex-shrink:0;font-weight:600" title="Toon op Google Maps">🗺️ Maps</a>':'')+'</div>'
       +(el.type==='voertuig'&&el.kleur?'<div style="font-size:12px;color:var(--text3);margin-top:2px">Kleur: '+esc(el.kleur)+'</div>':'')
       +(el.type==='telefoon'&&el.telland?'<div style="font-size:12px;color:var(--text3);margin-top:2px">Land: '+esc(el.telland)+'</div>':'')
       +(el.type==='bankrekening'&&(el.banknaam||el.bankland)?'<div style="font-size:12px;color:var(--text3);margin-top:2px">'+(el.banknaam?esc(el.banknaam):'')+(el.bankland?' ('+esc(el.bankland)+')':'')+'</div>':'')
@@ -653,12 +654,25 @@ function uploadFoto(eid){
         var oc2=oc.getContext('2d');
         oc2.fillStyle='#ffffff';oc2.fillRect(0,0,maxW,maxH);
         oc2.drawImage(img,Math.round((maxW-dw)/2),Math.round((maxH-dh)/2),dw,dh);
-        var b64=oc.toDataURL('image/jpeg',0.75);
-        ENTS[eid].foto=b64;
-        delete IMG_CACHE[eid];
-        saveEntData(eid);renderDetail();
-        if(TAB==='net')drawNet();
-        toast('✓ Foto opgeslagen');
+        if(_storage&&_uid){
+          toast('📤 Uploaden...');
+          var pad='entiteiten/'+_uid+'/'+DID+'/foto_'+eid+'.jpg';
+          oc.toBlob(function(blob){
+            var ref=_storage.ref(pad);
+            ref.put(blob).then(function(){return ref.getDownloadURL();}).then(function(url){
+              var oldPad=ENTS[eid]&&ENTS[eid].fotoPad;
+              if(oldPad&&oldPad!==pad)_storage.ref(oldPad).delete().catch(function(){});
+              ENTS[eid].foto=url;ENTS[eid].fotoPad=pad;
+              delete IMG_CACHE[eid];saveEntData(eid);renderDetail();
+              if(TAB==='net')drawNet();toast('✓ Foto opgeslagen');
+            }).catch(function(e){toast('❌ Upload mislukt');console.warn('foto upload',e);});
+          },'image/jpeg',0.75);
+        }else{
+          var b64=oc.toDataURL('image/jpeg',0.75);
+          ENTS[eid].foto=b64;delete IMG_CACHE[eid];
+          saveEntData(eid);renderDetail();
+          if(TAB==='net')drawNet();toast('✓ Foto opgeslagen (lokaal)');
+        }
       };
       img.src=ev.target.result;
     };
@@ -667,10 +681,13 @@ function uploadFoto(eid){
   inp.click();
 }
 function removeFoto(eid){
-  delete ENTS[eid].foto;
+  var e=ENTS[eid];if(!e)return;
+  var pad=e.fotoPad;
+  delete e.foto;delete e.fotoPad;
   delete IMG_CACHE[eid];
   saveEntData(eid);renderDetail();
   if(TAB==='net')drawNet();
+  if(pad&&_storage)_storage.ref(pad).delete().catch(function(){});
   toast('✓ Foto verwijderd');
 }
 

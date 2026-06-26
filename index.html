@@ -408,6 +408,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" onerror="window._fbLoadErr=true"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js" onerror="window._fbLoadErr=true"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js" onerror="window._fbLoadErr=true"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js" onerror="window._fbLoadErr=true"></script>
 <script>
 (function(){try{if(localStorage.getItem('auth_state')==='logged_in'){var lo=document.getElementById('login-ov');if(lo)lo.style.opacity='0';}}catch(e){}})();
 var CATS=[
@@ -657,7 +658,7 @@ var D_NPV_GRP=false;
 var MDI=null, MTD=null, MTI=null, MED=null, MET=null, MEI=null, CCB=null;
 var MFD=null, MFI=null;
 var SB_OPEN=false, SB_COLLAPSED=false, GROUP_CAT=false, EXT_MODAL={did:null,ti:null};
-var _db=null, _ref=null, _fbReady=false, _sync='connecting', _uid=null, _isAdmin=false;
+var _db=null, _storage=null, _ref=null, _fbReady=false, _sync='connecting', _uid=null, _isAdmin=false;
 var _userEmail='';
 var _userName='';
 var _priveDOS=[];
@@ -704,7 +705,7 @@ function initFB(){
         messagingSenderId:'848360095244',appId:'1:848360095244:web:1e349fcb650e37b3623829'
       });
     }
-    _db=firebase.database();
+    _db=firebase.database();if(typeof firebase.storage==='function')_storage=firebase.storage();
     if(_uid){
       _userEmail=firebase.auth().currentUser&&firebase.auth().currentUser.email||'';
       _db.ref('gebruikers/'+_uid+'/profiel/email').set(_userEmail).catch(function(e){});
@@ -1026,6 +1027,7 @@ function migratePvFeiten(){
     if(d.id==='__werk__'||d.id==='__prive__')return;
     if(!Array.isArray(d.links))d.links=[];
     if(!Array.isArray(d.pv_feiten))d.pv_feiten=[];
+    if(!Array.isArray(d.documenten))d.documenten=[];
   });
   if(changed)sv();
 }
@@ -1822,6 +1824,57 @@ function buildDetail(){
   }
   html+='</div>';
   if(!isSys){
+    // --- Documenten ---
+    var docs=d.documenten||[];
+    html+='<div class="tsectie" style="margin-top:12px"><div class="thdr">'
+      +'<span style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.06em">\ud83d\udcc1 Documenten</span>'
+      +'<button onclick="uploadDoc(\''+d.id+'\')" style="'+BB+'">+ Document</button>'
+      +'</div>';
+    if(!docs.length){
+      html+='<div style="padding:14px 16px;text-align:center;color:var(--text3);font-size:12px;font-weight:600">\u2014 Geen documenten \u2014</div>';
+    }else{
+      docs.slice().reverse().forEach(function(doc){
+        html+='<div style="display:flex;align-items:center;gap:10px;border-top:1px solid var(--border);padding:10px 14px">'
+          +'<span style="font-size:22px;flex-shrink:0">'+docIcon(doc.type)+'</span>'
+          +'<div style="flex:1;min-width:0">'
+          +'<a href="'+esc(doc.url)+'" target="_blank" rel="noopener" style="font-size:13px;font-weight:700;color:var(--accent);text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block">'+esc(doc.naam)+'</a>'
+          +'<div style="font-size:11px;color:var(--text3);margin-top:2px">'+fmtBytes(doc.grootte)+(doc.geupload_op?' \u00b7 '+fd(doc.geupload_op.slice(0,10)):'')+'</div>'
+          +'</div>'
+          +'<button onclick="delDoc(\''+d.id+'\',\''+doc.id+'\')" style="'+IR+';flex-shrink:0">\u2715</button>'
+          +'</div>';
+      });
+    }
+    html+='</div>';
+    // --- Tijdlijn ---
+    var tlItems=[];
+    if(d.datum)tlItems.push({datum:d.datum,type:'dossier',icon:'\ud83d\uddc2\ufe0f',label:'Dossier aangemaakt',sub:''});
+    (d.pv_feiten||[]).forEach(function(f){var dt=f.datum_van||f.datum||'';if(!dt)return;var fc=gc(f.categorie);tlItems.push({datum:dt,type:'feit',icon:'\ud83d\udccb',label:f.pv?'PV '+f.pv:'Feit',sub:fc.label,color:fc.color});});
+    (d.taken||[]).forEach(function(t){if(t.datum)tlItems.push({datum:t.datum,type:'taak',icon:'\ud83d\udcc5',label:t.titel,sub:'Deadline'+(t.gedaan?' \u00b7 afgewerkt':'')});if(t.gedaan&&t.gedaan_op)tlItems.push({datum:t.gedaan_op.slice(0,10),type:'taak_gedaan',icon:'\u2705',label:t.titel,sub:'Afgewerkt'});});
+    (d.documenten||[]).forEach(function(doc){if(doc.geupload_op)tlItems.push({datum:doc.geupload_op.slice(0,10),type:'document',icon:docIcon(doc.type),label:doc.naam,sub:fmtBytes(doc.grootte)});});
+    tlItems.sort(function(a,b){return b.datum.localeCompare(a.datum);});
+    if(tlItems.length){
+      var tlColors={dossier:'#6366f1',feit:'#2563eb',taak:'#f59e0b',taak_gedaan:'#16a34a',document:'#0891b2'};
+      html+='<div class="tsectie" style="margin-top:12px"><div class="thdr">'
+        +'<span style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.06em">\ud83d\udcc5 Tijdlijn</span>'
+        +'</div>';
+      tlItems.forEach(function(item,idx){
+        var col=item.color||tlColors[item.type]||'#64748b';
+        html+='<div style="display:flex;gap:12px;border-top:1px solid var(--border);padding:9px 14px;align-items:flex-start">'
+          +'<div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;padding-top:2px">'
+          +'<div style="width:28px;height:28px;border-radius:50%;background:'+col+';display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;color:#fff">'+item.icon+'</div>'
+          +(idx<tlItems.length-1?'<div style="width:2px;flex:1;min-height:14px;background:var(--border);margin-top:3px"></div>':'')
+          +'</div>'
+          +'<div style="flex:1;min-width:0;padding-top:4px">'
+          +'<div style="font-size:12px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(item.label)+'</div>'
+          +(item.sub?'<div style="font-size:11px;color:var(--text3);margin-top:1px">'+esc(item.sub)+'</div>':'')
+          +'</div>'
+          +'<span style="font-size:11px;font-weight:600;color:var(--text3);flex-shrink:0;padding-top:5px;white-space:nowrap">'+fd(item.datum)+'</span>'
+          +'</div>';
+      });
+      html+='</div>';
+    }
+  }
+  if(!isSys){
     var links=d.links||[];
     html+='<div class="tsectie" style="margin-top:12px"><div class="thdr">'
       +'<span style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.06em">\ud83d\udd17 Gekoppelde dossiers</span>'
@@ -2067,7 +2120,7 @@ function saveDos(){
     var fdatVan=document.getElementById('f-fdat-van').value||datum;
     var fdatTot=document.getElementById('f-fdat-tot').value||'';
     if(pv){var allPvs=[];DOS.forEach(function(x){(x.pv_feiten||[]).forEach(function(f){if(f.pv)allPvs.push(f.pv);});});if(allPvs.indexOf(pv)>=0){toast('PV-nummer bestaat al in een ander dossier');document.getElementById('f-pv').focus();return;}}
-    var nieuw={id:gId(),naam:naam,datum:datum,notitie:notitie,pv_feiten:[{id:gId(),pv:pv,categorie:cat,datum_van:fdatVan,datum_tot:fdatTot,notitie:''}],links:[],taken:[],gesloten:false,onderzoeksType:_odType};
+    var nieuw={id:gId(),naam:naam,datum:datum,notitie:notitie,pv_feiten:[{id:gId(),pv:pv,categorie:cat,datum_van:fdatVan,datum_tot:fdatTot,notitie:''}],links:[],taken:[],documenten:[],gesloten:false,onderzoeksType:_odType};
     if(_odType==='go'&&dosnr)nieuw.dossiernummer=dosnr;
     DOS.unshift(nieuw);
   }else{
@@ -2387,6 +2440,48 @@ function doLink(did,otherId){
   if(d.links.indexOf(otherId)<0)d.links.push(otherId);
   if(o.links.indexOf(did)<0)o.links.push(did);
   sv();CM('mo-link');render();toast('🔗 Dossiers gekoppeld');
+}
+/* ===== Documenten ===== */
+function fmtBytes(b){if(!b)return '';if(b<1024)return b+'B';if(b<1048576)return Math.round(b/1024)+'KB';return (b/1048576).toFixed(1)+'MB';}
+function docIcon(type){return type==='pdf'?'📄':type==='afbeelding'?'🖼️':'📎';}
+var _docDid=null;
+function uploadDoc(did){
+  _docDid=did;
+  var inp=document.getElementById('doc-file-input');
+  if(!inp){inp=document.createElement('input');inp.type='file';inp.id='doc-file-input';inp.accept='.pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.txt,.xlsx,.xls,.mp4,.mov';inp.style.display='none';document.body.appendChild(inp);inp.addEventListener('change',_handleDocUpload);}
+  inp.value='';inp.click();
+}
+function _handleDocUpload(){
+  var inp=document.getElementById('doc-file-input');
+  var file=inp?inp.files[0]:null;
+  if(!file||!_docDid)return;
+  var did=_docDid;
+  var d=DOS.find(function(x){return x.id===did;});
+  if(!d)return;
+  if(!_storage||!_uid){toast('❌ Geen verbinding met opslag');return;}
+  var ext=(file.name.split('.').pop()||'').toLowerCase();
+  var type=['jpg','jpeg','png','gif','webp'].indexOf(ext)>=0?'afbeelding':ext==='pdf'?'pdf':'andere';
+  var docId=gId();
+  var safeName=file.name.replace(/[^a-zA-Z0-9._\-]/g,'_');
+  var pad='dossiers/'+_uid+'/'+did+'/'+docId+'_'+safeName;
+  toast('📤 Bestand uploaden...');
+  var ref=_storage.ref(pad);
+  ref.put(file).then(function(){return ref.getDownloadURL();}).then(function(url){
+    if(!Array.isArray(d.documenten))d.documenten=[];
+    d.documenten.push({id:docId,naam:file.name,type:type,grootte:file.size,geupload_op:new Date().toISOString(),url:url,pad:pad});
+    sv();render();toast('✓ '+file.name+' opgeslagen');
+  }).catch(function(e){toast('❌ Upload mislukt');console.warn('doc upload',e);});
+}
+function delDoc(did,docId){
+  var d=DOS.find(function(x){return x.id===did;});
+  if(!d||!Array.isArray(d.documenten))return;
+  var doc=d.documenten.find(function(x){return x.id===docId;});
+  if(!doc)return;
+  ask('Document verwijderen?','"'+doc.naam+'" wordt definitief verwijderd.',function(){
+    if(_storage&&doc.pad)_storage.ref(doc.pad).delete().catch(function(){});
+    d.documenten=d.documenten.filter(function(x){return x.id!==docId;});
+    sv();render();toast('✓ Document verwijderd');
+  });
 }
 function doUnlink(did,otherId){
   ask('Koppeling verwijderen?','De koppeling tussen de twee dossiers wordt verwijderd.',function(){
