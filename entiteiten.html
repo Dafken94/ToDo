@@ -654,25 +654,12 @@ function uploadFoto(eid){
         var oc2=oc.getContext('2d');
         oc2.fillStyle='#ffffff';oc2.fillRect(0,0,maxW,maxH);
         oc2.drawImage(img,Math.round((maxW-dw)/2),Math.round((maxH-dh)/2),dw,dh);
-        if(_storage&&_uid){
-          toast('📤 Uploaden...');
-          var pad='entiteiten/'+_uid+'/'+DID+'/foto_'+eid+'.jpg';
-          oc.toBlob(function(blob){
-            var ref=_storage.ref(pad);
-            ref.put(blob).then(function(){return ref.getDownloadURL();}).then(function(url){
-              var oldPad=ENTS[eid]&&ENTS[eid].fotoPad;
-              if(oldPad&&oldPad!==pad)_storage.ref(oldPad).delete().catch(function(){});
-              ENTS[eid].foto=url;ENTS[eid].fotoPad=pad;
-              delete IMG_CACHE[eid];saveEntData(eid);renderDetail();
-              if(TAB==='net')drawNet();toast('✓ Foto opgeslagen');
-            }).catch(function(e){toast('❌ Upload mislukt');console.warn('foto upload',e);});
-          },'image/jpeg',0.75);
-        }else{
-          var b64=oc.toDataURL('image/jpeg',0.75);
-          ENTS[eid].foto=b64;delete IMG_CACHE[eid];
-          saveEntData(eid);renderDetail();
-          if(TAB==='net')drawNet();toast('✓ Foto opgeslagen (lokaal)');
-        }
+        var b64=oc.toDataURL('image/jpeg',0.75);
+        ENTS[eid].foto=b64;
+        delete IMG_CACHE[eid];
+        saveEntData(eid);renderDetail();
+        if(TAB==='net')drawNet();
+        toast('✓ Foto opgeslagen');
       };
       img.src=ev.target.result;
     };
@@ -682,12 +669,10 @@ function uploadFoto(eid){
 }
 function removeFoto(eid){
   var e=ENTS[eid];if(!e)return;
-  var pad=e.fotoPad;
-  delete e.foto;delete e.fotoPad;
+  delete e.foto;
   delete IMG_CACHE[eid];
   saveEntData(eid);renderDetail();
   if(TAB==='net')drawNet();
-  if(pad&&_storage)_storage.ref(pad).delete().catch(function(){});
   toast('✓ Foto verwijderd');
 }
 

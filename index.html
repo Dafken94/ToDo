@@ -1845,34 +1845,6 @@ function buildDetail(){
       });
     }
     html+='</div>';
-    // --- Tijdlijn ---
-    var tlItems=[];
-    if(d.datum)tlItems.push({datum:d.datum,type:'dossier',icon:'\ud83d\uddc2\ufe0f',label:'Dossier aangemaakt',sub:''});
-    (d.pv_feiten||[]).forEach(function(f){var dt=f.datum_van||f.datum||'';if(!dt)return;var fc=gc(f.categorie);tlItems.push({datum:dt,type:'feit',icon:'\ud83d\udccb',label:f.pv?'PV '+f.pv:'Feit',sub:fc.label,color:fc.color});});
-    (d.taken||[]).forEach(function(t){if(t.datum)tlItems.push({datum:t.datum,type:'taak',icon:'\ud83d\udcc5',label:t.titel,sub:'Deadline'+(t.gedaan?' \u00b7 afgewerkt':'')});if(t.gedaan&&t.gedaan_op)tlItems.push({datum:t.gedaan_op.slice(0,10),type:'taak_gedaan',icon:'\u2705',label:t.titel,sub:'Afgewerkt'});});
-    (d.documenten||[]).forEach(function(doc){if(doc.geupload_op)tlItems.push({datum:doc.geupload_op.slice(0,10),type:'document',icon:docIcon(doc.type),label:doc.naam,sub:fmtBytes(doc.grootte)});});
-    tlItems.sort(function(a,b){return b.datum.localeCompare(a.datum);});
-    if(tlItems.length){
-      var tlColors={dossier:'#6366f1',feit:'#2563eb',taak:'#f59e0b',taak_gedaan:'#16a34a',document:'#0891b2'};
-      html+='<div class="tsectie" style="margin-top:12px"><div class="thdr">'
-        +'<span style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.06em">\ud83d\udcc5 Tijdlijn</span>'
-        +'</div>';
-      tlItems.forEach(function(item,idx){
-        var col=item.color||tlColors[item.type]||'#64748b';
-        html+='<div style="display:flex;gap:12px;border-top:1px solid var(--border);padding:9px 14px;align-items:flex-start">'
-          +'<div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;padding-top:2px">'
-          +'<div style="width:28px;height:28px;border-radius:50%;background:'+col+';display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;color:#fff">'+item.icon+'</div>'
-          +(idx<tlItems.length-1?'<div style="width:2px;flex:1;min-height:14px;background:var(--border);margin-top:3px"></div>':'')
-          +'</div>'
-          +'<div style="flex:1;min-width:0;padding-top:4px">'
-          +'<div style="font-size:12px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(item.label)+'</div>'
-          +(item.sub?'<div style="font-size:11px;color:var(--text3);margin-top:1px">'+esc(item.sub)+'</div>':'')
-          +'</div>'
-          +'<span style="font-size:11px;font-weight:600;color:var(--text3);flex-shrink:0;padding-top:5px;white-space:nowrap">'+fd(item.datum)+'</span>'
-          +'</div>';
-      });
-      html+='</div>';
-    }
   }
   if(!isSys){
     var links=d.links||[];
@@ -2456,8 +2428,6 @@ function _handleDocUpload(){
   var file=inp?inp.files[0]:null;
   if(!file||!_docDid)return;
   var did=_docDid;
-  var d=DOS.find(function(x){return x.id===did;});
-  if(!d)return;
   if(!_storage||!_uid){toast('❌ Geen verbinding met opslag');return;}
   var ext=(file.name.split('.').pop()||'').toLowerCase();
   var type=['jpg','jpeg','png','gif','webp'].indexOf(ext)>=0?'afbeelding':ext==='pdf'?'pdf':'andere';
@@ -2465,12 +2435,20 @@ function _handleDocUpload(){
   var safeName=file.name.replace(/[^a-zA-Z0-9._\-]/g,'_');
   var pad='dossiers/'+_uid+'/'+did+'/'+docId+'_'+safeName;
   toast('📤 Bestand uploaden...');
-  var ref=_storage.ref(pad);
-  ref.put(file).then(function(){return ref.getDownloadURL();}).then(function(url){
-    if(!Array.isArray(d.documenten))d.documenten=[];
-    d.documenten.push({id:docId,naam:file.name,type:type,grootte:file.size,geupload_op:new Date().toISOString(),url:url,pad:pad});
+  var stRef=_storage.ref(pad);
+  stRef.put(file).then(function(){return stRef.getDownloadURL();}).then(function(url){
+    var d2=DOS.find(function(x){return x.id===did;});
+    if(!d2){toast('❌ Dossier niet gevonden');return;}
+    if(!Array.isArray(d2.documenten))d2.documenten=[];
+    d2.documenten.push({id:docId,naam:file.name,type:type,grootte:file.size,geupload_op:new Date().toISOString(),url:url,pad:pad});
     sv();render();toast('✓ '+file.name+' opgeslagen');
-  }).catch(function(e){toast('❌ Upload mislukt');console.warn('doc upload',e);});
+  }).catch(function(e){
+    var code=(e&&e.code)||'';
+    var msg=code.indexOf('unauthorized')>=0||code.indexOf('unauthenticated')>=0
+      ?'❌ Geen toegang tot opslag. Stel Firebase Storage-regels in.'
+      :'❌ Upload mislukt'+(code?' ('+code+')':'');
+    toast(msg);console.error('doc upload:',code,e);
+  });
 }
 function delDoc(did,docId){
   var d=DOS.find(function(x){return x.id===did;});
