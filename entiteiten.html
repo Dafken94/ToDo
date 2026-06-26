@@ -646,13 +646,16 @@ function uploadFoto(eid){
     var reader=new FileReader();
     reader.onload=function(ev){
       var img=new Image();
+      img.onerror=function(){toast('❌ Afbeelding kon niet worden geladen');};
       img.onload=function(){
+        var w=img.naturalWidth,h=img.naturalHeight;
+        if(!w||!h){toast('❌ Afbeelding kon niet worden geladen');return;}
         var maxW=112,maxH=150;
-        var scale=Math.min(maxW/img.width,maxH/img.height);
-        var dw=Math.round(img.width*scale),dh=Math.round(img.height*scale);
+        // cover: schaal zodat canvas volledig gevuld is (geen witte randen)
+        var scale=Math.max(maxW/w,maxH/h);
+        var dw=Math.round(w*scale),dh=Math.round(h*scale);
         var oc=document.createElement('canvas');oc.width=maxW;oc.height=maxH;
         var oc2=oc.getContext('2d');
-        oc2.fillStyle='#ffffff';oc2.fillRect(0,0,maxW,maxH);
         oc2.drawImage(img,Math.round((maxW-dw)/2),Math.round((maxH-dh)/2),dw,dh);
         var b64=oc.toDataURL('image/jpeg',0.75);
         ENTS[eid].foto=b64;
