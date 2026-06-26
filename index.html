@@ -155,7 +155,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 .fr textarea{resize:none}
 #mo-e.ov{z-index:150}
 #bg-deco{display:none}
-@media(max-width:768px){.sidebar{transform:translateX(-100%);position:fixed;height:100vh;height:100dvh}.sidebar.open{transform:translateX(0)}.sb-overlay.open{display:block}.main{margin-left:0;max-width:100vw}.dgrid{grid-template-columns:1fr}.dinfo-grid{grid-template-columns:repeat(3,1fr)}.stats{grid-template-columns:repeat(3,1fr)}.content{padding:10px 12px}.fr input,.fr select{font-size:16px!important;height:48px;box-sizing:border-box}.fr textarea{font-size:16px!important}.fr input[type=date]{-webkit-appearance:none;appearance:none;text-align:left;padding:0 10px;line-height:48px}.dtop-hdr{flex-direction:column;align-items:flex-start;gap:8px}.dtop-hdr>div:last-child{display:grid!important;grid-template-columns:1fr 1fr;gap:6px;width:100%}.dtop-hdr>div:last-child button{flex:none;min-width:0;width:100%;justify-content:center;min-height:40px}.dtop-hdr>div:last-child button:only-child{grid-column:1/-1}.ob{padding:14px;border-radius:10px}.ov{padding:10px}.trow-actions{flex-wrap:wrap}.topbar{flex-wrap:wrap;gap:6px}.ext-add-row{flex-wrap:wrap}.ext-add-row input[type=date]{width:100%;flex:1}.dlist-row{flex-wrap:wrap}.mini-stats{gap:4px}.mini-stat{min-width:0;padding:5px 8px}.ext-naam{white-space:normal;word-break:break-word}.dcard-naam{white-space:normal;word-break:break-word}.tmeta{gap:3px}.dash-action-grid{grid-template-columns:1fr!important}.dash-kpi-grid{grid-template-columns:repeat(2,1fr)!important}.dcard:hover{box-shadow:none;border-color:var(--border)}.dacts{opacity:1}.dcard:hover .dacts{opacity:1}}
+@media(max-width:768px){.sidebar{transform:translateX(-100%);position:fixed;height:100vh;height:100dvh}.sidebar.open{transform:translateX(0)}.sb-overlay.open{display:block}.main{margin-left:0;max-width:100vw}.dgrid{grid-template-columns:1fr}.dinfo-grid{grid-template-columns:repeat(3,1fr)}.stats{grid-template-columns:repeat(3,1fr)}.content{padding:10px 12px}.fr input,.fr select{font-size:16px!important;height:48px;box-sizing:border-box}.fr textarea{font-size:16px!important}.fr input[type=date]{-webkit-appearance:none;appearance:none;text-align:left;padding:0 10px;line-height:48px}.dtop-hdr{flex-direction:column;align-items:flex-start;gap:8px}.dtop-actions-desktop{display:none!important}.mob-acties-fab{display:block!important}.ob{padding:14px;border-radius:10px}.ov{padding:10px}.trow-actions{flex-wrap:wrap}.topbar{flex-wrap:wrap;gap:6px}.ext-add-row{flex-wrap:wrap}.ext-add-row input[type=date]{width:100%;flex:1}.dlist-row{flex-wrap:wrap}.mini-stats{gap:4px}.mini-stat{min-width:0;padding:5px 8px}.ext-naam{white-space:normal;word-break:break-word}.dcard-naam{white-space:normal;word-break:break-word}.tmeta{gap:3px}.dash-action-grid{grid-template-columns:1fr!important}.dash-kpi-grid{grid-template-columns:repeat(2,1fr)!important}.dcard:hover{box-shadow:none;border-color:var(--border)}.dacts{opacity:1}.dcard:hover .dacts{opacity:1}}
 @media(max-width:360px){.stat-val{font-size:17px}.dinfo-grid{grid-template-columns:1fr 1fr}#toast{max-width:calc(100vw - 40px);white-space:normal;text-align:center}}
 /* ===== MOBIEL: touch-targets, leesbaarheid, iOS-zoom ===== */
 @media(max-width:768px){
@@ -171,12 +171,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
   .dlist-row [style*="font-family:monospace"]{font-size:12px}
   .stat-lbl,.dinfo-lbl{font-size:10px}
   .dinfo-grid{grid-template-columns:1fr 1fr}
-  .dtop-hdr>div:last-child button{min-height:40px}
+  .mob-acties-toggle{min-height:40px}
   .dtools{width:100%;display:grid!important;grid-template-columns:repeat(3,1fr);gap:6px}
   .dtools>button{width:100%;min-height:40px;font-size:12px!important;padding:6px 4px!important}
   .notif-flag-btn{min-width:44px;min-height:44px;font-size:22px}
   .dacts button,.ext-actions button,.ico-acts button,.ico-acts-btn{min-width:42px;min-height:42px;font-size:14px}
 }
+/* ===== MOBIEL ACTIES FAB ===== */
+.mob-acties-fab{display:none;position:relative;flex-shrink:0}
+.mob-acties-toggle{background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;min-height:40px}
+.mob-acties-toggle:active{opacity:.7}
+.mob-acties-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:var(--bg2);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px var(--shadow);z-index:300;min-width:175px;padding:6px;flex-direction:column;gap:3px}
+.mob-acties-menu.open{display:flex}
+.mob-menu-btn{width:100%;text-align:left;border-radius:7px;padding:10px 12px;font-size:13px;font-weight:600;cursor:pointer;border:none;background:var(--bg3);color:var(--text);display:flex;align-items:center;gap:8px}
+.mob-menu-btn:active{opacity:.7}
+.mob-menu-btn-green{background:#166534!important;color:#fff!important}
+.mob-menu-btn-red{background:#7f1d1d!important;color:#fff!important}
+.mob-acties-back{display:none;position:fixed;inset:0;z-index:299}
+.mob-acties-back.open{display:block}
 /* ===== NOTIFICATIES ===== */
 .notif-wrap{position:relative;flex-shrink:0}
 .notif-flag-btn{background:none;border:none;cursor:pointer;font-size:18px;padding:2px 6px;line-height:1;position:relative;display:inline-flex;align-items:center;border-radius:6px}
@@ -565,6 +577,8 @@ var SBN='cursor:pointer;font-family:inherit;font-size:11px;font-weight:700;borde
 function gId(){if(typeof crypto!=='undefined'&&crypto.randomUUID)return crypto.randomUUID();return Date.now().toString(36)+Math.random().toString(36).slice(2,9);}
 function openEntiteiten(did){var d=DOS.find(function(x){return x.id===did;});var naam=d?encodeURIComponent(d.naam||''):'';var ov=document.getElementById('ent-ov');var ifr=document.getElementById('ent-ifr');ifr.src='entiteiten.html?did='+encodeURIComponent(did)+'&naam='+naam+'&_v='+Date.now();ov.style.display='flex';}
 function closeEntiteiten(){var ov=document.getElementById('ent-ov');ov.style.display='none';document.getElementById('ent-ifr').src='about:blank';}
+function toggleActiesFAB(){var m=document.querySelector('.mob-acties-menu'),b=document.querySelector('.mob-acties-back');if(!m)return;var open=m.classList.toggle('open');if(b)b.classList.toggle('open',open);}
+function closeActiesFAB(){var m=document.querySelector('.mob-acties-menu'),b=document.querySelector('.mob-acties-back');if(m)m.classList.remove('open');if(b)b.classList.remove('open');}
 function td(){return new Date().toISOString().slice(0,10);}
 function fd(d){if(!d)return'--';var p=d.split('-');if(p.length!==3)return d;return p[2]+'/'+p[1]+'/'+p[0];}
 function fdPeriod(f){var van=f.datum_van||f.datum||'';var tot=f.datum_tot||'';if(!van)return '—';return tot?fd(van)+' – '+fd(tot):fd(van);}
@@ -1634,15 +1648,29 @@ function buildDetail(){
     +(d.gedeeld?'<span style="font-size:11px;font-weight:700;color:var(--accent);white-space:nowrap;padding:2px 7px;border-radius:6px;border:1px solid var(--accent);background:transparent">👥 Gedeeld</span>':'')
     +'</div>'
     +'</div>'
-    +'<div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap">'
+    +'<div class="dtop-actions-desktop" style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap">'
     +(isSys
       ?'<button onclick="openED(\''+d.id+'\')" style="'+BW+'">\u270e Bewerken</button>'
-      :(!isSys&&(!d.gedeeld||(d.eigenaar_uid===_uid))?'<button onclick="openShare(\''+d.id+'\')" style="'+BW+'">'+(d.gedeeld?'\uD83D\uDC65 Beheer delen':'\uD83D\uDC65 Delen')+'</button>':'')
-       +(d.gesloten?'<button onclick="togSl(\''+d.id+'\')" style="'+BGN+'">\uD83D\uDD13 Heropenen</button>':'<button onclick="togSl(\''+d.id+'\')" style="'+BW+'">\uD83D\uDD12 Sluiten</button>')
+      :(!isSys&&(!d.gedeeld||(d.eigenaar_uid===_uid))?'<button onclick="openShare(\''+d.id+'\')" style="'+BW+'">'+(d.gedeeld?'\ud83d\uDC65 Beheer delen':'\ud83d\uDC65 Delen')+'</button>':'')
+       +(d.gesloten?'<button onclick="togSl(\''+d.id+'\')" style="'+BGN+'">\ud83d\uDD13 Heropenen</button>':'<button onclick="togSl(\''+d.id+'\')" style="'+BW+'">\ud83d\uDD12 Sluiten</button>')
        +'<button onclick="openED(\''+d.id+'\')" style="'+BW+'">\u270e Bewerken</button>'
        +'<button onclick="openEntiteiten(\''+d.id+'\')" style="'+BW+'" title="Entiteiten &amp; netwerk">\ud83d\udd78\ufe0f Entiteiten</button>'
        +'<button onclick="delD(\''+d.id+'\')" style="'+BR+'">\u2715 Verwijderen</button>')
-    +'</div></div>'
+    +'</div>'
+    +'<div class="mob-acties-fab">'
+    +'<div class="mob-acties-back" onclick="closeActiesFAB()"></div>'
+    +'<button class="mob-acties-toggle" onclick="toggleActiesFAB()">&#9776; Acties</button>'
+    +'<div class="mob-acties-menu">'
+    +(isSys
+      ?'<button class="mob-menu-btn" onclick="openED(\''+d.id+'\');closeActiesFAB()">\u270e Bewerken</button>'
+      :(!d.gedeeld||(d.eigenaar_uid===_uid)?'<button class="mob-menu-btn" onclick="openShare(\''+d.id+'\');closeActiesFAB()">'+(d.gedeeld?'\ud83d\uDC65 Beheer delen':'\ud83d\uDC65 Delen')+'</button>':'')
+       +(d.gesloten?'<button class="mob-menu-btn mob-menu-btn-green" onclick="togSl(\''+d.id+'\');closeActiesFAB()">\ud83d\uDD13 Heropenen</button>':'<button class="mob-menu-btn" onclick="togSl(\''+d.id+'\');closeActiesFAB()">\ud83d\uDD12 Sluiten</button>')
+       +'<button class="mob-menu-btn" onclick="openED(\''+d.id+'\');closeActiesFAB()">\u270e Bewerken</button>'
+       +'<button class="mob-menu-btn" onclick="openEntiteiten(\''+d.id+'\');closeActiesFAB()">\ud83d\udd78\ufe0f Entiteiten</button>'
+       +'<button class="mob-menu-btn mob-menu-btn-red" onclick="delD(\''+d.id+'\');closeActiesFAB()">\u2715 Verwijderen</button>')
+    +'</div>'
+    +'</div>'
+    +'</div>'
     +(d.dossiernummer?'<div style="display:inline-flex;align-items:center;gap:8px;margin-bottom:8px;padding:6px 12px;background:var(--bg3);border-radius:7px;border:1px solid var(--border);border-left:3px solid var(--accent)"><span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2)">⚖️ Dossiernr.</span><span style="font-size:14px;font-weight:800;color:var(--accent);font-family:monospace;letter-spacing:.06em">'+esc(d.dossiernummer)+'</span></div>':'')
     +'<div class="dinfo-grid">'
     +'<div class="dinfo"><div class="dinfo-lbl">Aanmaakdatum</div><div class="dinfo-val">'+fd(d.datum)+'</div></div>'
