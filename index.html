@@ -271,6 +271,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
       <div class="fr"><label>Datum feit (van) *</label><input id="f-fdat-van" type="date"></div>
       <div class="fr"><label>Datum feit (tot, optioneel)</label><input id="f-fdat-tot" type="date"></div>
     </div>
+    <div class="fr"><label>OneDrive map (optioneel)</label><input id="f-onedrive" type="url" placeholder="https://onedrive.live.com/..." autocomplete="off"></div>
     <div class="f-actions"><button class="btn btn-white" onclick="CM('mo-d')">Annuleren</button><button class="btn btn-blue" onclick="saveDos()">Opslaan</button></div>
   </div>
 </div>
@@ -1699,6 +1700,18 @@ function buildDetail(){
     +(extWacht>0?'<div class="mini-stat"><div style="font-size:17px;font-weight:800;color:#f59e0b">'+extWacht+'</div><div style="font-size:10px;color:var(--text2);font-weight:700">Wachten</div></div>':'')
     +'</div></div></div>';
 
+  // OneDrive knop (niet voor sys dossiers)
+  if(!isSys){
+    if(d.onedrive_url){
+      html+='<div style="display:flex;gap:8px;margin-bottom:12px;align-items:stretch">'
+        +'<a href="'+esc(d.onedrive_url)+'" target="_blank" rel="noopener" style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 16px;border-radius:9px;background:#0078d4;color:#fff;font-family:inherit;font-size:13px;font-weight:700;text-decoration:none">📂 Open OneDrive map</a>'
+        +'<button onclick="openED(\''+d.id+'\')" style="padding:11px 13px;border-radius:9px;font-family:inherit;font-size:13px;cursor:pointer;border:1.5px solid var(--border);background:var(--bg2);color:var(--text2)" title="OneDrive URL wijzigen">✎</button>'
+        +'</div>';
+    }else{
+      html+='<button onclick="openED(\''+d.id+'\')" style="width:100%;font-family:inherit;font-size:13px;font-weight:700;padding:11px 16px;border-radius:9px;cursor:pointer;border:1.5px dashed var(--border);background:var(--bg2);color:var(--text3);margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:8px">📁 OneDrive map koppelen</button>';
+    }
+  }
+
   // Feiten sectie (niet voor sys dossiers)
   var feitenHtml='';
   if(!isSys){
@@ -2074,6 +2087,7 @@ function openND(){
   document.getElementById('f-fdat-van').value=td();
   document.getElementById('f-fdat-tot').value='';
   document.getElementById('f-eerste-feit-blok').style.display='';
+  document.getElementById('f-onedrive').value='';
   OM('mo-d');
   setTimeout(function(){document.getElementById('f-naam').focus();},80);
 }
@@ -2088,6 +2102,7 @@ function openED(id){
   document.getElementById('f-dosnr').value=d.dossiernummer||'';
   var dh2=document.getElementById('dosnr-hint');if(dh2)dh2.textContent='';
   document.getElementById('f-eerste-feit-blok').style.display='none';
+  document.getElementById('f-onedrive').value=d.onedrive_url||'';
   OM('mo-d');
   setTimeout(function(){document.getElementById('f-naam').focus();},80);
 }
@@ -2096,6 +2111,7 @@ function saveDos(){
   var datum=document.getElementById('f-datum').value;
   var notitie=document.getElementById('f-not').value.trim();
   var dosnr=document.getElementById('f-dosnr').value.trim();
+  var onedrive=(document.getElementById('f-onedrive').value||'').trim();
   if(!naam){document.getElementById('f-naam').focus();return;}
   if(dosnr&&!/^[0-9]{4}\/[0-9]{4}$/.test(dosnr)){toast('⚠️ Dossiernummer moet het formaat YYYY/NNNN hebben (bijv. 2026/0042)');document.getElementById('f-dosnr').focus();return;}
   if(MDI===null){
@@ -2106,10 +2122,11 @@ function saveDos(){
     if(pv){var allPvs=[];DOS.forEach(function(x){(x.pv_feiten||[]).forEach(function(f){if(f.pv)allPvs.push(f.pv);});});if(allPvs.indexOf(pv)>=0){toast('PV-nummer bestaat al in een ander dossier');document.getElementById('f-pv').focus();return;}}
     var nieuw={id:gId(),naam:naam,datum:datum,notitie:notitie,pv_feiten:[{id:gId(),pv:pv,categorie:cat,datum_van:fdatVan,datum_tot:fdatTot,notitie:''}],links:[],taken:[],documenten:[],gesloten:false,onderzoeksType:_odType};
     if(_odType==='go'&&dosnr)nieuw.dossiernummer=dosnr;
+    if(onedrive)nieuw.onedrive_url=onedrive;
     DOS.unshift(nieuw);
   }else{
     var d=DOS.find(function(x){return x.id===MDI;});
-    if(d){Object.assign(d,{naam:naam,datum:datum,notitie:notitie,onderzoeksType:_odType});if(_odType==='go'&&dosnr)d.dossiernummer=dosnr;else delete d.dossiernummer;}
+    if(d){Object.assign(d,{naam:naam,datum:datum,notitie:notitie,onderzoeksType:_odType});if(_odType==='go'&&dosnr)d.dossiernummer=dosnr;else delete d.dossiernummer;if(onedrive)d.onedrive_url=onedrive;else delete d.onedrive_url;}
   }
   sv();CM('mo-d');render();toast('Dossier opgeslagen');
 }
