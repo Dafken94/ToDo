@@ -160,7 +160,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
         <input type="file" id="foto-input" accept="image/*" style="display:none">
         <div class="net-tools">
           <button class="btnW" onclick="resetPositions()">&#8635; Herpositioneren</button>
-          <button class="btnW" onclick="resizeCanvas();syncNodes();fitView();drawNet()">&#10697; Centreren</button>
+          <button class="btnW" onclick="centreerNet()">&#10697; Centreren</button>
         </div>
         <div class="legend" id="legend"></div>
       </div>
@@ -403,7 +403,7 @@ function initFB(){
       function _checkFbReady(){if(_fbEntsLoaded&&_fbRelsLoaded){_fbReady=true;saveLocal();renderAll();}}
       _db.ref(basePath()+'/entiteiten').once('value').then(function(snap){
         var remote=snap.val()||{};
-        Object.keys(remote).forEach(function(k){if(!ENTS[k])ENTS[k]=remote[k];else if(remote[k].foto)ENTS[k].foto=remote[k].foto;});
+        Object.keys(remote).forEach(function(k){ENTS[k]=remote[k];});
         _fbEntsLoaded=true;_checkFbReady();
       }).catch(function(e){console.warn('ent load',e);_fbEntsLoaded=true;_checkFbReady();});
       _db.ref(basePath()+'/relaties').once('value').then(function(snap){
@@ -815,21 +815,24 @@ function fitView(){
   var vc=visibleCanvasSize();var cw=vc.w,ch=vc.h;if(cw<2||ch<2)return;
   var minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
   function ext(x,y){if(!isFinite(x)||!isFinite(y))return;if(x<minX)minX=x;if(x>maxX)maxX=x;if(y<minY)minY=y;if(y>maxY)maxY=y;}
-  // Primair: huidige posities uit NODES (inclusief gesleepte posities)
-  Object.keys(NODES).forEach(function(k){var n=NODES[k];ext(n.x,n.y);});
-  // Fallback: gebruik ENTS voor entiteiten die nog niet in NODES staan
+  Object.keys(NODES).forEach(function(k){
+    var n=NODES[k];
+    if(k.indexOf('el:')!==0){ext(n.x-FOTO_RW,n.y-FOTO_RH);ext(n.x+FOTO_RW,n.y+FOTO_RH+18);}
+    else{ext(n.x-16,n.y-16);ext(n.x+16,n.y+50);}
+  });
   entsArr().forEach(function(e){
     if(!NODES[e.id]){
-      if(typeof e.x==='number')ext(e.x,e.y);
+      if(typeof e.x==='number'){ext(e.x-FOTO_RW,e.y-FOTO_RH);ext(e.x+FOTO_RW,e.y+FOTO_RH+18);}
       (e.elementen||[]).forEach(function(el){if(typeof el.netX==='number')ext(el.netX,el.netY);});
     }
   });
   if(!isFinite(minX))return;
-  var pad=100;
+  var pad=24;
   var bw=Math.max(1,maxX-minX)+pad*2,bh=Math.max(1,maxY-minY)+pad*2;
   var sc=Math.min(cw/bw,ch/bh,1.5);
   NET_SCALE=sc;NET_OX=cw/2-(minX+maxX)/2*sc;NET_OY=ch/2-(minY+maxY)/2*sc;
 }
+function centreerNet(){requestAnimationFrame(function(){resizeCanvas();syncNodes();fitView();drawNet();});}
 function circlePositions(){
   var ids=entsArr().map(function(e){return e.id;});
   var vc=visibleCanvasSize();
@@ -1339,7 +1342,7 @@ function buildNetImage(){
   var pad=70,minX=1e9,minY=1e9,maxX=-1e9,maxY=-1e9;
   entsArr().forEach(function(e){var n=NODES[e.id];if(!n)return;minX=Math.min(minX,n.x);minY=Math.min(minY,n.y);maxX=Math.max(maxX,n.x);maxY=Math.max(maxY,n.y);});
   if(minX>maxX){return null;}
-  var R=38;minX-=R+pad;minY-=R+pad;maxX+=R+pad;maxY+=R+pad+24;
+  minX-=FOTO_RW+pad;minY-=FOTO_RH+pad;maxX+=FOTO_RW+pad;maxY+=FOTO_RH+pad+18;
   var w=Math.max(300,maxX-minX),h=Math.max(200,maxY-minY);
   var scale=2;
   var off=document.createElement('canvas');off.width=w*scale;off.height=h*scale;
