@@ -805,11 +805,11 @@ function resizeCanvas(){
   canvas.width=r.width*DPR;canvas.height=r.height*DPR;
 }
 function visibleCanvasSize(){
-  var r=canvas.getBoundingClientRect();
-  var cw=r.width,ch=r.height;
+  var cw=canvas.clientWidth||canvas.offsetWidth||canvas.getBoundingClientRect().width;
+  var ch=canvas.clientHeight||canvas.offsetHeight||canvas.getBoundingClientRect().height;
   var nav=document.getElementById('mob-nav');
   if(isMob()&&nav&&nav.offsetHeight)ch=Math.max(100,ch-nav.offsetHeight);
-  return {w:cw,h:ch};
+  return {w:Math.max(2,cw),h:Math.max(2,ch)};
 }
 function fitView(){
   var vc=visibleCanvasSize();var cw=vc.w,ch=vc.h;if(cw<2||ch<2)return;
@@ -832,7 +832,7 @@ function fitView(){
   var sc=Math.min(cw/bw,ch/bh,1.5);
   NET_SCALE=sc;NET_OX=cw/2-(minX+maxX)/2*sc;NET_OY=ch/2-(minY+maxY)/2*sc;
 }
-function centreerNet(){requestAnimationFrame(function(){resizeCanvas();syncNodes();fitView();drawNet();});}
+function centreerNet(){requestAnimationFrame(function(){requestAnimationFrame(function(){resizeCanvas();syncNodes();fitView();drawNet();});});}
 function circlePositions(){
   var ids=entsArr().map(function(e){return e.id;});
   var vc=visibleCanvasSize();
