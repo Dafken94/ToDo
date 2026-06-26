@@ -351,17 +351,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
     <div class="f-actions"><button class="btn btn-blue" onclick="saveUsername()">Opslaan</button></div>
   </div>
 </div>
-<div class="ov" id="mo-addlink" onclick="if(event.target===this)CM('mo-addlink')">
-  <div class="ob" style="max-width:420px">
-    <div class="ob-title">🔗 Document / link toevoegen</div>
-    <div class="fr"><label>Naam *</label><input id="al-naam" placeholder="bijv. PV hoofdfeit, Labo-verslag..." maxlength="120" autocomplete="off" onkeydown="if(event.key==='Enter')saveAddLink()"></div>
-    <div class="fr"><label>URL (link) *</label><input id="al-url" type="url" placeholder="https://..." autocomplete="off" onkeydown="if(event.key==='Enter')saveAddLink()"></div>
-    <div class="f-actions">
-      <button class="btn btn-white" onclick="CM('mo-addlink')">Annuleren</button>
-      <button class="btn btn-blue" onclick="saveAddLink()">Opslaan</button>
-    </div>
-  </div>
-</div>
 <div class="conf-ov" id="conf">
   <div class="conf-box">
     <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px" id="conf-m">Zeker?</div>
@@ -1848,28 +1837,6 @@ function buildDetail(){
   }
   html+='</div>';
   if(!isSys){
-    // --- Documenten ---
-    var docs=d.documenten||[];
-    html+='<div class="tsectie" style="margin-top:12px"><div class="thdr">'
-      +'<span style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.06em">\ud83d\udcc1 Documenten</span>'
-      +'<button onclick="openAddLink(\''+d.id+'\')" style="'+BB+'">+ Link</button>'
-      +'</div>';
-    if(!docs.length){
-      html+='<div style="padding:14px 16px;text-align:center;color:var(--text3);font-size:12px;font-weight:600">\u2014 Geen documenten \u2014</div>';
-    }else{
-      docs.slice().reverse().forEach(function(doc){
-        var datStr=doc.toegevoegd_op||doc.geupload_op||'';
-        html+='<div style="display:flex;align-items:center;gap:10px;border-top:1px solid var(--border);padding:10px 14px">'
-          +'<span style="font-size:22px;flex-shrink:0">'+docIcon(doc.type)+'</span>'
-          +'<div style="flex:1;min-width:0">'
-          +'<a href="'+esc(doc.url)+'" target="_blank" rel="noopener" style="font-size:13px;font-weight:700;color:var(--accent);text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block">'+esc(doc.naam)+'</a>'
-          +(datStr?'<div style="font-size:11px;color:var(--text3);margin-top:2px">'+fd(datStr.slice(0,10))+'</div>':'')
-          +'</div>'
-          +'<button onclick="delDoc(\''+d.id+'\',\''+doc.id+'\')" style="'+IR+';flex-shrink:0">\u2715</button>'
-          +'</div>';
-      });
-    }
-    html+='</div>';
   }
   if(!isSys){
     var links=d.links||[];
@@ -2441,39 +2408,6 @@ function doLink(did,otherId){
   if(d.links.indexOf(otherId)<0)d.links.push(otherId);
   if(o.links.indexOf(did)<0)o.links.push(did);
   sv();CM('mo-link');render();toast('🔗 Dossiers gekoppeld');
-}
-/* ===== Documenten ===== */
-function docIcon(type){return type==='pdf'?'📄':type==='afbeelding'?'🖼️':'📎';}
-var _addLinkDid=null;
-function openAddLink(did){
-  _addLinkDid=did;
-  document.getElementById('al-naam').value='';
-  document.getElementById('al-url').value='';
-  OM('mo-addlink');
-  setTimeout(function(){var n=document.getElementById('al-naam');if(n)n.focus();},80);
-}
-function saveAddLink(){
-  var naam=(document.getElementById('al-naam').value||'').trim();
-  var url=(document.getElementById('al-url').value||'').trim();
-  if(!naam||!url){toast('❌ Naam en URL zijn verplicht');return;}
-  if(!/^https?:\/\//i.test(url)){toast('❌ URL moet beginnen met http:// of https://');return;}
-  var d=DOS.find(function(x){return x.id===_addLinkDid;});
-  if(!d){CM('mo-addlink');return;}
-  if(!Array.isArray(d.documenten))d.documenten=[];
-  var ext=(url.split('?')[0].split('.').pop()||'').toLowerCase();
-  var type=['jpg','jpeg','png','gif','webp'].indexOf(ext)>=0?'afbeelding':ext==='pdf'?'pdf':'andere';
-  d.documenten.push({id:gId(),naam:naam,url:url,type:type,toegevoegd_op:new Date().toISOString()});
-  sv();CM('mo-addlink');render();toast('✓ Link opgeslagen');
-}
-function delDoc(did,docId){
-  var d=DOS.find(function(x){return x.id===did;});
-  if(!d||!Array.isArray(d.documenten))return;
-  var doc=d.documenten.find(function(x){return x.id===docId;});
-  if(!doc)return;
-  ask('Link verwijderen?','"'+doc.naam+'" wordt verwijderd.',function(){
-    d.documenten=d.documenten.filter(function(x){return x.id!==docId;});
-    sv();render();toast('✓ Link verwijderd');
-  });
 }
 function doUnlink(did,otherId){
   ask('Koppeling verwijderen?','De koppeling tussen de twee dossiers wordt verwijderd.',function(){
