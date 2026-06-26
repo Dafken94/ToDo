@@ -1730,7 +1730,7 @@ function buildDetail(){
           +'<div style="padding:9px 12px;flex:1;min-width:0">'
           +'<div style="display:flex;align-items:baseline;gap:8px;min-width:0"><div style="font-size:12px;font-weight:800;color:'+(f.pv?'var(--text)':'var(--text3)')+';font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0">'+(f.pv?esc(f.pv):'Geen PV')+'</div><span style="font-size:10px;color:var(--text3);font-weight:600;flex-shrink:0;white-space:nowrap">'+fdPeriod(f)+'</span></div>'
           +'<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:4px;align-items:center">'
-          +'<span style="font-size:10px;padding:2px 7px;border-radius:8px;font-weight:700;display:inline-flex;align-items:center;gap:4px;background:var(--bg4);color:var(--text2);border:1px solid var(--border)"><span style="width:6px;height:6px;border-radius:2px;background:'+fc.color+'"></span>'+esc(fc.id)+' · '+esc(fc.label)+'</span>'
+          +'<span style="font-size:10px;padding:2px 7px;border-radius:8px;font-weight:700;display:inline-flex;align-items:center;gap:4px;background:var(--bg4);color:var(--text2);border:1px solid var(--border)"><span style="width:6px;height:6px;border-radius:2px;background:'+fc.color+'"></span>'+esc(fc.label)+'</span>'
           +''
           +(f.notitie?'<span style="font-size:10px;color:var(--text2);font-style:italic">'+esc(f.notitie)+'</span>':'')
           +(d.gedeeld&&f.gewijzigd_door?'<span style="font-size:10px;color:var(--text3);font-style:italic">✎ '+esc(f.gewijzigd_door)+'</span>':'')
