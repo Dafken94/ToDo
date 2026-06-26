@@ -382,7 +382,7 @@ function goBack(){if(window.parent&&window.parent!==window&&typeof window.parent
 
 /* ===== Data laden / opslaan ===== */
 function loadLocal(){try{var raw=localStorage.getItem(lsKey());if(raw){var o=JSON.parse(raw);ENTS=o.entiteiten||{};RELS=o.relaties||{};}}catch(e){}}
-function saveLocal(){try{localStorage.setItem(lsKey(),JSON.stringify({entiteiten:ENTS,relaties:RELS}));}catch(e){}}
+function saveLocal(){try{var entsForStorage={};Object.keys(ENTS).forEach(function(k){var e=Object.assign({},ENTS[k]);delete e.foto;entsForStorage[k]=e;});localStorage.setItem(lsKey(),JSON.stringify({entiteiten:entsForStorage,relaties:RELS}));}catch(e){}}
 function basePath(){return 'gebruikers/'+_uid+'/entiteiten/'+DID;}
 
 function fbClean(obj){try{return JSON.parse(JSON.stringify(obj));}catch(e){return null;}}
@@ -403,7 +403,7 @@ function initFB(){
       function _checkFbReady(){if(_fbEntsLoaded&&_fbRelsLoaded){_fbReady=true;saveLocal();renderAll();}}
       _db.ref(basePath()+'/entiteiten').once('value').then(function(snap){
         var remote=snap.val()||{};
-        Object.keys(remote).forEach(function(k){if(!ENTS[k])ENTS[k]=remote[k];});
+        Object.keys(remote).forEach(function(k){if(!ENTS[k])ENTS[k]=remote[k];else if(remote[k].foto)ENTS[k].foto=remote[k].foto;});
         _fbEntsLoaded=true;_checkFbReady();
       }).catch(function(e){console.warn('ent load',e);_fbEntsLoaded=true;_checkFbReady();});
       _db.ref(basePath()+'/relaties').once('value').then(function(snap){
