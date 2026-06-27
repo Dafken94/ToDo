@@ -973,8 +973,15 @@ function treeLayout(){
     });
   }
 
-  // Posities berekenen
-  var NODE_W=220, TIER_H=260;
+  // Posities berekenen — breedte past zich aan aan max. elementen per entiteit
+  var EL_W=80, EL_SUB_Y=105;
+  var maxElCount=0;
+  ents.forEach(function(e){
+    var etypes=[];
+    (e.elementen||[]).forEach(function(el){if(etypes.indexOf(el.type)===-1)etypes.push(el.type);});
+    if(etypes.length>maxElCount)maxElCount=etypes.length;
+  });
+  var NODE_W=Math.max(240,maxElCount*EL_W+60), TIER_H=290;
   var vc=visibleCanvasSize();
   var cx=vc.w/2, startY=80;
 
@@ -990,49 +997,23 @@ function treeLayout(){
   if(sideEnts.length){
     var maxW=Math.max.apply(null,tierNums.map(function(t){return tierGroups[t].length;}))||1;
     var sideX=cx+maxW*NODE_W/2+150;
-    sideEnts.forEach(function(e,i){NODES[e.id]={x:sideX,y:startY+i*150};});
+    sideEnts.forEach(function(e,i){NODES[e.id]={x:sideX,y:startY+i*TIER_H};});
   }
 
-  // Element-subnodes herpositioneren: richting weg van relatiepijlen
-  var EL_DIST=90;
+  // Element-subnodes als vaste sub-rij recht onder hun entiteit
   ents.forEach(function(e){
     var n=NODES[e.id];if(!n)return;
     var types=[];
     (e.elementen||[]).forEach(function(el){if(types.indexOf(el.type)===-1)types.push(el.type);});
     var count=types.length;
     if(!count){ENTS[e.id].x=n.x;ENTS[e.id].y=n.y;saveEntData(e.id);return;}
-
-    // Bereken hoeken naar alle verbonden entiteiten
-    var connAngles=[];
-    rels.forEach(function(r){
-      var otherId=r.vanEntiteitId===e.id?r.naarEntiteitId:(r.naarEntiteitId===e.id?r.vanEntiteitId:null);
-      if(!otherId)return;
-      var on=NODES[otherId];if(!on)return;
-      connAngles.push(Math.atan2(on.y-n.y,on.x-n.x));
-    });
-
-    // Vind de grootste vrije hoekkloof tussen verbindingen
-    var baseAngle;
-    if(!connAngles.length){
-      baseAngle=0;
-    }else if(connAngles.length===1){
-      baseAngle=connAngles[0]+Math.PI;
-    }else{
-      var sorted=connAngles.slice().sort(function(a,b){return a-b;});
-      var maxGap=0;baseAngle=sorted[0]+Math.PI;
-      sorted.forEach(function(a,i){
-        var next=i===sorted.length-1?sorted[0]+2*Math.PI:sorted[i+1];
-        var gap=next-a;
-        if(gap>maxGap){maxGap=gap;baseAngle=a+gap/2;}
-      });
-    }
-
-    // Waaier van subnodes gecentreerd rond de vrije hoek
-    var fanSpread=Math.min(Math.PI*0.55,Math.max(0,(count-1)*0.38));
+    // Centreer de rij elementen horizontaal onder de entiteit
+    var totalW=(count-1)*EL_W;
+    var elStartX=n.x-totalW/2;
+    var elY=n.y+EL_SUB_Y;
     types.forEach(function(t,gi){
       var key='el:'+e.id+':'+t;
-      var angle=count>1?baseAngle+(-fanSpread/2+(gi/(count-1))*fanSpread):baseAngle;
-      NODES[key]={x:n.x+Math.cos(angle)*EL_DIST,y:n.y+Math.sin(angle)*EL_DIST};
+      NODES[key]={x:elStartX+gi*EL_W,y:elY};
       e.elementen.forEach(function(el){if(el.type===t){el.netX=NODES[key].x;el.netY=NODES[key].y;}});
     });
     ENTS[e.id].x=n.x;ENTS[e.id].y=n.y;
@@ -1124,8 +1105,17 @@ function drawNet(targetCtx,scaleOverride){
       c.font='500 7.5px -apple-system,Segoe UI,sans-serif';c.fillStyle='rgba(148,163,184,.80)';
       c.textAlign='center';c.textBaseline='top';
       var maxShow=3;
+      // Max labelbreedte: helft afstand tot naastgelegen element-knoop minus kleine marge
+      var lnX=gi>0&&NODES['el:'+e.id+':'+typeOrder[gi-1]]?NODES['el:'+e.id+':'+typeOrder[gi-1]].x:ex-200;
+      var rnX=gi<count-1&&NODES['el:'+e.id+':'+typeOrder[gi+1]]?NODES['el:'+e.id+':'+typeOrder[gi+1]].x:ex+200;
+      var maxLW=Math.min(ex-lnX,rnX-ex)*2-8;if(maxLW<30)maxLW=200;
       group.slice(0,maxShow).forEach(function(el,li){
-        c.fillText(elNetLabel(el),ex,ey+R_EL+3+li*10);
+        var lbl=elNetLabel(el);
+        if(c.measureText(lbl).width>maxLW){
+          while(lbl.length>1&&c.measureText(lbl+'…').width>maxLW)lbl=lbl.slice(0,-1);
+          lbl=lbl+'…';
+        }
+        c.fillText(lbl,ex,ey+R_EL+3+li*10);
       });
       if(group.length>maxShow){
         c.fillStyle='rgba(148,163,184,.50)';
