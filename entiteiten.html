@@ -161,6 +161,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
         <div class="net-tools">
           <button class="btnW" onclick="resetPositions()">&#8635; Herpositioneren</button>
           <button class="btnW" onclick="centreerNet()">&#10697; Centreren</button>
+          <button class="btnW" onclick="treeLayout()">🌳 Stamboom</button>
+          <button class="btnW" id="btn-tree-restore" onclick="restoreTreeSnapshot()" style="display:none">↩ Herstel</button>
         </div>
         <div class="legend" id="legend"></div>
       </div>
@@ -884,6 +886,157 @@ function syncNodes(){
   });
 }
 function resetPositions(){circlePositions();fitView();drawNet();toast('✓ Herpositioneerd');}
+
+var _TREE_SNAPSHOT=null;
+
+function treeLayout(){
+  var ents=entsArr();
+  if(!ents.length)return;
+
+  // Snapshot huidige posities (voor herstelknop)
+  _TREE_SNAPSHOT={};
+  ents.forEach(function(e){
+    var n=NODES[e.id];
+    _TREE_SNAPSHOT[e.id]=n?{x:n.x,y:n.y}:{x:0,y:0};
+    var types=[];
+    (e.elementen||[]).forEach(function(el){if(types.indexOf(el.type)===-1)types.push(el.type);});
+    types.forEach(function(t){
+      var key='el:'+e.id+':'+t;
+      var en=NODES[key];
+      _TREE_SNAPSHOT[key]=en?{x:en.x,y:en.y}:null;
+    });
+  });
+  document.getElementById('btn-tree-restore').style.display='';
+
+  // Scheiding: stamboom vs. zijpaneel (informant/bron)
+  var SIDE={informant:true,bron:true};
+  var BASE_TIER={verdachte:0,slachtoffer:1,getuige:2,andere:3};
+  var mainEnts=ents.filter(function(e){return !SIDE[e.type];});
+  var sideEnts=ents.filter(function(e){return !!SIDE[e.type];});
+
+  // Basistier per entiteit
+  var tierOf={};
+  mainEnts.forEach(function(e){tierOf[e.id]=BASE_TIER[e.type]!=null?BASE_TIER[e.type]:3;});
+
+  // Pijlrichting duwt entiteit naar lagere trap (max 30 iteraties tegen cycli)
+  var rels=relsArr();
+  for(var iter=0;iter<30;iter++){
+    var changed=false;
+    rels.forEach(function(r){
+      if(tierOf[r.vanEntiteitId]==null||tierOf[r.naarEntiteitId]==null)return;
+      if(r.richting==='beide')return;
+      var from=r.richting==='AB'?r.vanEntiteitId:r.naarEntiteitId;
+      var to=r.richting==='AB'?r.naarEntiteitId:r.vanEntiteitId;
+      if(tierOf[to]<=tierOf[from]){tierOf[to]=tierOf[from]+1;changed=true;}
+    });
+    if(!changed)break;
+  }
+
+  // Groepeer per trap
+  var tierGroups={};
+  mainEnts.forEach(function(e){
+    var t=tierOf[e.id];
+    if(!tierGroups[t])tierGroups[t]=[];
+    tierGroups[t].push(e);
+  });
+  var tierNums=Object.keys(tierGroups).map(Number).sort(function(a,b){return a-b;});
+
+  // Barycenter-sortering binnen elke trap (4 passes)
+  var posOf={};
+  tierNums.forEach(function(t){
+    var g=tierGroups[t];
+    g.sort(function(a,b){return entName(a).localeCompare(entName(b),'nl');});
+    g.forEach(function(e,i){posOf[e.id]=i;});
+  });
+  for(var pass=0;pass<4;pass++){
+    tierNums.forEach(function(t){
+      var g=tierGroups[t];
+      var bary={};
+      g.forEach(function(e){
+        var xs=[];
+        rels.forEach(function(r){
+          var other=null;
+          if(r.vanEntiteitId===e.id)other=r.naarEntiteitId;
+          else if(r.naarEntiteitId===e.id)other=r.vanEntiteitId;
+          if(!other||tierOf[other]==null||tierOf[other]>=t)return;
+          if(posOf[other]!=null)xs.push(posOf[other]);
+        });
+        bary[e.id]=xs.length?xs.reduce(function(a,b){return a+b;},0)/xs.length:null;
+      });
+      g.sort(function(a,b){
+        var ba=bary[a.id],bb=bary[b.id];
+        if(ba==null&&bb==null)return entName(a).localeCompare(entName(b),'nl');
+        if(ba==null)return 1;if(bb==null)return -1;
+        return ba-bb;
+      });
+      g.forEach(function(e,i){posOf[e.id]=i;});
+    });
+  }
+
+  // Posities berekenen
+  var NODE_W=160, TIER_H=200;
+  var vc=visibleCanvasSize();
+  var cx=vc.w/2, startY=80;
+
+  tierNums.forEach(function(t,ti){
+    var g=tierGroups[t];
+    var totalW=(g.length-1)*NODE_W;
+    var sx=cx-totalW/2;
+    var y=startY+ti*TIER_H;
+    g.forEach(function(e,i){NODES[e.id]={x:sx+i*NODE_W,y:y};});
+  });
+
+  // Zijpaneel: informant/bron rechts van de boom
+  if(sideEnts.length){
+    var maxW=Math.max.apply(null,tierNums.map(function(t){return tierGroups[t].length;}))||1;
+    var sideX=cx+maxW*NODE_W/2+150;
+    sideEnts.forEach(function(e,i){NODES[e.id]={x:sideX,y:startY+i*150};});
+  }
+
+  // Element-subnodes herpositioneren rond hun entiteit
+  var EL_DIST=80;
+  ents.forEach(function(e){
+    var n=NODES[e.id];if(!n)return;
+    var types=[];
+    (e.elementen||[]).forEach(function(el){if(types.indexOf(el.type)===-1)types.push(el.type);});
+    var count=types.length;
+    types.forEach(function(t,gi){
+      var key='el:'+e.id+':'+t;
+      var angle=(gi/Math.max(1,count))*Math.PI*2-Math.PI/2;
+      NODES[key]={x:n.x+Math.cos(angle)*EL_DIST,y:n.y+Math.sin(angle)*EL_DIST};
+      e.elementen.forEach(function(el){if(el.type===t){el.netX=NODES[key].x;el.netY=NODES[key].y;}});
+    });
+    ENTS[e.id].x=n.x;ENTS[e.id].y=n.y;
+    saveEntData(e.id);
+  });
+
+  fitView();drawNet();toast('✓ Stamboomindeling toegepast');
+}
+
+function restoreTreeSnapshot(){
+  if(!_TREE_SNAPSHOT)return;
+  entsArr().forEach(function(e){
+    var snap=_TREE_SNAPSHOT[e.id];
+    if(!snap)return;
+    NODES[e.id]={x:snap.x,y:snap.y};
+    ENTS[e.id].x=snap.x;ENTS[e.id].y=snap.y;
+    var types=[];
+    (e.elementen||[]).forEach(function(el){if(types.indexOf(el.type)===-1)types.push(el.type);});
+    types.forEach(function(t){
+      var key='el:'+e.id+':'+t;
+      var elSnap=_TREE_SNAPSHOT[key];
+      if(elSnap){
+        NODES[key]={x:elSnap.x,y:elSnap.y};
+        e.elementen.forEach(function(el){if(el.type===t){el.netX=elSnap.x;el.netY=elSnap.y;}});
+      }
+    });
+    saveEntData(e.id);
+  });
+  _TREE_SNAPSHOT=null;
+  document.getElementById('btn-tree-restore').style.display='none';
+  fitView();drawNet();toast('✓ Posities hersteld');
+}
+
 function netZoom(f){NET_SCALE=Math.max(0.3,Math.min(3,NET_SCALE*f));drawNet();}
 
 function drawNet(targetCtx,scaleOverride){
