@@ -404,16 +404,18 @@ function initFB(){
       _db.ref('.info/connected').on('value',function(s){_sync=s.val()?'online':'offline';updateSync();});
       var _fbEntsLoaded=false,_fbRelsLoaded=false;
       function _checkFbReady(){if(_fbEntsLoaded&&_fbRelsLoaded){_fbReady=true;saveLocal();renderAll();}}
-      _db.ref(basePath()+'/entiteiten').once('value').then(function(snap){
+      // on() i.p.v. once() voor realtime synchronisatie tussen sessies
+      _db.ref(basePath()+'/entiteiten').on('value',function(snap){
         var remote=snap.val()||{};
-        Object.keys(remote).forEach(function(k){ENTS[k]=remote[k];});
-        _fbEntsLoaded=true;_checkFbReady();
-      }).catch(function(e){console.warn('ent load',e);_fbEntsLoaded=true;_checkFbReady();});
-      _db.ref(basePath()+'/relaties').once('value').then(function(snap){
+        ENTS={};Object.keys(remote).forEach(function(k){ENTS[k]=remote[k];});
+        if(!_fbEntsLoaded){_fbEntsLoaded=true;_checkFbReady();}else{renderAll();}
+      },function(e){console.warn('ent load',e);_fbEntsLoaded=true;_checkFbReady();});
+      // Remote heeft altijd voorrang (BUG-07 fix: merge-logica was omgekeerd)
+      _db.ref(basePath()+'/relaties').on('value',function(snap){
         var remote=snap.val()||{};
-        Object.keys(remote).forEach(function(k){if(!RELS[k])RELS[k]=remote[k];});
-        _fbRelsLoaded=true;_checkFbReady();
-      }).catch(function(e){console.warn('rel load',e);_fbRelsLoaded=true;_checkFbReady();});
+        RELS={};Object.keys(remote).forEach(function(k){RELS[k]=remote[k];});
+        if(!_fbRelsLoaded){_fbRelsLoaded=true;_checkFbReady();}else{renderAll();}
+      },function(e){console.warn('rel load',e);_fbRelsLoaded=true;_checkFbReady();});
     });
   }catch(e){console.warn('Firebase fout',e);_sync='offline';updateSync();}
 }
@@ -1157,20 +1159,19 @@ var FOTO_RW=36,FOTO_RH=48,FOTO_CR=6;
 function roundRect(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.lineTo(x+w-r,y);c.arcTo(x+w,y,x+w,y+r,r);c.lineTo(x+w,y+h-r);c.arcTo(x+w,y+h,x+w-r,y+h,r);c.lineTo(x+r,y+h);c.arcTo(x,y+h,x,y+h-r,r);c.lineTo(x,y+r);c.arcTo(x,y,x+r,y,r);c.closePath();}
 function drawNode(c,n,e){
   var R=38;
+  var RW=FOTO_RW,RH=FOTO_RH,CR=FOTO_CR,pad=4;
+  var col=entColor(e);
+  var lh=14;
   var cached=e.foto&&IMG_CACHE[e.id];
+  roundRect(c,n.x-RW,n.y-RH,RW*2,RH*2,CR);
+  c.fillStyle=col;c.fill();
+  c.lineWidth=1.5;
   if(e.foto){
-    var RW=FOTO_RW,RH=FOTO_RH,CR=FOTO_CR,pad=4;
-    var col=entColor(e);
-    // gekleurde rand (pad px breed zichtbaar rondom foto)
-    roundRect(c,n.x-RW,n.y-RH,RW*2,RH*2,CR);
-    c.fillStyle=col;c.fill();
-    c.lineWidth=1.5;c.strokeStyle='rgba(255,255,255,.25)';c.stroke();
+    c.strokeStyle='rgba(255,255,255,.25)';c.stroke();
     if(cached&&cached.loaded){
       c.save();
       roundRect(c,n.x-RW+pad,n.y-RH+pad,RW*2-pad*2,RH*2-pad*2,CR-2);c.clip();
       c.drawImage(cached.img,n.x-RW+pad,n.y-RH+pad,RW*2-pad*2,RH*2-pad*2);
-      // categorie-tag onderaan foto
-      var lh=14;
       c.globalAlpha=0.88;c.fillStyle=col;
       c.fillRect(n.x-RW+pad,n.y+RH-pad-lh,RW*2-pad*2,lh);
       c.globalAlpha=1;
@@ -1184,22 +1185,13 @@ function drawNode(c,n,e){
       c.fillStyle='rgba(255,255,255,.6)';c.font='800 15px -apple-system,Segoe UI,sans-serif';
       c.fillText(entInitials(e),n.x,n.y);
     }
-    var nm=entName(e);if(nm.length>18)nm=nm.slice(0,17)+'…';
-    c.font='600 11px -apple-system,Segoe UI,sans-serif';c.fillStyle='#cfe0f0';c.textBaseline='top';c.textAlign='center';
-    c.fillText(nm,n.x,n.y+RH+5);
   }else{
-    var RW=FOTO_RW,RH=FOTO_RH,CR=FOTO_CR,pad=4;
-    var col=entColor(e);
-    roundRect(c,n.x-RW,n.y-RH,RW*2,RH*2,CR);
-    c.fillStyle=col;c.fill();
-    c.lineWidth=1.5;
     if(e.persoonType==='onbekend'){c.setLineDash([4,3]);c.strokeStyle='rgba(255,255,255,.4)';}
     else{c.setLineDash([]);c.strokeStyle='rgba(255,255,255,.25)';}
     c.stroke();c.setLineDash([]);
     c.save();
     roundRect(c,n.x-RW+pad,n.y-RH+pad,RW*2-pad*2,RH*2-pad*2,CR-2);c.clip();
     c.fillStyle='#0c1e35';c.fill();
-    var lh=14;
     c.textAlign='center';c.textBaseline='middle';
     if(e.persoonType==='rechtspersoon'){
       c.font='22px sans-serif';c.fillText('🏢',n.x,n.y-(lh/2)+1);
@@ -1217,10 +1209,10 @@ function drawNode(c,n,e){
     c.textAlign='center';c.textBaseline='middle';
     c.fillText(typeLabel(e).toUpperCase(),n.x,n.y+RH-pad-lh/2);
     c.restore();
-    var nm=entName(e);if(nm.length>18)nm=nm.slice(0,17)+'…';
-    c.font='600 11px -apple-system,Segoe UI,sans-serif';c.fillStyle='#cfe0f0';c.textBaseline='top';c.textAlign='center';
-    c.fillText(nm,n.x,n.y+RH+5);
   }
+  var nm=entName(e);if(nm.length>18)nm=nm.slice(0,17)+'…';
+  c.font='600 11px -apple-system,Segoe UI,sans-serif';c.fillStyle='#cfe0f0';c.textBaseline='top';c.textAlign='center';
+  c.fillText(nm,n.x,n.y+RH+5);
 }
 function ensureFotoLoaded(e){
   if(IMG_CACHE[e.id]&&IMG_CACHE[e.id].src===e.foto)return;
@@ -1248,12 +1240,14 @@ function hitNode(p){
   });
   return found;
 }
+var _tapDownPos=null;
 function onDown(ev){
   if(ev.touches&&ev.touches.length===2){
-    dragNode=null;panning=false;
+    dragNode=null;panning=false;_tapDownPos=null;
     _pinchDist=Math.hypot(ev.touches[0].clientX-ev.touches[1].clientX,ev.touches[0].clientY-ev.touches[1].clientY);
     ev.preventDefault();return;
   }
+  if(ev.touches){_tapDownPos={x:ev.touches[0].clientX,y:ev.touches[0].clientY};}else{_tapDownPos=null;}
   var p=evtPos(ev);var id=hitNode(p);
   hideTooltip();hoverNode=null;
   if(id){
@@ -1307,7 +1301,17 @@ function onMove(ev){
     if(hovEnt!==hoverNode){hoverNode=hovEnt;if(hovEnt)showTooltip(hovEnt);else hideTooltip();}
   }
 }
-function onUp(){
+function onUp(ev){
+  // Tap-to-select op mobiel (UX-05): selecteer entiteit bij tap zonder drag
+  if(_tapDownPos&&ev&&ev.changedTouches){
+    var t=ev.changedTouches[0];
+    var moved=Math.hypot(t.clientX-_tapDownPos.x,t.clientY-_tapDownPos.y);
+    if(moved<8&&dragNode&&dragNode.indexOf('el:')!==0){
+      var tappedId=dragNode;
+      setTimeout(function(){selectEnt(tappedId);},0);
+    }
+    _tapDownPos=null;
+  }
   if(dragNode){
     if(dragNode.indexOf('el:')===0){
       var parts=dragNode.split(':'),eid=parts[1],typ=parts[2];
@@ -1467,11 +1471,14 @@ function exportWord(){
     children.push(P(''));
     // 4. Entiteitentabel
     children.push(P('Entiteiten',{bold:true,size:24}));
-    var entRows=[headerRow(['Naam','Type','Geboortedatum','Rijksregister','Notities'])];
+    var entRows=[headerRow(['Naam','Type','Geboortedatum / KBO','Rijksregister / Adres','Notities'])];
     entsArr().forEach(function(e,i){
       var fill=i%2?'EAF1F8':'FFFFFF';
+      var isRp=e.persoonType==='rechtspersoon';
+      var col3=isRp?(e.kbo||'-'):fd(e.geboortedatum);
+      var col4=isRp?(e.adres||'-'):(e.rijksregister||'-');
       entRows.push(new docx.TableRow({children:[
-        cell(entName(e),{fill:fill,bold:true}),cell(typeLabel(e),{fill:fill}),cell(fd(e.geboortedatum),{fill:fill}),cell(e.rijksregister||'-',{fill:fill}),cell(e.notities||'-',{fill:fill})
+        cell(entName(e),{fill:fill,bold:true}),cell(typeLabel(e)+(isRp?' (RP)':''),{fill:fill}),cell(col3,{fill:fill}),cell(col4,{fill:fill}),cell(e.notities||'-',{fill:fill})
       ]}));
     });
     children.push(tbl(entRows));
@@ -1515,11 +1522,17 @@ function exportWord(){
 
 function buildNetImage(){
   if(!entsArr().length)return null;
-  // Offscreen op hoge resolutie, met alle nodes in beeld
+  // Bereken bounding box inclusief element-subnodes
   var pad=70,minX=1e9,minY=1e9,maxX=-1e9,maxY=-1e9;
-  entsArr().forEach(function(e){var n=NODES[e.id];if(!n)return;minX=Math.min(minX,n.x);minY=Math.min(minY,n.y);maxX=Math.max(maxX,n.x);maxY=Math.max(maxY,n.y);});
+  var R_EL=16;
+  Object.keys(NODES).forEach(function(k){
+    var n=NODES[k];if(!n)return;
+    minX=Math.min(minX,n.x-R_EL);minY=Math.min(minY,n.y-R_EL);
+    maxX=Math.max(maxX,n.x+R_EL);maxY=Math.max(maxY,n.y+R_EL);
+  });
+  entsArr().forEach(function(e){var n=NODES[e.id];if(!n)return;minX=Math.min(minX,n.x-FOTO_RW);minY=Math.min(minY,n.y-FOTO_RH);maxX=Math.max(maxX,n.x+FOTO_RW);maxY=Math.max(maxY,n.y+FOTO_RH+18);});
   if(minX>maxX){return null;}
-  minX-=FOTO_RW+pad;minY-=FOTO_RH+pad;maxX+=FOTO_RW+pad;maxY+=FOTO_RH+pad+18;
+  minX-=pad;minY-=pad;maxX+=pad;maxY+=pad;
   var w=Math.max(300,maxX-minX),h=Math.max(200,maxY-minY);
   var scale=2;
   var off=document.createElement('canvas');off.width=w*scale;off.height=h*scale;
@@ -1528,6 +1541,28 @@ function buildNetImage(){
   oc.fillStyle=CANVAS_BG;oc.fillRect(minX,minY,w,h);
   relsArr().forEach(function(r){var a=NODES[r.vanEntiteitId],b=NODES[r.naarEntiteitId];if(a&&b)drawEdge(oc,a,b,r);});
   entsArr().forEach(function(e){var n=NODES[e.id];if(n)drawNode(oc,n,e);});
+  // Teken element-subnodes (BUG-20 fix)
+  entsArr().forEach(function(e){
+    var en=NODES[e.id];if(!en)return;
+    var els=(e.elementen||[]);if(!els.length)return;
+    var typeGroups={},typeOrder=[];
+    els.forEach(function(el){if(!typeGroups[el.type]){typeGroups[el.type]=[];typeOrder.push(el.type);}typeGroups[el.type].push(el);});
+    typeOrder.forEach(function(t){
+      var key='el:'+e.id+':'+t;var n=NODES[key];if(!n)return;
+      var ex=n.x,ey=n.y,dx=ex-en.x,dy=ey-en.y,len=Math.hypot(dx,dy)||1,ux=dx/len,uy=dy/len;
+      oc.save();oc.setLineDash([4,3]);oc.strokeStyle='rgba(148,163,184,.35)';oc.lineWidth=1;
+      oc.beginPath();oc.moveTo(en.x+ux*FOTO_RW,en.y+uy*FOTO_RW);oc.lineTo(ex-ux*R_EL,ey-uy*R_EL);oc.stroke();
+      oc.setLineDash([]);oc.restore();
+      oc.beginPath();oc.arc(ex,ey,R_EL,0,Math.PI*2);
+      oc.fillStyle='rgba(15,30,55,0.88)';oc.fill();oc.lineWidth=1;oc.strokeStyle='rgba(148,163,184,.45)';oc.stroke();
+      oc.textAlign='center';oc.textBaseline='middle';oc.font='10px sans-serif';oc.fillStyle='rgba(203,213,225,.9)';
+      oc.fillText(EL_ICONS[t]||'📎',ex,ey);
+      var group=typeGroups[t];
+      oc.font='500 7.5px sans-serif';oc.fillStyle='rgba(148,163,184,.80)';oc.textAlign='center';oc.textBaseline='top';
+      var lbl=elNetLabel(group[0])+(group.length>1?' (+'+( group.length-1)+')':'');
+      oc.fillText(lbl,ex,ey+R_EL+3);
+    });
+  });
   var dataUrl=off.toDataURL('image/png');
   var bytes=dataUrlToBytes(dataUrl);
   var dispW=Math.min(620,w),dispH=dispW*(h/w);
@@ -1541,7 +1576,8 @@ initMob();
 if(!DID){toast('❌ Geen dossier opgegeven');}
 initFB();
 renderAll();
-(function waitFb(t){t=t||0;if(window._fbLoadErr||t>30){return;}if(typeof firebase==='undefined'){setTimeout(function(){waitFb(t+1);},100);}})();
+// Herstart Firebase initialisatie zodra de SDK geladen is (fix voor trage CDN)
+(function waitFb(t){t=t||0;if(window._fbLoadErr||t>30){return;}if(typeof firebase!=='undefined'){if(!_fbReady)initFB();return;}setTimeout(function(){waitFb(t+1);},100);})();
 </script>
 </body>
 </html>

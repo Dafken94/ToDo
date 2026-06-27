@@ -392,7 +392,7 @@ function esc(s){return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g
 function pad(n){return n<10?'0'+n:String(n);}
 function fd(d){if(!d)return '—';var p=d.split('-');if(p.length!==3)return d;return p[2]+'/'+p[1]+'/'+p[0];}
 function fdLong(d){if(!d)return '—';var s=new Date(d+'T12:00:00').toLocaleDateString('nl-BE',{weekday:'long',day:'numeric',month:'long',year:'numeric'});return s.charAt(0).toUpperCase()+s.slice(1);}
-function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2200);}
+function toast(m,type){var t=document.getElementById('toast');t.textContent=m;t.style.borderLeftColor=type==='err'?'#ef4444':type==='ok'?'#22c55e':type==='warn'?'#f59e0b':'transparent';t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2200);}
 function OM(id){document.getElementById(id).classList.add('show');}
 function CM(id){document.getElementById(id).classList.remove('show');}
 function ask(msg,sub,cb){document.getElementById('conf-m').textContent=msg;document.getElementById('conf-s').textContent=sub;CCB=cb;OM('conf');}
@@ -710,7 +710,7 @@ function renderGrid(){
         html+='<div class="cal-pill" style="background:'+hexRgba(t.color,THEME==='dark'?0.26:0.15)+';color:'+t.color+'"><span>'+t.icon+'</span><span class="cp-lbl r-label">'+esc(t.label)+'</span></div>';
       });
       if(dayRoster.length>3)html+='<div class="ovf-lbl">+'+(dayRoster.length-3)+' meer</div>';
-      dayAppts.slice(0,2).forEach(function(a){html+='<div class="cal-chip">'+(a.tijdstip?esc(a.tijdstip)+' ':'')+esc(a.titel)+'</div>';});
+      dayAppts.slice(0,2).forEach(function(a){html+='<div class="cal-chip" onclick="event.stopPropagation();openEA(\''+a.id+'\')" style="cursor:pointer" title="Klik om te bewerken">'+(a.tijdstip?esc(a.tijdstip)+' ':'')+esc(a.titel)+'</div>';});
       if(dayAppts.length>2)html+='<div class="cal-chip" style="color:var(--text3)">+'+(dayAppts.length-2)+' meer</div>';
       html+='</div>';
     });

@@ -261,7 +261,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
     <div class="fr" id="f-dosnr-row" style="display:none"><label>Dossiernummer (optioneel)</label><input id="f-dosnr" placeholder="2026/0042" oninput="dosNrInput()" onblur="dosNrBlur()" maxlength="9" inputmode="numeric" autocomplete="off"><span id="dosnr-hint" style="font-size:11px;color:var(--text3);margin-top:3px;display:block"></span></div>
     <div id="f-eerste-feit-blok">
       <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;margin:10px 0 8px;padding-top:10px;border-top:1px solid var(--border)">Eerste feit</div>
-      <div class="fr"><label>PV-nummer (optioneel)</label><input id="f-pv" placeholder="__.__.__.______/____" oninput="pvInput()" style="text-transform:uppercase"><span id="pv-hint" style="font-size:11px;color:var(--text3);margin-top:3px;display:block"></span></div>
+      <div class="fr"><label>PV-nummer (optioneel)</label><input id="f-pv" placeholder="__.__.__.______/____" oninput="pvInput()" autocomplete="off" style="text-transform:uppercase"><span id="pv-hint" style="font-size:11px;color:var(--text3);margin-top:3px;display:block"></span></div>
       <div class="fr"><label>Categorie *</label>
         <div class="cpick-wrap" id="f-cat-wrap">
           <input type="text" id="f-cat-display" class="cpick-inp" placeholder="Kies categorie..." readonly onclick="openCatPicker('f-cat')">
@@ -278,12 +278,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 <div class="ov" id="mo-t">
   <div class="ob">
     <div class="ob-title" id="mo-t-t">Taak</div>
-    <div class="fr" id="t-dos-row" style="display:none"><label>Dossier *</label><select id="t-dos"></select></div>
+    <div class="fr" id="t-dos-row" style="display:none"><label>Dossier *</label><select id="t-dos" onchange="showAssignRow(this.value,null)"></select></div>
     <div class="fr"><label>Titel *</label><input id="t-ti" placeholder="Omschrijving van de taak"></div>
     <div class="fr"><label>Prioriteit</label><select id="t-pr"><option value="hoog">Hoog</option><option value="midden">Midden</option><option value="laag" selected>Laag</option></select></div>
     <div class="fr"><label>Datum taak</label><input id="t-da" type="date"></div>
     <div class="fr"><label>Deadline (optioneel)</label><input id="t-dl" type="date"></div>
-    <div class="fr"><label>NPV (optioneel)</label><input id="t-npv" placeholder="002244/2026" oninput="npvInput()" maxlength="11" style="font-family:monospace;letter-spacing:.05em"><span id="npv-hint" style="font-size:11px;color:var(--text3);margin-top:3px;display:block"></span></div>
+    <div class="fr"><label>NPV (optioneel)</label><input id="t-npv" placeholder="002244/2026" oninput="npvInput()" maxlength="11" autocomplete="off" style="font-family:monospace;letter-spacing:.05em"><span id="npv-hint" style="font-size:11px;color:var(--text3);margin-top:3px;display:block"></span></div>
     <div class="fr" id="t-gd-row" style="display:none"><label>Voltooid op</label><input id="t-gd" type="date"></div>
     <div class="fr"><label>Notitie</label><textarea id="t-no" rows="2" placeholder="Extra details..."></textarea></div>
     <div class="fr" id="t-assign-row" style="display:none"><label>Toegewezen aan</label><div id="t-assign-chips" style="display:flex;flex-wrap:wrap;gap:6px;padding:2px 0"></div></div>
@@ -317,7 +317,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 <div class="ov" id="mo-f">
   <div class="ob">
     <div class="ob-title" id="mo-f-t">Feit toevoegen</div>
-    <div class="fr"><label>PV-nummer (optioneel)</label><input id="ff-pv" placeholder="__.__.__.______/____" oninput="feitPvInput()" style="text-transform:uppercase"><span id="ff-pv-hint" style="font-size:11px;color:var(--text3);margin-top:3px;display:block"></span></div>
+    <div class="fr"><label>PV-nummer (optioneel)</label><input id="ff-pv" placeholder="__.__.__.______/____" oninput="feitPvInput()" autocomplete="off" style="text-transform:uppercase"><span id="ff-pv-hint" style="font-size:11px;color:var(--text3);margin-top:3px;display:block"></span></div>
     <div class="fr"><label>Categorie *</label>
       <div class="cpick-wrap" id="ff-cat-wrap">
         <input type="text" id="ff-cat-display" class="cpick-inp" placeholder="Kies categorie..." readonly onclick="openCatPicker('ff-cat')">
@@ -683,6 +683,14 @@ function initFB(){
   if(_ref){_ref.off();_ref=null;}
   if(_sharedRef){_sharedRef.off();_sharedRef=null;}
   _fbReady=false;
+  // Ruim verouderde agenda-notificatie keys op (KW-06)
+  try{
+    var cutoff=new Date();cutoff.setDate(cutoff.getDate()-7);
+    var cutStr=cutoff.toISOString().slice(0,10);
+    Object.keys(localStorage).forEach(function(k){
+      if(k.indexOf('notif-agenda-')===0){var date=k.slice(k.lastIndexOf('-')+1);if(date<cutStr)localStorage.removeItem(k);}
+    });
+  }catch(e){}
   var lsKey=_uid?'dos_data_'+_uid:'dos_data';
   try{
     var raw=localStorage.getItem(lsKey);
@@ -924,6 +932,17 @@ function updateSync(){
   el.innerHTML=map[_sync]||map.connecting;
   if(_sync==='connecting')el.classList.add('sync-pulse');
   else el.classList.remove('sync-pulse');
+  var banner=document.getElementById('offline-banner');
+  if(_sync==='offline'){
+    if(!banner){
+      banner=document.createElement('div');banner.id='offline-banner';
+      banner.style.cssText='position:fixed;top:0;left:0;right:0;z-index:9998;background:#92400e;color:#fef3c7;font-size:12px;font-weight:700;text-align:center;padding:6px 12px;letter-spacing:.03em';
+      banner.textContent='\u26a0\ufe0f Geen verbinding \u2014 wijzigingen worden lokaal opgeslagen';
+      document.body.appendChild(banner);
+    }
+  }else{
+    if(banner)banner.remove();
+  }
 }
 
 
@@ -1689,6 +1708,16 @@ function buildDetail(){
     +(extWacht>0?'<div class="mini-stat"><div style="font-size:17px;font-weight:800;color:#f59e0b">'+extWacht+'</div><div style="font-size:10px;color:var(--text2);font-weight:700">Wachten</div></div>':'')
     +'</div></div></div>';
 
+  // Info-banner voor systeemdossiers (UX-08)
+  if(isSys){
+    html+='<div style="display:flex;align-items:flex-start;gap:10px;padding:11px 14px;border-radius:9px;background:'+sysColor+'18;border:1.5px solid '+sysColor+'44;margin-bottom:12px">'
+      +'<span style="font-size:16px;line-height:1.4">📌</span>'
+      +'<div style="font-size:12px;color:var(--text2);line-height:1.5">'
+      +'<strong style="color:var(--text);display:block;margin-bottom:2px">Persoonlijk systeemdossier</strong>'
+      +'Dit dossier is automatisch aangemaakt en kan niet gedeeld, gearchiveerd, gekoppeld of verwijderd worden. Gebruik het om persoonlijke taken en notities bij te houden.'
+      +'</div></div>';
+  }
+
   // OneDrive knop (niet voor sys dossiers)
   if(!isSys){
     if(d.onedrive_url){
@@ -2245,15 +2274,17 @@ function openShare(did){
   }else{
     var toegang=d.toegang||{};
     var toegangNamen=d.toegang_namen||{};
+    var eigenaarUid=d.eigenaar_uid;
     var lijstHtml='<div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:14px">';
     Object.keys(toegang).forEach(function(u,i){
       var displayName=toegangNamen[u]||(u===_uid?(_userName||_userEmail):u);
       var initials=displayName.split(' ').map(function(w){return w[0]||'';}).join('').slice(0,2).toUpperCase();
-      var isMe=u===_uid;
+      var isMe=u===_uid;var isEigenaar=u===eigenaarUid;
       lijstHtml+='<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;'+(i>0?'border-top:1px solid var(--border);':'')+'">';
-      lijstHtml+='<div style="width:32px;height:32px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0">'+initials+'</div>';
-      lijstHtml+='<div style="font-size:13px;font-weight:600;color:var(--text);flex:1">'+esc(isMe?displayName+' (jij)':displayName)+'</div>';
-      if(!isMe){lijstHtml+='<button onclick="removeUserFromShare(\''+did+'\',\''+u+'\')" style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:6px;border:1.5px solid var(--btn-del-border);background:none;color:var(--btn-del-bg);cursor:pointer;font-family:inherit;white-space:nowrap">✕ Verwijder</button>';}
+      lijstHtml+='<div style="width:32px;height:32px;border-radius:50%;background:'+(isEigenaar?'#2563eb':'var(--accent)')+';color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0">'+initials+'</div>';
+      lijstHtml+='<div style="font-size:13px;font-weight:600;color:var(--text);flex:1">'+esc(isMe?displayName+' (jij)':displayName)
+        +(isEigenaar?'<span style="margin-left:6px;font-size:9px;font-weight:700;background:#dbeafe;color:#1d4ed8;border:1px solid #93c5fd;border-radius:4px;padding:1px 5px;vertical-align:middle">EIGENAAR</span>':'')+'</div>';
+      if(!isMe&&!isEigenaar){lijstHtml+='<button onclick="removeUserFromShare(\''+did+'\',\''+u+'\')" style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:6px;border:1.5px solid var(--btn-del-border);background:none;color:var(--btn-del-bg);cursor:pointer;font-family:inherit;white-space:nowrap">✕ Verwijder</button>';}
       lijstHtml+='</div>';
     });
     lijstHtml+='</div>';
@@ -2328,7 +2359,14 @@ function unshareDossier(did){
   ask('Privé maken?','Het dossier wordt teruggeplaatst naar je privédossiers. Collega\'s verliezen toegang.',function(){
     var copy=JSON.parse(JSON.stringify(d));
     delete copy.gedeeld;delete copy.eigenaar_uid;delete copy.toegang;delete copy.toegang_namen;
-    copy.taken=(copy.taken||[]).map(function(t){var tc=Object.assign({},t);delete tc.toegewezen;return tc;});
+    var eigenaarUid=_uid;
+    copy.taken=(copy.taken||[]).map(function(t){
+      if(!t.toegewezen)return t;
+      var tc=Object.assign({},t,{toegewezen:{}});
+      if(t.toegewezen[eigenaarUid])tc.toegewezen[eigenaarUid]=t.toegewezen[eigenaarUid];
+      if(!Object.keys(tc.toegewezen).length)delete tc.toegewezen;
+      return tc;
+    });
     _db.ref('gebruikers/'+_uid+'/dossiers/'+did).set(copy).then(function(){
       _db.ref('gedeeld/'+did).remove().catch(function(e){console.warn(e);});
       CM('mo-share');toast('🔒 Dossier is nu privé');
@@ -2407,7 +2445,9 @@ function doLink(did,otherId){
   if(!Array.isArray(d.links))d.links=[];if(!Array.isArray(o.links))o.links=[];
   if(d.links.indexOf(otherId)<0)d.links.push(otherId);
   if(o.links.indexOf(did)<0)o.links.push(did);
-  sv();CM('mo-link');render();toast('🔗 Dossiers gekoppeld');
+  sv();render();toast('🔗 Dossiers gekoppeld');
+  // Herlaad de modal zodat de zojuist gekoppelde dossiers als 'al gekoppeld' getoond worden
+  openLink(did);
 }
 function doUnlink(did,otherId){
   ask('Koppeling verwijderen?','De koppeling tussen de twee dossiers wordt verwijderd.',function(){
@@ -2630,8 +2670,8 @@ function renderNotifPanel(){
           +'<div class="notif-item-title">📂 '+esc(inv.dossier_naam||inv.dossier_id)+'</div>'
           +'<div class="notif-item-sub">'+esc(inv.van_naam||'Collega')+' wil dit dossier met je delen</div>'
           +'<div class="notif-item-acts">'
-          +'<button onclick="accepteerUitnodiging(\''+key+'\')" style="background:#16a34a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-family:inherit;font-size:11px;font-weight:700;cursor:pointer">✓ Accepteren</button>'
-          +'<button onclick="weigerUitnodiging(\''+key+'\')" style="background:var(--btn-del-bg);color:var(--btn-del-text);border:1px solid var(--btn-del-border);border-radius:6px;padding:5px 12px;font-family:inherit;font-size:11px;font-weight:700;cursor:pointer">✗ Weigeren</button>'
+          +'<button id="acc-'+key+'" onclick="this.disabled=true;document.getElementById(\'wei-'+key+'\').disabled=true;accepteerUitnodiging(\''+key+'\',this)" style="background:#16a34a;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-family:inherit;font-size:11px;font-weight:700;cursor:pointer">✓ Accepteren</button>'
+          +'<button id="wei-'+key+'" onclick="this.disabled=true;document.getElementById(\'acc-'+key+'\').disabled=true;weigerUitnodiging(\''+key+'\',this)" style="background:var(--btn-del-bg);color:var(--btn-del-text);border:1px solid var(--btn-del-border);border-radius:6px;padding:5px 12px;font-family:inherit;font-size:11px;font-weight:700;cursor:pointer">✗ Weigeren</button>'
           +'</div></div>';
       });
     }
@@ -2647,7 +2687,7 @@ function renderNotifPanel(){
   }
   p.innerHTML=html;
 }
-function accepteerUitnodiging(inviteId){
+function accepteerUitnodiging(inviteId,btn){
   var inv=_uitnodigingen[inviteId];if(!inv)return;
   _db.ref('gedeeld/'+inv.dossier_id).once('value').then(function(snap){
     if(!snap.val()){toast('❌ Dossier niet gevonden.');return Promise.reject('not found');}
@@ -2658,12 +2698,18 @@ function accepteerUitnodiging(inviteId){
     return _db.ref().update(updates);
   }).then(function(){
     toast('✓ Dossier toegevoegd aan je overzicht');closeNotifPanel();
-  }).catch(function(e){if(e!=='not found')toast('❌ Fout bij accepteren. Probeer opnieuw.');});
+  }).catch(function(e){
+    if(e!=='not found')toast('❌ Fout bij accepteren. Probeer opnieuw.');
+    if(btn){btn.disabled=false;var wb=document.getElementById('wei-'+inviteId);if(wb)wb.disabled=false;}
+  });
 }
-function weigerUitnodiging(inviteId){
+function weigerUitnodiging(inviteId,btn){
   _db.ref('uitnodigingen/'+_uid+'/'+inviteId).remove()
     .then(function(){toast('Uitnodiging geweigerd');closeNotifPanel();})
-    .catch(function(){toast('❌ Fout. Probeer opnieuw.');});
+    .catch(function(){
+      toast('❌ Fout. Probeer opnieuw.');
+      if(btn){btn.disabled=false;var ab=document.getElementById('acc-'+inviteId);if(ab)ab.disabled=false;}
+    });
 }
 function dismissAgendaNotif(id){
   var today=td();
@@ -2674,7 +2720,7 @@ function dismissAgendaNotif(id){
 // RAF-batching: meerdere render()-aanroepen in één frame worden samengevoegd
 (function(){var _orig=render;render=function(){if(_renderRAF)cancelAnimationFrame(_renderRAF);_renderRAF=requestAnimationFrame(function(){_renderRAF=null;_orig();});};})();
 
-// Escape sluit open modals | Ctrl+F opent globale zoek
+// Escape sluit open modals | Ctrl+F globale zoek | Ctrl+N nieuw dossier | Ctrl+T nieuwe taak
 document.addEventListener('keydown',function(e){
   if(e.key==='Escape'){
     var open=document.querySelector('.ov.show');
@@ -2682,6 +2728,11 @@ document.addEventListener('keydown',function(e){
     closeCatPicker();
   }
   if((e.ctrlKey||e.metaKey)&&e.key==='f'){e.preventDefault();openGlobSrch();}
+  var tag=document.activeElement&&document.activeElement.tagName;
+  var inInput=tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT';
+  if(!inInput&&document.querySelector('.ov.show'))return;
+  if(!inInput&&(e.ctrlKey||e.metaKey)&&e.key==='n'){e.preventDefault();if(_uid)openND();}
+  if(!inInput&&(e.ctrlKey||e.metaKey)&&e.key==='t'){e.preventDefault();if(_uid&&VW==='detail'&&AID)openNT(AID);}
 });
 
 
@@ -2694,7 +2745,12 @@ function openGlobSrch(){
   },80);
 }
 
+var _globSrchTimer=null;
 function onGlobSrch(){
+  if(_globSrchTimer)clearTimeout(_globSrchTimer);
+  _globSrchTimer=setTimeout(function(){_doGlobSrch();},180);
+}
+function _doGlobSrch(){
   var q=(document.getElementById('globsrch-inp').value||'').toLowerCase().trim();
   var res=document.getElementById('globsrch-res');
   if(!q){res.innerHTML='<div style="padding:24px;text-align:center;font-size:13px;font-weight:600;color:var(--text3)">Begin te typen...</div>';return;}
@@ -2706,7 +2762,8 @@ function onGlobSrch(){
       hits.push({type:'dos',d:d});
     }
     (d.taken||[]).forEach(function(t){
-      if((t.titel||'').toLowerCase().indexOf(q)!==-1||(t.notitie||'').toLowerCase().indexOf(q)!==-1||(t.npv||'').toLowerCase().indexOf(q)!==-1){
+      var extFields=(t.extern||[]).map(function(e){return (e.cat||'')+' '+(e.sub||'')+' '+(e.naam||'');}).join(' ');
+      if((t.titel||'').toLowerCase().indexOf(q)!==-1||(t.notitie||'').toLowerCase().indexOf(q)!==-1||(t.npv||'').toLowerCase().indexOf(q)!==-1||extFields.toLowerCase().indexOf(q)!==-1){
         hits.push({type:'taak',d:d,t:t});
       }
     });
@@ -2739,14 +2796,15 @@ function onGlobSrch(){
 }
 
 // Start app: laad lokale data meteen, Firebase asynchroon
+var _authInited=false;
 (function waitForFirebase(tries){
   tries=tries||0;
-  if(window._fbLoadErr||tries>30){initFB();return;}
-  if(typeof firebase!=='undefined'){initAuth();return;}
+  if(window._fbLoadErr||tries>30){if(!_authInited){_authInited=true;initFB();}return;}
+  if(typeof firebase!=='undefined'){if(!_authInited){_authInited=true;initAuth();}return;}
   setTimeout(function(){waitForFirebase(tries+1);},100);
 })();
 window.addEventListener('load',function(){
-  if(typeof firebase!=='undefined'&&!_uid){initAuth();}
+  if(typeof firebase!=='undefined'&&!_authInited){_authInited=true;initAuth();}
 });
 
 // Sluit filterdropdown bij klik buiten

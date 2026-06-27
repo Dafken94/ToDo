@@ -193,7 +193,8 @@ function createUser(){
   if(!email){toast('❌ Vul een e-mailadres in.');return;}
   var btn=document.getElementById('new-user-btn');
   btn.textContent='Bezig...';btn.disabled=true;
-  var tempPw=Math.random().toString(36).slice(2,10)+Math.random().toString(36).slice(2,10)+'Aa1!';
+  var bytes=crypto.getRandomValues(new Uint8Array(16));
+  var tempPw=Array.from(bytes,function(b){return b.toString(36);}).join('').slice(0,14)+'Aa1!';
   fetch('https://identitytoolkit.googleapis.com/v1/accounts:signUp?key='+FB_API_KEY,{
     method:'POST',
     headers:{'Content-Type':'application/json'},
