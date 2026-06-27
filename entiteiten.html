@@ -974,7 +974,7 @@ function treeLayout(){
   }
 
   // Posities berekenen
-  var NODE_W=160, TIER_H=200;
+  var NODE_W=220, TIER_H=260;
   var vc=visibleCanvasSize();
   var cx=vc.w/2, startY=80;
 
@@ -993,16 +993,45 @@ function treeLayout(){
     sideEnts.forEach(function(e,i){NODES[e.id]={x:sideX,y:startY+i*150};});
   }
 
-  // Element-subnodes herpositioneren rond hun entiteit
-  var EL_DIST=80;
+  // Element-subnodes herpositioneren: richting weg van relatiepijlen
+  var EL_DIST=90;
   ents.forEach(function(e){
     var n=NODES[e.id];if(!n)return;
     var types=[];
     (e.elementen||[]).forEach(function(el){if(types.indexOf(el.type)===-1)types.push(el.type);});
     var count=types.length;
+    if(!count){ENTS[e.id].x=n.x;ENTS[e.id].y=n.y;saveEntData(e.id);return;}
+
+    // Bereken hoeken naar alle verbonden entiteiten
+    var connAngles=[];
+    rels.forEach(function(r){
+      var otherId=r.vanEntiteitId===e.id?r.naarEntiteitId:(r.naarEntiteitId===e.id?r.vanEntiteitId:null);
+      if(!otherId)return;
+      var on=NODES[otherId];if(!on)return;
+      connAngles.push(Math.atan2(on.y-n.y,on.x-n.x));
+    });
+
+    // Vind de grootste vrije hoekkloof tussen verbindingen
+    var baseAngle;
+    if(!connAngles.length){
+      baseAngle=0;
+    }else if(connAngles.length===1){
+      baseAngle=connAngles[0]+Math.PI;
+    }else{
+      var sorted=connAngles.slice().sort(function(a,b){return a-b;});
+      var maxGap=0;baseAngle=sorted[0]+Math.PI;
+      sorted.forEach(function(a,i){
+        var next=i===sorted.length-1?sorted[0]+2*Math.PI:sorted[i+1];
+        var gap=next-a;
+        if(gap>maxGap){maxGap=gap;baseAngle=a+gap/2;}
+      });
+    }
+
+    // Waaier van subnodes gecentreerd rond de vrije hoek
+    var fanSpread=Math.min(Math.PI*0.55,Math.max(0,(count-1)*0.38));
     types.forEach(function(t,gi){
       var key='el:'+e.id+':'+t;
-      var angle=(gi/Math.max(1,count))*Math.PI*2-Math.PI/2;
+      var angle=count>1?baseAngle+(-fanSpread/2+(gi/(count-1))*fanSpread):baseAngle;
       NODES[key]={x:n.x+Math.cos(angle)*EL_DIST,y:n.y+Math.sin(angle)*EL_DIST};
       e.elementen.forEach(function(el){if(el.type===t){el.netX=NODES[key].x;el.netY=NODES[key].y;}});
     });
