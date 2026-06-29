@@ -112,6 +112,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
  .iW,.iR{min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center}
  .ob-x{min-width:44px;min-height:44px}
 }
+/* ===== Dossier switcher panel ===== */
+.btn-dos-sw{cursor:pointer;font-family:inherit;font-size:12px;font-weight:700;border-radius:6px;padding:5px 10px;border:1.5px solid var(--btn-edit-border);background:var(--btn-edit-bg);color:var(--accent);display:inline-flex;align-items:center;gap:5px;line-height:1;white-space:nowrap;flex-shrink:0}
+.btn-dos-sw:hover{background:var(--bg3)}
+.dos-panel-ov{display:none;position:fixed;inset:0;background:var(--overlay);z-index:200}
+.dos-panel-ov.show{display:block}
+.dos-panel{position:fixed;top:0;right:0;bottom:0;width:300px;background:var(--bg2);border-left:1px solid var(--border);z-index:201;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .25s cubic-bezier(.4,0,.2,1);box-shadow:-8px 0 32px rgba(0,0,0,.25)}
+.dos-panel.show{transform:translateX(0)}
+.dos-panel-hd{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.dos-panel-ti{font-size:15px;font-weight:800;color:var(--text)}
+.dos-panel-x{background:none;border:none;cursor:pointer;font-size:20px;color:var(--text3);padding:2px 6px;line-height:1;display:flex;align-items:center;justify-content:center;min-width:36px;min-height:36px;border-radius:6px}
+.dos-panel-x:hover{background:var(--bg3)}
+.dos-panel-list{flex:1;overflow-y:auto;padding:8px}
+.dos-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:9px;cursor:pointer;margin-bottom:4px;border:1.5px solid transparent;transition:background .12s}
+.dos-item:hover{background:var(--bg3)}
+.dos-item.on{background:var(--bg4);border-color:var(--accent)}
+.dos-item-av{width:34px;height:34px;border-radius:8px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;flex-shrink:0}
+.dos-item.on .dos-item-av{background:#1d4ed8}
+.dos-item-txt{flex:1;min-width:0}
+.dos-item-nm{font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dos-item-pv{font-size:10px;font-weight:600;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.dos-item-cat{font-size:9px;font-weight:700;background:var(--bg4);border:1px solid var(--border);border-radius:6px;padding:2px 6px;color:var(--text2);flex-shrink:0;white-space:nowrap}
+@media(max-width:768px){.dos-panel{width:100%}.btn-dos-sw{min-height:36px}}
 #net-tooltip{position:absolute;pointer-events:none;z-index:10;background:var(--bg2);border:1px solid var(--border);border-radius:11px;padding:14px;width:300px;max-height:72vh;overflow-y:auto;box-shadow:0 10px 32px rgba(0,0,0,.32);display:none}
 #net-tooltip .tt-sec{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin:10px 0 5px}
 #net-tooltip .tt-sec:first-child{margin-top:0}
@@ -134,6 +156,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
   <button class="tb-back" onclick="goBack()">&#8592; Terug</button>
   <span class="tb-dos" id="dos-naam">Dossier</span>
   <span class="tb-tag">&#128376;&#65039; Entiteiten</span>
+  <button class="btn-dos-sw" onclick="openDosPanel()" title="Wissel van dossier">&#128194; Wissel</button>
   <span class="tb-spacer"></span>
   <span id="sync-dot">&#9679; Verbinden...</span>
   <button class="btnW" onclick="exportWord()">&#128228; Export Word</button>
@@ -322,6 +345,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
   </div>
 </div>
 
+<!-- Dossier switcher panel -->
+<div class="dos-panel-ov" id="dos-panel-ov" onclick="closeDosPanel()"></div>
+<div class="dos-panel" id="dos-panel">
+  <div class="dos-panel-hd">
+    <span class="dos-panel-ti">&#128194; Dossier wisselen</span>
+    <button class="dos-panel-x" onclick="closeDosPanel()">&times;</button>
+  </div>
+  <div class="dos-panel-list" id="dos-panel-list"><div class="empty">Dossiers laden...</div></div>
+</div>
+
 <div id="toast"></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" onerror="window._fbLoadErr=true"></script>
@@ -348,6 +381,7 @@ var SEL=null, ACTIVE_FILTER='alles', TAB='detail';
 var MOB_VIEW='lijst';
 var EDIT_ENT=null, EDIT_EL=null, EDIT_REL=null;
 var _db=null,_storage=null,_fbReady=false,_uid=null,_sync='connecting';
+var _fbEntsRef=null,_fbRelsRef=null;
 
 var THEME=localStorage.getItem('dos_theme')||(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
 
@@ -405,13 +439,15 @@ function initFB(){
       var _fbEntsLoaded=false,_fbRelsLoaded=false;
       function _checkFbReady(){if(_fbEntsLoaded&&_fbRelsLoaded){_fbReady=true;saveLocal();renderAll();}}
       // on() i.p.v. once() voor realtime synchronisatie tussen sessies
-      _db.ref(basePath()+'/entiteiten').on('value',function(snap){
+      _fbEntsRef=_db.ref(basePath()+'/entiteiten');
+      _fbEntsRef.on('value',function(snap){
         var remote=snap.val()||{};
         ENTS={};Object.keys(remote).forEach(function(k){ENTS[k]=remote[k];});
         if(!_fbEntsLoaded){_fbEntsLoaded=true;_checkFbReady();}else{renderAll();}
       },function(e){console.warn('ent load',e);_fbEntsLoaded=true;_checkFbReady();});
       // Remote heeft altijd voorrang (BUG-07 fix: merge-logica was omgekeerd)
-      _db.ref(basePath()+'/relaties').on('value',function(snap){
+      _fbRelsRef=_db.ref(basePath()+'/relaties');
+      _fbRelsRef.on('value',function(snap){
         var remote=snap.val()||{};
         RELS={};Object.keys(remote).forEach(function(k){RELS[k]=remote[k];});
         if(!_fbRelsLoaded){_fbRelsLoaded=true;_checkFbReady();}else{renderAll();}
@@ -1567,6 +1603,65 @@ function buildNetImage(){
   var bytes=dataUrlToBytes(dataUrl);
   var dispW=Math.min(620,w),dispH=dispW*(h/w);
   return new docx.ImageRun({data:bytes,transformation:{width:Math.round(dispW),height:Math.round(dispH)}});
+}
+
+/* ===== Dossier switcher ===== */
+var _allDos={},_dosLoaded=false;
+
+function openDosPanel(){
+  document.getElementById('dos-panel-ov').classList.add('show');
+  document.getElementById('dos-panel').classList.add('show');
+  if(!_dosLoaded&&_uid&&_db){loadDossiers();}
+  else{renderDosPanel();}
+}
+
+function closeDosPanel(){
+  document.getElementById('dos-panel-ov').classList.remove('show');
+  document.getElementById('dos-panel').classList.remove('show');
+}
+
+function loadDossiers(){
+  if(!_db||!_uid){document.getElementById('dos-panel-list').innerHTML='<div class="empty">Niet aangemeld.</div>';return;}
+  document.getElementById('dos-panel-list').innerHTML='<div class="empty">Laden...</div>';
+  _db.ref('gebruikers/'+_uid+'/dossiers').once('value',function(snap){
+    _allDos=snap.val()||{};_dosLoaded=true;renderDosPanel();
+  },function(){document.getElementById('dos-panel-list').innerHTML='<div class="empty">Kan dossiers niet laden.</div>';});
+}
+
+function renderDosPanel(){
+  var list=document.getElementById('dos-panel-list');
+  var arr=Object.keys(_allDos).map(function(k){var d=Object.assign({},_allDos[k]);d.__id=k;return d;})
+    .filter(function(d){return d.__id!=='__werk__'&&d.__id!=='__prive__';})
+    .sort(function(a,b){return (a.naam||'').localeCompare(b.naam||'','nl');});
+  if(!arr.length){list.innerHTML='<div class="empty">Geen dossiers gevonden.</div>';return;}
+  list.innerHTML=arr.map(function(d){
+    var id=d.__id,naam=d.naam||'Naamloos dossier',pv='',cat=d.categorie||'';
+    if(d.pv_feiten&&d.pv_feiten.length&&d.pv_feiten[0].pv)pv=d.pv_feiten[0].pv;
+    var init=naam.trim()?naam.trim()[0].toUpperCase():'?';
+    var isAct=id===DID;
+    return '<div class="dos-item'+(isAct?' on':'')+'" onclick="switchDossier(\''+id.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\')"><div class="dos-item-av">'+esc(init)+'</div><div class="dos-item-txt"><div class="dos-item-nm">'+esc(naam)+'</div>'+(pv?'<div class="dos-item-pv">'+esc(pv)+'</div>':'')+'</div>'+(cat?'<span class="dos-item-cat">'+esc(cat)+'</span>':'')+(isAct?'<span style="font-size:16px;color:var(--accent)">&#10003;</span>':'')+'</div>';
+  }).join('');
+}
+
+function switchDossier(did){
+  if(did===DID){closeDosPanel();return;}
+  var d=_allDos[did],naam=d?d.naam||'Naamloos dossier':'Dossier';
+  if(_fbEntsRef){_fbEntsRef.off();_fbEntsRef=null;}
+  if(_fbRelsRef){_fbRelsRef.off();_fbRelsRef=null;}
+  DID=did;DNAAM=naam;ENTS={};RELS={};SEL=null;ACTIVE_FILTER='alles';
+  NODES={};NET_SCALE=1;NET_OX=0;NET_OY=0;_TREE_SNAPSHOT=null;
+  document.getElementById('dos-naam').textContent=DNAAM;
+  document.getElementById('btn-tree-restore').style.display='none';
+  loadLocal();renderAll();
+  if(_fbReady&&_db&&_uid){
+    var _el=false,_rl=false;
+    function _chk(){if(_el&&_rl){saveLocal();renderAll();}}
+    _fbEntsRef=_db.ref(basePath()+'/entiteiten');
+    _fbEntsRef.on('value',function(snap){var r=snap.val()||{};ENTS={};Object.keys(r).forEach(function(k){ENTS[k]=r[k];});if(!_el){_el=true;_chk();}else{renderAll();}},function(e){console.warn('ent',e);_el=true;_chk();});
+    _fbRelsRef=_db.ref(basePath()+'/relaties');
+    _fbRelsRef.on('value',function(snap){var r=snap.val()||{};RELS={};Object.keys(r).forEach(function(k){RELS[k]=r[k];});if(!_rl){_rl=true;_chk();}else{renderAll();}},function(e){console.warn('rel',e);_rl=true;_chk();});
+  }
+  closeDosPanel();toast('✓ Gewisseld naar '+naam);
 }
 
 /* ===== Init ===== */
