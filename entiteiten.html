@@ -906,7 +906,7 @@ function syncNodes(){
   var newOnes=ids.filter(function(id){return !NODES[id];});
   if(entKeys.length===0){
     var hasSaved=newOnes.some(function(id){var e=ENTS[id];return e&&typeof e.x==='number';});
-    if(!hasSaved){circlePositions();return;}
+    if(!hasSaved){treeLayout(true);return;}
   }
   if(newOnes.length){
     var r=canvas.getBoundingClientRect();var cx=(r.width||600)/2,cy=(r.height||400)/2;
@@ -927,24 +927,26 @@ function resetPositions(){circlePositions();fitView();drawNet();toast('✓ Herpo
 
 var _TREE_SNAPSHOT=null;
 
-function treeLayout(){
+function treeLayout(silent){
   var ents=entsArr();
   if(!ents.length)return;
 
-  // Snapshot huidige posities (voor herstelknop)
-  _TREE_SNAPSHOT={};
-  ents.forEach(function(e){
-    var n=NODES[e.id];
-    _TREE_SNAPSHOT[e.id]=n?{x:n.x,y:n.y}:{x:0,y:0};
-    var types=[];
-    (e.elementen||[]).forEach(function(el){if(types.indexOf(el.type)===-1)types.push(el.type);});
-    types.forEach(function(t){
-      var key='el:'+e.id+':'+t;
-      var en=NODES[key];
-      _TREE_SNAPSHOT[key]=en?{x:en.x,y:en.y}:null;
+  if(!silent){
+    // Snapshot huidige posities (voor herstelknop)
+    _TREE_SNAPSHOT={};
+    ents.forEach(function(e){
+      var n=NODES[e.id];
+      _TREE_SNAPSHOT[e.id]=n?{x:n.x,y:n.y}:{x:0,y:0};
+      var types=[];
+      (e.elementen||[]).forEach(function(el){if(types.indexOf(el.type)===-1)types.push(el.type);});
+      types.forEach(function(t){
+        var key='el:'+e.id+':'+t;
+        var en=NODES[key];
+        _TREE_SNAPSHOT[key]=en?{x:en.x,y:en.y}:null;
+      });
     });
-  });
-  document.getElementById('btn-tree-restore').style.display='';
+    document.getElementById('btn-tree-restore').style.display='';
+  }
 
   // Scheiding: stamboom vs. zijpaneel (informant/bron)
   var SIDE={informant:true,bron:true};
@@ -1058,7 +1060,7 @@ function treeLayout(){
     saveEntData(e.id);
   });
 
-  fitView();drawNet();toast('✓ Stamboomindeling toegepast');
+  if(!silent){fitView();drawNet();toast('✓ Stamboomindeling toegepast');}
 }
 
 function restoreTreeSnapshot(){
