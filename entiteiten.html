@@ -1631,7 +1631,7 @@ function loadDossiers(){
 function renderDosPanel(){
   var list=document.getElementById('dos-panel-list');
   var arr=Object.keys(_allDos).map(function(k){var d=Object.assign({},_allDos[k]);d.__id=k;return d;})
-    .filter(function(d){return d.__id!=='__werk__'&&d.__id!=='__prive__';})
+    .filter(function(d){return d.__id!=='__werk__'&&d.__id!=='__prive__'&&!d.gesloten;})
     .sort(function(a,b){return (a.naam||'').localeCompare(b.naam||'','nl');});
   if(!arr.length){list.innerHTML='<div class="empty">Geen dossiers gevonden.</div>';return;}
   list.innerHTML=arr.map(function(d){
