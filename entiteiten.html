@@ -420,6 +420,9 @@ function goBack(){if(window.parent&&window.parent!==window&&typeof window.parent
 /* ===== Data laden / opslaan ===== */
 function loadLocal(){try{var raw=localStorage.getItem(lsKey());if(raw){var o=JSON.parse(raw);ENTS=o.entiteiten||{};RELS=o.relaties||{};}}catch(e){}}
 function saveLocal(){try{var entsForStorage={};Object.keys(ENTS).forEach(function(k){var e=Object.assign({},ENTS[k]);if(e.foto&&e.foto.startsWith('data:'))delete e.foto;entsForStorage[k]=e;});localStorage.setItem(lsKey(),JSON.stringify({entiteiten:entsForStorage,relaties:RELS}));}catch(e){}}
+function _posKey(){return 'ent_pos_'+DID;}
+function savePosCache(){var pos={};Object.keys(NODES).forEach(function(k){pos[k]={x:NODES[k].x,y:NODES[k].y};});try{localStorage.setItem(_posKey(),JSON.stringify(pos));}catch(e){}}
+function loadPosCache(){try{var r=localStorage.getItem(_posKey());return r?JSON.parse(r):{};}catch(e){return {};}}
 function basePath(){return 'gebruikers/'+_uid+'/entiteiten/'+DID;}
 
 function fbClean(obj){try{return JSON.parse(JSON.stringify(obj));}catch(e){return null;}}
@@ -904,13 +907,14 @@ function syncNodes(){
   });
   var entKeys=Object.keys(NODES).filter(function(k){return k.indexOf('el:')!==0;});
   var newOnes=ids.filter(function(id){return !NODES[id];});
+  var posCache=loadPosCache();
   if(entKeys.length===0){
-    var hasSaved=newOnes.some(function(id){var e=ENTS[id];return e&&typeof e.x==='number';});
+    var hasSaved=newOnes.some(function(id){var e=ENTS[id];return (e&&typeof e.x==='number')||!!posCache[id];});
     if(!hasSaved){treeLayout(true);return;}
   }
   if(newOnes.length){
     var r=canvas.getBoundingClientRect();var cx=(r.width||600)/2,cy=(r.height||400)/2;
-    newOnes.forEach(function(id){var e=ENTS[id];if(e&&typeof e.x==='number'){NODES[id]={x:e.x,y:e.y};}else{NODES[id]={x:cx+(Math.random()-0.5)*200,y:cy+(Math.random()-0.5)*200};}});
+    newOnes.forEach(function(id){var e=ENTS[id];if(e&&typeof e.x==='number'){NODES[id]={x:e.x,y:e.y};}else if(posCache[id]){NODES[id]={x:posCache[id].x,y:posCache[id].y};}else{NODES[id]={x:cx+(Math.random()-0.5)*200,y:cy+(Math.random()-0.5)*200};}});
   }
   // laad opgeslagen type-groepposities (eerste element van elk type met opgeslagen positie)
   entsArr().forEach(function(e){
@@ -919,11 +923,14 @@ function syncNodes(){
     Object.keys(typeFirst).forEach(function(t){
       var key='el:'+e.id+':'+t;
       var first=typeFirst[t];
-      if(!NODES[key]&&typeof first.netX==='number')NODES[key]={x:first.netX,y:first.netY};
+      if(!NODES[key]){
+        if(typeof first.netX==='number')NODES[key]={x:first.netX,y:first.netY};
+        else if(posCache[key])NODES[key]={x:posCache[key].x,y:posCache[key].y};
+      }
     });
   });
 }
-function resetPositions(){circlePositions();fitView();drawNet();toast('✓ Herpositioneerd');}
+function resetPositions(){circlePositions();savePosCache();fitView();drawNet();toast('✓ Herpositioneerd');}
 
 var _TREE_SNAPSHOT=null;
 
@@ -1060,6 +1067,7 @@ function treeLayout(silent){
     saveEntData(e.id);
   });
 
+  savePosCache();
   if(!silent){fitView();drawNet();toast('✓ Stamboomindeling toegepast');}
 }
 
@@ -1084,7 +1092,7 @@ function restoreTreeSnapshot(){
   });
   _TREE_SNAPSHOT=null;
   document.getElementById('btn-tree-restore').style.display='none';
-  fitView();drawNet();toast('✓ Posities hersteld');
+  savePosCache();fitView();drawNet();toast('✓ Posities hersteld');
 }
 
 function netZoom(f){NET_SCALE=Math.max(0.3,Math.min(3,NET_SCALE*f));drawNet();}
@@ -1369,6 +1377,7 @@ function onUp(ev){
         saveEntData(dragNode);
       }
     }
+    savePosCache();
   }
   dragNode=null;dragElOffsets={};panning=false;_pinchDist=null;canvas.style.cursor='grab';
 }
