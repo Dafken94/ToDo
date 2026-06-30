@@ -1179,8 +1179,7 @@ function fil(q){
   if(query)l=l.filter(function(d){
     if((d.naam||'').toLowerCase().indexOf(query)!==-1)return true;
     if((d.dossiernummer||'').toLowerCase().indexOf(query)!==-1)return true;
-    if((d.pv_feiten||[]).some(function(f){return (f.pv||'').toLowerCase().indexOf(query)!==-1;}))return true;
-    return (d.taken||[]).some(function(t){return (t.titel||'').toLowerCase().indexOf(query)!==-1;});
+    return (d.pv_feiten||[]).some(function(f){return (f.pv||'').toLowerCase().indexOf(query)!==-1;});
   });
   l.sort(function(a,b){var da=new Date(a.datum||'2000-01-01'),db=new Date(b.datum||'2000-01-01');return SO==='asc'?da-db:db-da;});
   return l;
@@ -2757,39 +2756,22 @@ function _doGlobSrch(){
   var hits=[];
   DOS.forEach(function(d){
     if(d.id==='__werk__'||d.id==='__prive__')return;
-    var fields=[d.naam,d.id,(d.pv_feiten||[]).map(function(p){return p.pv;}).join(' '),d.notitie,(d.categorieen||[]).join(' ')];
-    if(fields.some(function(f){return (f||'').toLowerCase().indexOf(q)!==-1;})){
-      hits.push({type:'dos',d:d});
-    }
-    (d.taken||[]).forEach(function(t){
-      var extFields=(t.extern||[]).map(function(e){return (e.cat||'')+' '+(e.sub||'')+' '+(e.naam||'');}).join(' ');
-      if((t.titel||'').toLowerCase().indexOf(q)!==-1||(t.notitie||'').toLowerCase().indexOf(q)!==-1||(t.npv||'').toLowerCase().indexOf(q)!==-1||extFields.toLowerCase().indexOf(q)!==-1){
-        hits.push({type:'taak',d:d,t:t});
-      }
-    });
+    var naamMatch=(d.naam||'').toLowerCase().indexOf(q)!==-1;
+    var pvMatch=(d.pv_feiten||[]).some(function(p){return (p.pv||'').toLowerCase().indexOf(q)!==-1;});
+    var dosNrMatch=(d.dossiernummer||'').toLowerCase().indexOf(q)!==-1;
+    if(naamMatch||pvMatch||dosNrMatch){hits.push({type:'dos',d:d});}
   });
   if(!hits.length){res.innerHTML='<div style="padding:24px;text-align:center;font-size:13px;color:var(--text3)">Geen resultaten gevonden.</div>';return;}
   var h='';
   hits.slice(0,30).forEach(function(hit){
-    if(hit.type==='dos'){
-      h+='<div onclick="CM(\'mo-globsrch\');opD(\''+esc(hit.d.id)+'\')" style="padding:11px 16px;cursor:pointer;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px" onmouseover="this.style.background=\'var(--bg3)\'" onmouseout="this.style.background=\'\'">'
-        +'<span style="font-size:15px">📁</span>'
-        +'<div style="flex:1;min-width:0">'
-        +'<div style="font-size:13px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(hit.d.naam||hit.d.id)+'</div>'
-        +'<div style="font-size:11px;color:var(--text3)">'+esc((hit.d.pv_feiten&&hit.d.pv_feiten[0]&&hit.d.pv_feiten[0].pv)||gcFirst(hit.d)||'')+(hit.d.gesloten?' · Gesloten':'')+'</div>'
-        +'</div>'
-        +'<span style="font-size:11px;color:var(--text3);background:var(--bg3);border:1px solid var(--border);padding:2px 7px;border-radius:5px">Dossier</span>'
-        +'</div>';
-    } else {
-      h+='<div onclick="CM(\'mo-globsrch\');opD(\''+esc(hit.d.id)+'\');VW=\'detail\';render()" style="padding:11px 16px;cursor:pointer;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px" onmouseover="this.style.background=\'var(--bg3)\'" onmouseout="this.style.background=\'\'">'
-        +'<span style="font-size:15px">'+(hit.t.gedaan?'✅':'⬜')+'</span>'
-        +'<div style="flex:1;min-width:0">'
-        +'<div style="font-size:13px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(hit.t.titel||'(geen titel)')+'</div>'
-        +'<div style="font-size:11px;color:var(--text3)">'+esc(hit.d.naam||hit.d.id)+'</div>'
-        +'</div>'
-        +'<span style="font-size:11px;color:var(--text3);background:var(--bg3);border:1px solid var(--border);padding:2px 7px;border-radius:5px">Taak</span>'
-        +'</div>';
-    }
+    h+='<div onclick="CM(\'mo-globsrch\');opD(\''+esc(hit.d.id)+'\')" style="padding:11px 16px;cursor:pointer;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px" onmouseover="this.style.background=\'var(--bg3)\'" onmouseout="this.style.background=\'\'">'
+      +'<span style="font-size:15px">📁</span>'
+      +'<div style="flex:1;min-width:0">'
+      +'<div style="font-size:13px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(hit.d.naam||hit.d.id)+'</div>'
+      +'<div style="font-size:11px;color:var(--text3)">'+esc((hit.d.pv_feiten&&hit.d.pv_feiten[0]&&hit.d.pv_feiten[0].pv)||gcFirst(hit.d)||'')+(hit.d.dossiernummer?' · '+esc(hit.d.dossiernummer):'')+(hit.d.gesloten?' · Gesloten':'')+'</div>'
+      +'</div>'
+      +'<span style="font-size:11px;color:var(--text3);background:var(--bg3);border:1px solid var(--border);padding:2px 7px;border-radius:5px">Dossier</span>'
+      +'</div>';
   });
   if(hits.length>30)h+='<div style="padding:10px 16px;font-size:12px;color:var(--text3);text-align:center">+'+( hits.length-30)+' meer resultaten — typ specifieker</div>';
   res.innerHTML=h;
@@ -2842,7 +2824,7 @@ document.addEventListener('click',function(e){
   <div class="ob" style="width:100%;max-width:580px;padding:0;overflow:hidden">
     <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
       <span style="font-size:16px">🔍</span>
-      <input id="globsrch-inp" type="search" placeholder="Zoek dossiers, taken, PV-nummers, notities..." oninput="onGlobSrch()" style="flex:1;border:none;background:transparent;color:var(--text);font-family:inherit;font-size:14px;outline:none" autocomplete="off">
+      <input id="globsrch-inp" type="search" placeholder="Zoek op naam, PV-nummer of dossiernummer..." oninput="onGlobSrch()" style="flex:1;border:none;background:transparent;color:var(--text);font-family:inherit;font-size:14px;outline:none" autocomplete="off">
       <span style="font-size:11px;color:var(--text3);background:var(--bg3);border:1px solid var(--border);padding:2px 7px;border-radius:5px;cursor:pointer" onclick="CM('mo-globsrch')">Esc</span>
     </div>
     <div id="globsrch-res" style="max-height:400px;overflow-y:auto">
