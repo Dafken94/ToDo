@@ -2348,6 +2348,7 @@ function doShareWithUser(did,collegaUid,collegaNaam){
   _db.ref().update(updates).then(function(){
     CM('mo-share');toast('✉️ Uitnodiging verstuurd aan '+collegaNaam);
   }).catch(function(e){
+    console.warn('doShareWithUser fout:',e&&e.message||e);
     if(isFirstShare){Object.assign(d,dosBackup);delete d.gedeeld;delete d.eigenaar_uid;delete d.toegang;delete d.toegang_namen;}
     toast('❌ Fout bij delen. Probeer opnieuw.');
   });
