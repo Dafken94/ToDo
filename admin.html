@@ -451,7 +451,8 @@ function sc(icon,val,lbl){
           var naUid=document.getElementById('na-uid');if(naUid)naUid.textContent=_uid;
           document.getElementById('noaccess-ov').classList.add('show');
         }
-      }).catch(function(){
+      }).catch(function(e){
+        console.warn('admins read fout:',e&&e.message||e);
         document.getElementById('login-ov').classList.remove('show');
         var naUid=document.getElementById('na-uid');if(naUid)naUid.textContent=_uid;
         document.getElementById('noaccess-ov').classList.add('show');
