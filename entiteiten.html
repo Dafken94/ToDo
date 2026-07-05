@@ -648,7 +648,7 @@ function markReq(id){var el=document.getElementById(id);if(!el)return;el.style.b
 function saveEnt(){
   var id=EDIT_ENT||gId();
   var existing=ENTS[id]||{};
-  var obj={id:id,persoonType:_persType,type:document.getElementById('e-type').value,typeAnders:document.getElementById('e-anders').value.trim(),notities:document.getElementById('e-not').value,elementen:existing.elementen||[],x:existing.x,y:existing.y};
+  var obj={id:id,persoonType:_persType,type:document.getElementById('e-type').value,typeAnders:document.getElementById('e-anders').value.trim(),notities:document.getElementById('e-not').value,elementen:existing.elementen||[],x:existing.x,y:existing.y,foto:existing.foto||undefined};
   if(_persType==='rechtspersoon'){
     obj.bedrijfsnaam=document.getElementById('e-bnaam').value.trim();
     obj.kbo=document.getElementById('e-kbo').value.trim();
