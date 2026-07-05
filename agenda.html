@@ -257,7 +257,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
   <div class="ob">
     <div class="ob-title" id="mo-a-t">Nieuwe afspraak</div>
     <div class="fr"><label>Titel *</label><input id="a-ti" placeholder="Omschrijving van de afspraak"></div>
-    <div class="fr"><label>Datum *</label><input id="a-da" type="date"></div>
+    <div class="fr"><label>Datum *</label><input id="a-da" type="text" placeholder="DD/MM/JJJJ" maxlength="10" autocomplete="off" oninput="fmtDatum(this)"></div>
     <div class="fr"><label>Tijdstip</label><input id="a-tm" type="time"></div>
     <div class="fr"><label>Locatie</label><input id="a-lo" placeholder="bijv. Kantoor 3B"></div>
     <div class="fr"><label>Dossier</label><select id="a-do"><option value="">— Geen —</option></select></div>
@@ -277,8 +277,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
       <input type="hidden" id="r-ty">
       <div class="rt-grid" id="r-type-row"></div>
     </div>
-    <div class="fr"><label>Startdatum *</label><input id="r-ds" type="date" onchange="onStartChange()"></div>
-    <div class="fr" id="r-de-row"><label>Einddatum</label><input id="r-de" type="date"></div>
+    <div class="fr"><label>Startdatum *</label><input id="r-ds" type="text" placeholder="DD/MM/JJJJ" maxlength="10" autocomplete="off" oninput="fmtDatum(this);onStartChange()"></div>
+    <div class="fr" id="r-de-row"><label>Einddatum</label><input id="r-de" type="text" placeholder="DD/MM/JJJJ" maxlength="10" autocomplete="off" oninput="fmtDatum(this)"></div>
     <div class="fr"><label>Notitie</label><textarea id="r-no" rows="2" placeholder="Optioneel..."></textarea></div>
     <div class="f-actions">
       <button class="btn btn-white" onclick="CM('mo-r')">Annuleren</button>
@@ -390,6 +390,9 @@ function td(){return new Date().toISOString().slice(0,10);}
 function gId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
 function esc(s){return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function pad(n){return n<10?'0'+n:String(n);}
+function toDisplayDate(s){if(!s)return '';var p=s.split('-');if(p.length===3)return p[2]+'/'+p[1]+'/'+p[0];return s;}
+function toISODate(s){if(!s)return '';var p=s.split('/');if(p.length===3&&p[2].length===4)return p[2]+'-'+p[1]+'-'+p[0];return s;}
+function fmtDatum(el){var v=el.value.replace(/\D/g,'');if(v.length>4)v=v.slice(0,2)+'/'+v.slice(2,4)+'/'+v.slice(4,8);else if(v.length>2)v=v.slice(0,2)+'/'+v.slice(2);el.value=v;}
 function fd(d){if(!d)return '—';var p=d.split('-');if(p.length!==3)return d;return p[2]+'/'+p[1]+'/'+p[0];}
 function fdLong(d){if(!d)return '—';var s=new Date(d+'T12:00:00').toLocaleDateString('nl-BE',{weekday:'long',day:'numeric',month:'long',year:'numeric'});return s.charAt(0).toUpperCase()+s.slice(1);}
 function toast(m,type){var t=document.getElementById('toast');t.textContent=m;t.style.borderLeftColor=type==='err'?'#ef4444':type==='ok'?'#22c55e':type==='warn'?'#f59e0b':'transparent';t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2200);}
@@ -829,7 +832,7 @@ function openNA(dateStr){
   EDIT_ID=null;
   document.getElementById('mo-a-t').textContent='Nieuwe afspraak';
   document.getElementById('a-ti').value='';
-  document.getElementById('a-da').value=dateStr||td();
+  document.getElementById('a-da').value=toDisplayDate(dateStr||td());
   document.getElementById('a-tm').value='';document.getElementById('a-lo').value='';document.getElementById('a-no').value='';
   fillDosDropdown();document.getElementById('a-do').value='';
   OM('mo-a');setTimeout(function(){document.getElementById('a-ti').focus();},80);
@@ -839,7 +842,7 @@ function openEA(id){
   EDIT_ID=id;
   document.getElementById('mo-a-t').textContent='Afspraak bewerken';
   document.getElementById('a-ti').value=a.titel||'';
-  document.getElementById('a-da').value=a.datum||td();
+  document.getElementById('a-da').value=toDisplayDate(a.datum||td());
   document.getElementById('a-tm').value=a.tijdstip||'';
   document.getElementById('a-lo').value=a.locatie||'';
   document.getElementById('a-no').value=a.notitie||'';
@@ -848,7 +851,7 @@ function openEA(id){
 }
 function saveAfspraak(){
   var titel=document.getElementById('a-ti').value.trim();
-  var datum=document.getElementById('a-da').value;
+  var datum=toISODate(document.getElementById('a-da').value);
   if(!titel){document.getElementById('a-ti').focus();return;}
   if(!datum){document.getElementById('a-da').focus();return;}
   var obj={id:EDIT_ID||gId(),titel:titel,datum:datum,tijdstip:document.getElementById('a-tm').value||'',locatie:document.getElementById('a-lo').value.trim(),dossier_id:document.getElementById('a-do').value||null,notitie:document.getElementById('a-no').value.trim()};
@@ -881,8 +884,8 @@ function onTypeChange(){
 }
 function onStartChange(){
   var ty=document.getElementById('r-ty').value;
-  var ds=document.getElementById('r-ds').value;if(!ds)return;
-  if(MULTI_TYPES.indexOf(ty)>=0){var de=document.getElementById('r-de').value;if(!de||de<ds)document.getElementById('r-de').value=ds;}
+  var ds=toISODate(document.getElementById('r-ds').value);if(!ds)return;
+  if(MULTI_TYPES.indexOf(ty)>=0){var de=toISODate(document.getElementById('r-de').value);if(!de||de<ds)document.getElementById('r-de').value=toDisplayDate(ds);}
 }
 function openNR(dateStr,typeHint,endDateHint){
   EDIT_R_ID=null;
@@ -890,9 +893,9 @@ function openNR(dateStr,typeHint,endDateHint){
   var ty=typeHint||'';
   document.getElementById('r-ty').value=ty;renderTypeButtons();
   var ds=dateStr||td();
-  document.getElementById('r-ds').value=ds;
+  document.getElementById('r-ds').value=toDisplayDate(ds);
   document.getElementById('r-no').value='';
-  document.getElementById('r-de').value=endDateHint||ds;
+  document.getElementById('r-de').value=toDisplayDate(endDateHint||ds);
   onTypeChange();
   OM('mo-r');setTimeout(function(){var fb=document.querySelector('#r-type-row button');if(fb)fb.focus();},80);
 }
@@ -901,18 +904,18 @@ function openER(id){
   EDIT_R_ID=id;
   document.getElementById('mo-r-t').textContent='Rooster bewerken';
   document.getElementById('r-ty').value=r.type;renderTypeButtons();
-  document.getElementById('r-ds').value=r.datum_start;
-  document.getElementById('r-de').value=r.datum_einde;
+  document.getElementById('r-ds').value=toDisplayDate(r.datum_start);
+  document.getElementById('r-de').value=toDisplayDate(r.datum_einde);
   document.getElementById('r-no').value=r.notitie||'';
   onTypeChange();OM('mo-r');
 }
 function saveRooster(){
   var ty=document.getElementById('r-ty').value;
-  var ds=document.getElementById('r-ds').value;
+  var ds=toISODate(document.getElementById('r-ds').value);
   if(!ty){toast('Kies een type');return;}
   if(!ds){document.getElementById('r-ds').focus();return;}
   var isMulti=MULTI_TYPES.indexOf(ty)>=0;
-  var de=isMulti?(document.getElementById('r-de').value||ds):ds;
+  var de=isMulti?(toISODate(document.getElementById('r-de').value)||ds):ds;
   if(de<ds)de=ds;
   var obj={id:EDIT_R_ID||gId(),type:ty,datum_start:ds,datum_einde:de,notitie:document.getElementById('r-no').value.trim()};
   if(EDIT_R_ID){var idx=ROOSTER.findIndex(function(x){return x.id===EDIT_R_ID;});if(idx>=0)ROOSTER[idx]=obj;else ROOSTER.push(obj);}
