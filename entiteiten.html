@@ -461,16 +461,28 @@ function initFB(){
       _db.ref('gedeeld/'+DID).once('value',function(dosSnap){
         var dosData=dosSnap.val();
         _isGedeeld=!!(dosData&&dosData.gedeeld);
-        // Als eigenaar: migreer bestaande privé-entiteiten naar gedeeld pad (éénmalig)
         if(_isGedeeld&&dosData.eigenaar_uid===_uid){
-          _db.ref('gebruikers/'+_uid+'/entiteiten/'+DID).once('value',function(oldSnap){
-            var old=oldSnap.val();
-            if(old){
-              _db.ref('gedeeld_ent/'+DID).set(old,function(){
-                _db.ref('gebruikers/'+_uid+'/entiteiten/'+DID).remove();
-              });
+          // Eigenaar: controleer of gedeeld pad al data heeft, zoniet migreer
+          _db.ref('gedeeld_ent/'+DID).once('value',function(sharedSnap){
+            if(sharedSnap.val()){
+              setupEntListeners();
+            }else{
+              _db.ref('gebruikers/'+_uid+'/entiteiten/'+DID).once('value',function(oldSnap){
+                var old=oldSnap.val();
+                if(old){
+                  _db.ref('gedeeld_ent/'+DID).set(old).then(function(){
+                    _db.ref('gebruikers/'+_uid+'/entiteiten/'+DID).remove();
+                    setupEntListeners();
+                  }).catch(function(e){
+                    console.warn('Ent migratie fout:',e);
+                    toast('⚠️ Controleer Firebase-regels (gedeeld_ent ontbreekt)');
+                    setupEntListeners();
+                  });
+                }else{
+                  setupEntListeners();
+                }
+              },function(){setupEntListeners();});
             }
-            setupEntListeners();
           },function(){setupEntListeners();});
         }else{
           setupEntListeners();

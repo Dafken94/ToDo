@@ -2347,6 +2347,17 @@ function doShareWithUser(did,collegaUid,collegaNaam){
   updates['uitnodigingen/'+collegaUid+'/'+inviteId]=invite;
   _db.ref().update(updates).then(function(){
     CM('mo-share');toast('✉️ Uitnodiging verstuurd aan '+collegaNaam);
+    // Migreer entiteiten naar gedeeld pad zodat medewerkers ze meteen zien
+    if(isFirstShare){
+      _db.ref('gebruikers/'+_uid+'/entiteiten/'+did).once('value',function(entSnap){
+        var entData=entSnap.val();
+        if(entData){
+          _db.ref('gedeeld_ent/'+did).set(entData).then(function(){
+            _db.ref('gebruikers/'+_uid+'/entiteiten/'+did).remove();
+          }).catch(function(e){console.warn('ent migratie fout:',e);});
+        }
+      });
+    }
   }).catch(function(e){
     console.warn('doShareWithUser fout:',e&&e.message||e);
     if(isFirstShare){Object.assign(d,dosBackup);delete d.gedeeld;delete d.eigenaar_uid;delete d.toegang;delete d.toegang_namen;}
@@ -2369,6 +2380,15 @@ function unshareDossier(did){
     });
     _db.ref('gebruikers/'+_uid+'/dossiers/'+did).set(copy).then(function(){
       _db.ref('gedeeld/'+did).remove().catch(function(e){console.warn(e);});
+      // Zet entiteiten terug naar privé-pad
+      _db.ref('gedeeld_ent/'+did).once('value',function(entSnap){
+        var entData=entSnap.val();
+        if(entData){
+          _db.ref('gebruikers/'+_uid+'/entiteiten/'+did).set(entData).then(function(){
+            _db.ref('gedeeld_ent/'+did).remove();
+          }).catch(function(e){console.warn('ent terugzetten fout:',e);});
+        }
+      });
       CM('mo-share');toast('🔒 Dossier is nu privé');
     }).catch(function(e){toast('❌ Fout. Probeer opnieuw.');});
   });
