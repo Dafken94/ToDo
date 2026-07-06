@@ -382,6 +382,7 @@ var MOB_VIEW='lijst';
 var EDIT_ENT=null, EDIT_EL=null, EDIT_REL=null;
 var _db=null,_storage=null,_fbReady=false,_uid=null,_sync='connecting';
 var _fbEntsRef=null,_fbRelsRef=null;
+var _isGedeeld=false;
 
 var THEME=localStorage.getItem('dos_theme')||(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
 
@@ -424,7 +425,7 @@ function saveLocal(){try{var entsForStorage={};Object.keys(ENTS).forEach(functio
 function _posKey(){return 'ent_pos_'+DID;}
 function savePosCache(){var pos={};Object.keys(NODES).forEach(function(k){pos[k]={x:NODES[k].x,y:NODES[k].y};});try{localStorage.setItem(_posKey(),JSON.stringify(pos));}catch(e){}}
 function loadPosCache(){try{var r=localStorage.getItem(_posKey());return r?JSON.parse(r):{};}catch(e){return {};}}
-function basePath(){return 'gebruikers/'+_uid+'/entiteiten/'+DID;}
+function basePath(){return _isGedeeld?'gedeeld_ent/'+DID:'gebruikers/'+_uid+'/entiteiten/'+DID;}
 
 function fbClean(obj){try{return JSON.parse(JSON.stringify(obj));}catch(e){return null;}}
 function saveEntData(id){saveLocal();if(_fbReady&&_db&&_uid){try{_db.ref(basePath()+'/entiteiten/'+id).set(fbClean(ENTS[id])||null).catch(function(e){console.warn('fb ent',e);});}catch(e){console.warn('fb ent sync',e);}}}
@@ -440,22 +441,41 @@ function initFB(){
       if(!user){window.location.href='index.html';return;}
       _uid=user.uid;_db=firebase.database();if(typeof firebase.storage==='function')_storage=firebase.storage();
       _db.ref('.info/connected').on('value',function(s){_sync=s.val()?'online':'offline';updateSync();});
-      var _fbEntsLoaded=false,_fbRelsLoaded=false;
-      function _checkFbReady(){if(_fbEntsLoaded&&_fbRelsLoaded){_fbReady=true;saveLocal();renderAll();}}
-      // on() i.p.v. once() voor realtime synchronisatie tussen sessies
-      _fbEntsRef=_db.ref(basePath()+'/entiteiten');
-      _fbEntsRef.on('value',function(snap){
-        var remote=snap.val()||{};
-        ENTS={};Object.keys(remote).forEach(function(k){ENTS[k]=remote[k];});
-        if(!_fbEntsLoaded){_fbEntsLoaded=true;_checkFbReady();}else{renderAll();}
-      },function(e){console.warn('ent load',e);_fbEntsLoaded=true;_checkFbReady();});
-      // Remote heeft altijd voorrang (BUG-07 fix: merge-logica was omgekeerd)
-      _fbRelsRef=_db.ref(basePath()+'/relaties');
-      _fbRelsRef.on('value',function(snap){
-        var remote=snap.val()||{};
-        RELS={};Object.keys(remote).forEach(function(k){RELS[k]=remote[k];});
-        if(!_fbRelsLoaded){_fbRelsLoaded=true;_checkFbReady();}else{renderAll();}
-      },function(e){console.warn('rel load',e);_fbRelsLoaded=true;_checkFbReady();});
+      function setupEntListeners(){
+        var _fbEntsLoaded=false,_fbRelsLoaded=false;
+        function _checkFbReady(){if(_fbEntsLoaded&&_fbRelsLoaded){_fbReady=true;saveLocal();renderAll();}}
+        _fbEntsRef=_db.ref(basePath()+'/entiteiten');
+        _fbEntsRef.on('value',function(snap){
+          var remote=snap.val()||{};
+          ENTS={};Object.keys(remote).forEach(function(k){ENTS[k]=remote[k];});
+          if(!_fbEntsLoaded){_fbEntsLoaded=true;_checkFbReady();}else{renderAll();}
+        },function(e){console.warn('ent load',e);_fbEntsLoaded=true;_checkFbReady();});
+        _fbRelsRef=_db.ref(basePath()+'/relaties');
+        _fbRelsRef.on('value',function(snap){
+          var remote=snap.val()||{};
+          RELS={};Object.keys(remote).forEach(function(k){RELS[k]=remote[k];});
+          if(!_fbRelsLoaded){_fbRelsLoaded=true;_checkFbReady();}else{renderAll();}
+        },function(e){console.warn('rel load',e);_fbRelsLoaded=true;_checkFbReady();});
+      }
+      // Controleer eerst of dit dossier gedeeld is, gebruik dan gemeenschappelijk pad
+      _db.ref('gedeeld/'+DID).once('value',function(dosSnap){
+        var dosData=dosSnap.val();
+        _isGedeeld=!!(dosData&&dosData.gedeeld);
+        // Als eigenaar: migreer bestaande privé-entiteiten naar gedeeld pad (éénmalig)
+        if(_isGedeeld&&dosData.eigenaar_uid===_uid){
+          _db.ref('gebruikers/'+_uid+'/entiteiten/'+DID).once('value',function(oldSnap){
+            var old=oldSnap.val();
+            if(old){
+              _db.ref('gedeeld_ent/'+DID).set(old,function(){
+                _db.ref('gebruikers/'+_uid+'/entiteiten/'+DID).remove();
+              });
+            }
+            setupEntListeners();
+          },function(){setupEntListeners();});
+        }else{
+          setupEntListeners();
+        }
+      },function(){_isGedeeld=false;setupEntListeners();});
     });
   }catch(e){console.warn('Firebase fout',e);_sync='offline';updateSync();}
 }
@@ -1661,7 +1681,7 @@ function switchDossier(did){
   if(_fbEntsRef){_fbEntsRef.off();_fbEntsRef=null;}
   if(_fbRelsRef){_fbRelsRef.off();_fbRelsRef=null;}
   DID=did;DNAAM=naam;ENTS={};RELS={};SEL=null;ACTIVE_FILTER='alles';
-  NODES={};NET_SCALE=1;NET_OX=0;NET_OY=0;_TREE_SNAPSHOT=null;
+  NODES={};NET_SCALE=1;NET_OX=0;NET_OY=0;_TREE_SNAPSHOT=null;_isGedeeld=false;
   document.getElementById('dos-naam').textContent=DNAAM;
   document.getElementById('btn-tree-restore').style.display='none';
   loadLocal();renderAll();
